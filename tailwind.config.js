@@ -7,7 +7,9 @@ const svgToDataUri = require("mini-svg-data-uri");
 export default {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-  },
+    fontFamily: {
+      mono: ['"Space Mono"'],
+  },},
   plugins: [
     function ({ matchUtilities, theme }) {
       matchUtilities(
