@@ -10,9 +10,10 @@ import { BiBookmarkAltPlus } from "react-icons/bi";
 import { FiTool } from "react-icons/fi";
 import { SlSocialSpotify } from "react-icons/sl";
 import { useState } from "react";
+import { Outlet } from "react-router-dom";
 
 
-function App() {
+function Root() {
   const [navOpen, setNavOpen] = useState(false)
  const navLinks = [{title:"home", href:"/home", icon:<MdKeyboardCommandKey/>},
 ,{title:"writing", href:"/writing", icon:<LuPenTool/>},
@@ -79,6 +80,7 @@ return <a href={link.href} className="flex gap-3 hover:bg-slate-300 transition c
         </div>
       </div>
       <div className="flex justify-center lg:p-16  flex-1 h-screen overflow-y-auto">
+        <Outlet/>
         <div className="lg:max-w-2xl">
           <div onClick={() => setNavOpen(open => !open)} className="flex items-center border-b p-2 text-xl bg-white shadow gap-4 lg:hidden">
             <div className="w-10 h-10 flex justify-center items-center">
@@ -115,4 +117,4 @@ return <a href={link.href} className="flex gap-3 hover:bg-slate-300 transition c
   )
 }
 
-export default App
+export default Root
