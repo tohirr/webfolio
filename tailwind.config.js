@@ -9,6 +9,12 @@ export default {
   theme: {
     fontFamily: {
       mono: ['"Space Mono"'],
+
+      extend: {
+        backgroundImage: {
+          'field': "url('/field.png')",
+        }
+      }
   },},
   plugins: [
     function ({ matchUtilities, theme }) {

@@ -83,8 +83,8 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
       </div>
-      <div className="flex flex-col items-center lg:p-12  flex-1 h-screen overflow-y-auto">
-      <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-10 items-center border-b p-2 text-xl bg-white shadow gap-4 lg:hidden">
+      <div className="flex flex-col items-center lg:p-6  flex-1 h-screen overflow-y-auto">
+      <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-4 items-center border-b p-2 text-xl bg-white shadow gap-4 lg:hidden">
         <div className="w-10 h-10 flex justify-center items-center">
           <MdKeyboardCommandKey/>
         </div>

@@ -1,8 +1,8 @@
 function Home () {
     return (
-    <div className="lg:max-w-2xl p-2 flex flex-col gap-4">
+    <div className="lg:max-w-2xl p-2 flex flex-col gap-10">
      
-      <div className="lg:p-5 p-3 text-sm lg:text-base bg-slate-50 shadow rounded-2xl border flex flex-col gap-4">
+      <div className="lg:p-3 p-1 text-sm lg:text-base bg-slate-50 shadow rounded-2xl border flex flex-col gap-4">
         <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">about_me.md</p>
         {/* <div className="flex justify-center">
         <img src="/dev_panda.png" alt="" className="w-72" />
@@ -25,11 +25,21 @@ function Home () {
         </ul>
     </div>
     <div className="flex flex-col gap-3">
-        <p>currently</p>
-        <div className=" grid grid-cols-12  gap-5">
-            <img src="/dev_panda.png" alt="" className="h-52 col-span-4 rounded-2xl object-cover bg-slate-600" />
-            <img src="/fire.gif" alt="" className="h-52 col-span-4 rounded-2xl object-cover bg-slate-600" />
-            <img src="/selfai.png" alt="" className="h-52 col-span-4 rounded-2xl object-cover bg-slate-600" />
+        <p>currently...</p>
+        <div className=" grid grid-cols-12  lg:gap-5 gap-2">
+            <div className="flex flex-col gap-2 lg:p-3 p-1 col-span-6 rounded-xl border bg-white shadow">
+            <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">reading.&#128214;</p>
+            <div className="flex relative  rounded-lg lg:h-[26rem] h-[16rem] overflow-hidden bg-slate-600">
+
+            <img src="/stormlight.jpeg" alt="" className="object-cover w-full h-full" />
+            </div></div>
+            <div className="flex flex-col gap-2 lg:p-3 p-1 col-span-6 rounded-xl border bg-white shadow">
+            <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">watching.&#127871;</p>
+            <div className="flex relative  rounded-lg lg:h-[26rem] h-[16rem] overflow-hidden bg-slate-600">
+
+            <img src="/succession.jpeg" alt="" className="object-cover w-full h-full" />
+            </div></div>
+            
         </div>
     </div>
 </div>)
