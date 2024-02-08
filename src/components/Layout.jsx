@@ -64,7 +64,7 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
     <div className="bg-grid-[#80808012] font-mono relative flex w-screen overflow-hidden bg-white h-screen">
       <div
       style={{bottom: navOpen ? "0":"-100vh"}}
-       className="absolute z-10 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen bg-slate-200/90  lg:border-r border">
+       className="absolute z-10 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen lg:bg-slate-100 bg-white/80  lg:border-r border">
         <div className="flex justify-center pb-2 lg:hidden">
           <div className="w-16 h-1 rounded-full bg-slate-300 "></div>
         </div>
@@ -84,7 +84,7 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
         </div>
       </div>
       <div className="flex flex-col items-center lg:p-6  flex-1 h-screen overflow-y-auto">
-      <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-4 items-center border-b p-1 text-xl bg-white/50 backdrop-blur-sm shadow gap-4 sticky top-0 lg:hidden">
+      <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-4 items-center border-b p-1 text-xl bg-white/70 backdrop-blur shadow gap-4 sticky top-0 lg:hidden">
         <div className="w-10 h-10 flex justify-center items-center">
           <MdKeyboardCommandKey/>
         </div>
