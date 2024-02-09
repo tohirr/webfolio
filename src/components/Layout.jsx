@@ -64,7 +64,7 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
   return (
     <div className="bg-grid-[#80808012] font-mono text-sm relative flex w-screen overflow-hidden bg-white h-screen">
       <div
-      style={{top: navOpen ? "calc(20vh)":"calc(100vh - 6rem)"}}
+      style={{top: navOpen ? "calc(20vh)":"calc(100dvh - 6rem)"}}
        className="absolute z-10 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen lg:bg-slate-100 bg-white/80  lg:border-r border">
         <div className="flex justify-center pb-2 lg:hidden">
           <div className="w-16 h-1 rounded-full bg-slate-300 "></div>
