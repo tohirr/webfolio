@@ -86,7 +86,7 @@ export const Weather = () => {
             <div className='flex justify-between text-sm'>
               {daysIndex.map((day, index) => (
                 
-              <div key={index} className='flex text-sm flex-col gap-1 items-center text-center'>
+              <div key={index} className='flex text-xs flex-col gap-1 items-center text-center'>
                   <p className='uppercase'>{ index === 0 ? "today": weekdays[(dayIndex + index)%7]}</p>
                                            {Math.round(weatherForecastData.list[day].main.temp - 273.15) < 26 ?
                                             <img src="/weather_icons/rain.svg" className='h-5' />  :Math.round(weatherForecastData.list[day].main.temp - 273.15) < 31 ?
