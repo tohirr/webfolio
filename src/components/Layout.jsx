@@ -11,26 +11,22 @@ import { FiTool } from "react-icons/fi";
 import { SlSocialSpotify } from "react-icons/sl";
 import { useState } from "react";
 import { IoArrowDownCircleOutline } from "react-icons/io5";
-
-
 import { NavLink } from 'react-router-dom';
-
 
 function Layout({children}) {
   const [navOpen, setNavOpen] = useState(false)
- const navLinks = [{title:"home", href:"/", icon:<MdKeyboardCommandKey/>},
-,{title:"writing", href:"/writing", icon:<LuPenTool/>},
-{title:"projects", href:"/projects", icon:<HiOutlineSparkles/>},
+  const navLinks = [{title:"home", href:"/", icon:<MdKeyboardCommandKey/>},
+  {title:"writing", href:"/writing", icon:<LuPenTool/>},
+ {title:"projects", href:"/projects", icon:<HiOutlineSparkles/>},
 {title:"tools", href:"/tools", icon:<FiTool/>},
 {title:"bookmarks", href:"/bookmarks", icon:<BiBookmarkAltPlus/>},]
 
 const socialLinks = [
-  {title:"gmail", href:"https://github.com/TohirBabs", icon:<SiGmail/>},  
-  {title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
+{title:"gmail", href:"https://github.com/TohirBabs", icon:<SiGmail/>},  
+{title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
 {title:"X/twitter", href:"https://twitter.com/BabsTohir", icon:<FaXTwitter/>},
 {title:"whatsapp", href:"https://twitter.com/BabsTohir", icon:<FaWhatsapp/>},
-
-,{title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
+{title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
 {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
 {title:"threads", href:"https://www.threads.net/@dev_panda42", icon:<SiThreads/>},
 {title:"pinterest", href:"https://www.pinterest.com/tohirbabs/", icon:<ImPinterest2/>},]
@@ -54,20 +50,19 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
       <div className="text-base">
         {link.icon}
       </div>
-    {link.title}
+       {link.title}
       </div>
-    <HiOutlineArrowUpRight/>
-      
+      <HiOutlineArrowUpRight/>     
     </a>
       }
 
   return (
     <div className="bg-grid-[#80808012] font-mono text-sm relative flex w-screen overflow-hidden bg-white h-screen">
       <div
-      style={{top: navOpen ? "calc(20vh)":"calc(100dvh - 6rem)"}}
-       className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen lg:bg-slate-100 bg-white/80  lg:border-r border">
+          style={{top: navOpen ? "calc(20vh)":"calc(100dvh - 6rem)"}}
+          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen lg:bg-slate-100 bg-white/80  lg:border-r border">
         <div className="flex justify-center pb-2 lg:hidden">
-          <div className="w-16 h-1 rounded-full bg-slate-300 "></div>
+          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce"></div>
         </div>
         <div className="flex items-center gap-2">
         <a href="/" className="flex flex-1 hover:bg-slate-300 p-2 rounded-xl items-center gap-2">
@@ -78,9 +73,8 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
           </div>
         </a>
         <div onClick={()=> setNavOpen(!navOpen)} className="lg:hidden text-xl flex w-10 h-10 items-center justify-center">
-<IoArrowDownCircleOutline/></div>
-        </div>
-        
+         <IoArrowDownCircleOutline/></div>
+        </div>        
         <div className="flex flex-col text-sm gap-1 py-4 ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
@@ -89,7 +83,7 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
       </div>
-      <div className="flex flex-col items-center lg:p-6  flex-1 h-screen overflow-y-auto">
+      <div className="flex flex-col items-center lg:p-6 pb-[6rem] flex-1 h-screen overflow-y-auto">
       {/* <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-4 items-center border-b p-1 text-xl bg-white/70 backdrop-blur shadow gap-4 sticky top-0 lg:hidden">
         <div className="w-10 h-10 flex justify-center items-center">
           <MdKeyboardCommandKey/>

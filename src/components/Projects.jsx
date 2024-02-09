@@ -1,6 +1,8 @@
 import { HiOutlineArrowUpRight } from "react-icons/hi2"
 import { MdKeyboardCommandKey } from "react-icons/md"
 import { DigitalClock } from "./widgets/DigitalClock"
+import { Battery } from "./widgets/Battery"
+import { Weather } from "./widgets/Weather"
 
 function Projects (){
 return (
@@ -16,11 +18,10 @@ return (
             </div></div>
             <div className="flex flex-col p-3 gap-3 rounded-xl border bg-slate-100 shadow">
             <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
-            <div className=" relative grid  grid-cols-12 gap-4">
+            <div className=" relative grid  grid-cols-12 gap-2">
                 <DigitalClock/>     
-               <DigitalClock/>
-                <DigitalClock/>
-                <DigitalClock/>
+               <Battery />
+                <Weather/>
 
             </div></div>            
 </div>

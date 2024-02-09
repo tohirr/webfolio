@@ -33,9 +33,9 @@ export const DigitalClock = ({}) => {
             <div className='flex flex-col gap-2 justify-center  relative  transition-all'>
             <div className='absolute  h-[9.5rem] w-full bg-gradient-to-b from-[#0e0e0e] via-transparent to-[#0e0e0e] z-20'></div>
           <div
-            className='flex relative flex-col  w-[44px] h-[44.06px]'>
+            className='flex relative flex-col  w-[46px] h-[44.06px]'>
             <div 
-              style={{ transform: `translateY(${true ? minutes * -39.96 : minutes * -72}px)` }}
+              style={{ transform: `translateY(${true ? minutes * -39.94 : minutes * -72}px)` }}
               className={`flex transition-all duration-1000  flex-col absolute `}>
                   {minutesArray.map((minute) => <span  key={minute}>{minute}</span>)}
                 </div>
