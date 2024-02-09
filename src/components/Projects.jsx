@@ -1,5 +1,6 @@
 import { HiOutlineArrowUpRight } from "react-icons/hi2"
 import { MdKeyboardCommandKey } from "react-icons/md"
+import { DigitalClock } from "./widgets/DigitalClock"
 
 function Projects (){
 return (
@@ -14,9 +15,13 @@ return (
 
             </div></div>
             <div className="flex flex-col p-2 gap-3 rounded-xl border bg-slate-100 shadow">
-            <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">harvestgrove.&#128214;</p>
-            <div className="flex relative  rounded-lg h-[26rem] overflow-hidden ">
-            <img src="/harvestgrove.png" alt="" className="object-cover border border-slate-300 rounded-xl w-full h-full" />
+            <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
+            <div className=" relative grid  grid-cols-12 gap-2">
+                <DigitalClock/>     
+               <DigitalClock/>
+                <DigitalClock/>
+                <DigitalClock/>
+
             </div></div>            
 </div>
 )
