@@ -16,7 +16,7 @@ return (
         </a>
 
             </div></div>
-            <div className="flex flex-col p-3 gap-3 rounded-xl border bg-slate-100 shadow">
+            <div className="flex flex-col p-2 gap-3 rounded-xl border bg-slate-100 shadow">
             <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
             <div className=" relative grid  grid-cols-12 gap-2">
                 <DigitalClock/>     
