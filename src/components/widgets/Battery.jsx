@@ -47,7 +47,7 @@ export const Battery = () => {
             <div className='h-[30%] w-[70%] rounded-lg bg-[#d9d9d9]/50  flex items-center justify-center relative'>
           <div style={{ width: `${batteryLevel}%` }} className='h-full absolute rounded-lg  left-0 transition-all duration-1000 bg-[#d9d9d9]'></div>
           <div className='absolute h-4 rounded-r-sm w-1 bg-[#d9d9d9]/50 -right-1'></div>
-            { charging && <BsLightningChargeFill className='z-10 md:text-4xl text-2xl text-[#0e0e0e]'/>}
+            { charging && <BsLightningChargeFill className='z-10 text-2xl text-[#0e0e0e]'/>}
             </div>
             <span className=' text-xs text-center'>{formatTime(hours)}hrs {formatTime(minutes)}mins left</span>
          </div>
