@@ -9,8 +9,15 @@ return (
     <div className="lg:max-w-2xl p-2 flex flex-col gap-10">
         <div className="flex flex-col  gap-3 rounded-2xl border bg-white shadow">
 
-        <div className="flex relative  rounded-3xl overflow-hidden ">
-            <img src="/harvestgrove.png" alt="" className="object-cover w-full h-full" />
+        <div className="flex flex-col gap-2 relative  rounded-3xl overflow-hidden ">
+            <img src="/harvestgrove.png" alt="" className="object-cover w-full h-full" />      
+            <img src="/sect2.png" alt="" className="object-cover w-full h-full" />     
+                   <img src="/sect3.png" alt="" className="object-cover w-full h-full" />
+            <img src="/sect4.png" alt="" className="object-cover w-full h-full" />
+            <img src="/sect5.png" alt="" className="object-cover w-full h-full" />
+
+      <img src="/footer.png" alt="" className="object-cover w-full h-full" />
+
             <a href="" className="absolute bottom-4 right-4 text-xs bg-white px-2 shadow border w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
           <HiOutlineArrowUpRight/>
         </a>

@@ -30,7 +30,6 @@ function Home () {
             <div className="flex flex-col gap-2 lg:p-3 p-1 col-span-6 rounded-xl border bg-white shadow">
             <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-md ">reading.&#128214;</p>
             <div className="flex relative  rounded-lg lg:h-[26rem] h-[16rem] overflow-hidden bg-slate-600">
-
             <img src="/stormlight.jpeg" alt="" className="object-cover w-full h-full" />
             </div></div>
             <div className="flex flex-col gap-2 lg:p-3 p-1 col-span-6 rounded-xl border bg-white shadow">
