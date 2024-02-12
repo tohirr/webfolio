@@ -4,44 +4,21 @@ import { useState } from 'react';
 import { BsLightningChargeFill } from "react-icons/bs";
 
 export const Battery = () => {
-  const [batteryLevel, setBatteryLevel] = useState(0)
+  const [batteryLevel, setBatteryLevel] = useState(69)
   const [chargeOrDischargeTime, setChargeOrDischargeTime] = useState(0)
   const [charging, setCharging] = useState(false)
   const formatTime = (time) => (time < 10 ? `0${time}` : time); 
   const getHoursMinutesSeconds = (totalSeconds) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-    const seconds = totalSeconds % 60;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60;
     return { hours, minutes, seconds };
   };
-  const { hours, minutes, seconds: remainingSeconds } = getHoursMinutesSeconds(chargeOrDischargeTime);
-    if(navigator.getBattery){
-      useEffect(() => {
-        // Update the time every second 
-      const interval = setInterval(() => {   
-    navigator.getBattery()
-      .then(function (battery)
-      {// Get current battery level
-        setBatteryLevel(battery.level * 100);
-        setChargeOrDischargeTime(battery.charging ? battery.chargingTime : battery.dischargingTime)
-        setCharging(battery.charging)
-      })    
-    .catch(function(e) {
-      console.error(e);
-    });
-    }, 1000);
-    // Clear the interval when the component is unmounted
-        return () => clearInterval(interval);
-      }, []);     
-    } 
-  
-    else {
-      // if battery API is not working
-      console.log("no battery api");
-  } 
+  const { hours, minutes, seconds } = getHoursMinutesSeconds(chargeOrDischargeTime);
+    
   
   return (
-      <div className="md:col-span-3 col-span-6 h-[9.5rem] relative overflow-hidden  bg-[#0e0e0e] rounded-2xl text-white flex items-center justify-center ">
+      <div className="md:col-span-3 col-span-6 h-[8rem] w-[8rem] relative overflow-hidden  bg-[#0e0e0e] rounded-3xl text-white flex items-center justify-center ">
           <div className='flex-col items-center w-full h-full justify-center flex  gap-2'>
             <span className='text-3xl text-center font-semibold'>{Math.round(batteryLevel)}%</span>
             <div className='h-[30%] w-[70%] rounded-lg bg-[#d9d9d9]/50  flex items-center justify-center relative'>
