@@ -83,10 +83,9 @@ export const Weather = () => {
                 
               <div key={index} className='flex text-xs flex-col gap-1 items-center text-center'>
                   <p className='uppercase'>{ index === 0 ? "today": weekdays[(dayIndex + index)%7]}</p>
-                                           {Math.random % 2 == 0 ?
-                                            <img src="/weather_icons/rain.svg" className='h-4' />  :
-                                            <img src="/weather_icons/cloud.svg" className='h-4' />              
-}
+                     {Math.random % 2 == 0 ?
+                            <img src="/weather_icons/rain.svg" className='h-4' />  :
+                            <img src="/weather_icons/cloud.svg" className='h-4' /> }
                             <p>30&deg;</p>
 
                         </div>)
