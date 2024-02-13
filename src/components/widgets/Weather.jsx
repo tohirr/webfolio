@@ -66,7 +66,7 @@ export const Weather = () => {
   const daysIndex = [0,8,16,24,32]
     return (
         <div className="h-[9rem] w-[19rem] relative overflow-hidden  bg-[#0e0e0e]  rounded-3xl text-white flex items-center justify-center ">    
-            <div className='flex-col  p-2 justify-between w-full h-full flex  gap-2'>
+            <div className='flex-col  p-3 justify-between w-full h-full flex  gap-2'>
                     <div className='flex justify-between items-center'>
               <div className='flex gap-2 items-center'>
                         <img src="/weather_icons/cloud.svg" className='h-8' />                
@@ -83,7 +83,7 @@ export const Weather = () => {
                 
               <div key={index} className='flex text-xs flex-col gap-1 items-center text-center'>
                   <p className='uppercase'>{ index === 0 ? "today": weekdays[(dayIndex + index)%7]}</p>
-                                           {Math.random % 2 ?
+                                           {Math.random % 2 == 0 ?
                                             <img src="/weather_icons/rain.svg" className='h-4' />  :
                                             <img src="/weather_icons/cloud.svg" className='h-4' />              
 }

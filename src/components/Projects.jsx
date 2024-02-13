@@ -22,7 +22,7 @@ return (
         </a>
 
             </div></div>
-            <div className="flex flex-col  gap-3 items-center rounded-xl border bg-slate-100 shadow">
+            <div className="flex flex-col  gap-3 ">
             <p className="text-xs bg-red-200 m-3 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
             <div className=" relative flex max-w-[20rem] lg:max-w-none justify-center gap-4 flex-wrap">
                 <DigitalClock/>     
