@@ -8,7 +8,7 @@ function Home () {
         I'm <span className="font-semibold">Tohir</span>&#128060; , a ui developer focused on building beautiful, snappy user interfaces and performant,
          scalable web applications.</p>
          
-        <ul className="flex flex-col gap-2 p-4 rounded-xl bg-slate-900 text-white">
+        <ul className="flex flex-col gap-2 p-4 text-xs rounded-xl bg-slate-900 text-white">
           <li>🔭 currently building web widgets @ pandawidgets.com</li>   
           <li>&#127891; in my final year studying engineering at Unilag</li>
           <li>&#9997; I write <strike className="italic">frequently</strike>  whenever i feel the muse</li>
