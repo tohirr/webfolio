@@ -15,11 +15,11 @@ import { NavLink } from 'react-router-dom';
 
 function Layout({children}) {
   const [navOpen, setNavOpen] = useState(false)
-  const navLinks = [{title:"home", href:"/", icon:<MdKeyboardCommandKey/>},
-  {title:"writing", href:"/writing", icon:<LuPenTool/>},
- {title:"projects", href:"/projects", icon:<HiOutlineSparkles/>},
-{title:"tools", href:"/tools", icon:<FiTool/>},
-{title:"bookmarks", href:"/bookmarks", icon:<BiBookmarkAltPlus/>},]
+  const navLinks = [{title:"home", href:"/", icon:"🏠"},
+  {title:"writing", href:"/writing", icon:"✒︎"},
+ {title:"projects", href:"/projects", icon:"✨"},
+{title:"tools", href:"/tools", icon:"🔧"},
+{title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
 
 const socialLinks = [
 {title:"gmail", href:"https://github.com/TohirBabs", icon:<SiGmail/>},  
@@ -32,9 +32,10 @@ const socialLinks = [
 {title:"pinterest", href:"https://www.pinterest.com/tohirbabs/", icon:<ImPinterest2/>},]
 
 const NavButton = ({link}) => {
-return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:bg-slate-300 transition cursor-pointer  p-2  rounded-md items-center justify-between ${isActive ? "text-white bg-slate-900 hover:bg-slate-900 hover:text-white":""}`}>
-<div className="flex items-center gap-3">
-<div className="text-base">
+return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-md items-center justify-between 
+${isActive ? "text-white bg-slate-900 hover:bg-slate-900 font-semibold hover:text-white":"hover:bg-slate-200"}`}>
+<div className="flex text-sm items-center gap-2">
+<div className="">
   {link.icon}
 </div>
 {link.title}
@@ -46,7 +47,7 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
 
   const SocialLink = ({link}) => {
     return <a href={link.href} className="flex gap-3 hover:bg-slate-300 transition cursor-pointer  p-2  rounded-md items-center justify-between">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 font-semibold ">
       <div className="text-base">
         {link.icon}
       </div>
@@ -60,30 +61,28 @@ return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3 hover:
     <div className="bg-grid-[#80808012] font-mono text-sm relative flex w-screen overflow-hidden bg-white h-screen">
       <div
           style={{top: navOpen ? "calc(20vh)":"calc(100dvh - 6rem)"}}
-          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none lg:p-3 p-2 lg:w-72 lg:h-screen lg:bg-slate-100 bg-white/80  lg:border-r border">
-        <div className="flex justify-center pb-2 lg:hidden">
-          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce"></div>
+          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
+        <div className="flex justify-center  lg:hidden">
+          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2"></div>
         </div>
         <div className="flex items-center gap-2">
-        <a href="/" className="flex flex-1 hover:bg-slate-300 p-2 rounded-xl items-center gap-2">
+        <a href="/" className="flex flex-1 hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
           <img src="/selfai.png" alt="" className="w-12 h-12 rounded-md bg-slate-500" />
           <div className="leading-tight">
             <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
             <h2>ui developer</h2>
           </div>
         </a>
-        <div onClick={()=> setNavOpen(!navOpen)} className="lg:hidden text-xl flex w-10 h-10 items-center justify-center">
-         <IoArrowDownCircleOutline/></div>
-        </div>        
-        <div className="flex flex-col text-sm gap-1 py-4 ">
+        </div>  
+        <div className="flex flex-col text-sm  ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
-        <div className="flex text-sm flex-col gap-1 py-4">
+        <div className="flex text-sm flex-col gap-1">
           <p className="px-2 text-slate-700">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
       </div>
-      <div className="flex flex-col items-center lg:p-6 pb-[6rem] flex-1 h-screen overflow-y-auto">
+      <div className="flex flex-col lg:p-6 pb-[6rem] flex-1 h-screen overflow-y-auto">
       {/* <div onClick={() => setNavOpen(open => !open)} className="flex w-full mb-4 items-center border-b p-1 text-xl bg-white/70 backdrop-blur shadow gap-4 sticky top-0 lg:hidden">
         <div className="w-10 h-10 flex justify-center items-center">
           <MdKeyboardCommandKey/>
