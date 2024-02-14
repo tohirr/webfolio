@@ -14,10 +14,17 @@ import { IoArrowDownCircleOutline } from "react-icons/io5";
 import { NavLink } from 'react-router-dom';
 
 function Layout({children}) {
+  
   const [navOpen, setNavOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+
+
+
   const navLinks = [{title:"home", href:"/", icon:"🏠"},
-  {title:"writing", href:"/writing", icon:"✒︎"},
- {title:"projects", href:"/projects", icon:"✨"},
+{title:"writing", href:"/writing", icon:"✒︎"},
+{title:"projects", href:"/projects", icon:"✨"},
 {title:"tools", href:"/tools", icon:"🔧"},
 {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
 
@@ -30,6 +37,29 @@ const socialLinks = [
 {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
 {title:"threads", href:"https://www.threads.net/@dev_panda42", icon:<SiThreads/>},
 {title:"pinterest", href:"https://www.pinterest.com/tohirbabs/", icon:<ImPinterest2/>},]
+
+
+const handleTouchStart = (e) => {
+  setDragging(true);
+  setDragY(e.touches[0].clientY);
+};
+
+const handleTouchMove = (e) => {
+  if (dragging) {
+    const newY = e.touches[0].clientY;
+    const delta = newY - dragY;
+    const newHeight = Math.max(0, window.innerHeight - newY);
+    setDragY(delta);
+
+    if (delta !== 0) {
+      setIsOpen(newHeight > window.innerHeight / 2);
+    }
+  }
+};
+
+const handleTouchEnd = () => {
+  setDragging(false);}
+console.log(dragY);
 
 const NavButton = ({link}) => {
 return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-md items-center justify-between 
@@ -60,7 +90,14 @@ ${isActive ? "text-white bg-slate-900 hover:bg-slate-900 font-semibold hover:tex
   return (
     <div className="bg-grid-[#80808012] font-mono text-sm relative flex w-screen overflow-hidden bg-white h-screen">
       <div
-          style={{top: navOpen ? "calc(20vh)":"calc(100dvh - 6rem)"}}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      // onMouseDown={handleMouseDown}
+      // onMouseMove={handleMouseMove}
+      // onMouseUp={handleMouseUp}
+      // onMouseLeave={handleMouseUp}
+          style={{top: `${dragY}px`}}
           className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         <div className="flex justify-center  lg:hidden">
           <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2"></div>
