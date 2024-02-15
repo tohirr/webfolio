@@ -86,7 +86,7 @@ const NavButton = ({link}) => {
             <h2>ui developer</h2>
           </div>
         </a>
-        <div onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 h-10 text-2xl flex items-center justify-center">
+        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 h-10 text-2xl flex items-center justify-center">
         <IoMdArrowDropupCircle/>
 
         </div>
