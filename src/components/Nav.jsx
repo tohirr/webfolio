@@ -1,6 +1,7 @@
 import { TfiGithub } from "react-icons/tfi";
 import { FaWhatsapp, FaXTwitter } from "react-icons/fa6";
 import { ImPinterest2 } from "react-icons/im";
+import { IoMdArrowDropupCircle } from "react-icons/io";
 import { SiGmail, SiThreads } from "react-icons/si";
 import { LuLinkedin } from "react-icons/lu";
 import { SlSocialSpotify } from "react-icons/sl";
@@ -76,17 +77,19 @@ const NavButton = ({link}) => {
           className="absolute z-30 lg:static h-[600px] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         
         <div
-              {...handlers}
-              className="flex flex-col items-center gap-2 sticky top-0">
-                          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2 lg:hidden"></div>
+              className="flex  items-center gap-2 sticky top-0">
 
-        <a href="/" className="flex w-full hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
+        <a href="/" className="flex w-full flex-1 hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
           <img src="/selfai.png" alt="" className="w-12 h-12 rounded-md bg-slate-500" />
           <div className="leading-tight">
             <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
             <h2>ui developer</h2>
           </div>
         </a>
+        <div onClick={()=> setNavOpen((prevState) => !prevState)} className="w-12 h-12 text-2xl animate-bounce  flex items-center justify-center">
+        <IoMdArrowDropupCircle/>
+
+        </div>
         </div>  
         <div className="flex flex-col gap-4">
         <div className="flex flex-col text-sm  ">
