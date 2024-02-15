@@ -73,14 +73,13 @@ const NavButton = ({link}) => {
         <div
       style={{top: !navOpen ? "80vh":"30vh" }}
           className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
-        <div 
-       className="flex justify-center  lg:hidden">
-          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2"></div>
-        </div>
+        
         <div
               {...handlers}
-              className="flex items-center gap-2">
-        <a href="/" className="flex flex-1 hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
+              className="flex flex-col items-center gap-2">
+                          <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2 lg:hidden"></div>
+
+        <a href="/" className="flex w-full hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
           <img src="/selfai.png" alt="" className="w-12 h-12 rounded-md bg-slate-500" />
           <div className="leading-tight">
             <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
