@@ -8,15 +8,21 @@ import { useSwipeable } from "react-swipeable";
 import { HiOutlineArrowUpRight } from "react-icons/hi2";
 import { NavLink } from 'react-router-dom';
 import { useState } from "react";
+import { useRef } from "react";
 
 
 
 const Nav = () => {
-    const [navPos, setNavPos] = useState(0)
+    // const windowSize = useRef([window.innerWidth, window.innerHeight]);
+// const [navPos, setNavPos] = useState(windowSize.current[1] - 100)
+const [navOpen, setNavOpen] = useState(false)
 
-console.log(navPos);
+
+console.log(navOpen);
   const handlers = useSwipeable({
-    onSwiping: (eventData) => {console.log("User is Swiping!", eventData), setNavPos(eventData.absY)},
+    onSwipedUp: (eventData) => {console.log("User swiped up!", eventData), setNavOpen( true)}, 
+       onSwipedDown: (eventData) => {console.log("User swiped down!", eventData), setNavOpen( false)},
+
     
   });
     const navLinks = [{title:"home", href:"/", icon:"🏠"},
@@ -66,8 +72,8 @@ const NavButton = ({link}) => {
     return (
         <div
       {...handlers}
-      style={{top: navPos ? `${navPos}px` : "90vh"}}
-          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none duration-300 overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
+      style={{top: !navOpen ? "80vh":"30vh" }}
+          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         <div 
        className="flex justify-center  lg:hidden">
           <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2"></div>
