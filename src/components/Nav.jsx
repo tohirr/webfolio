@@ -74,7 +74,7 @@ const NavButton = ({link}) => {
     return (
         <div
       style={{top: !navOpen ? "calc(100dvh - 65px)":"calc(100dvh - 600px)" }}
-          className="absolute z-30 lg:static h-[600px] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-2xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
+          className="absolute z-30 lg:static h-[600px] w-screen duration-300 transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-2xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         
         <div
               className="flex  items-center gap-2 sticky top-0">
@@ -86,7 +86,7 @@ const NavButton = ({link}) => {
             <h2>ui developer</h2>
           </div>
         </a>
-        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 h-10 text-2xl flex items-center justify-center">
+        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
 
         </div>

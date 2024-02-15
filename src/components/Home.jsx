@@ -2,7 +2,7 @@ function Home () {
     return (
     <div className="lg:max-w-4xl p-2 lg:pl-10 flex flex-col gap-10">
       <div className=" text-sm lg:text-base  flex flex-col gap-6">
-             <h2 className="text-3xl font-semibold">home</h2>
+             <h2 className="text-3xl font-semibold">🏠home</h2>
 
       <p>Hi there!&#x1F44B;
         I'm <span className="font-semibold">Tohir</span>&#128060; , a ui developer focused on building beautiful, snappy user interfaces and performant,
