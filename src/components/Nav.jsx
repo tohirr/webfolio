@@ -38,8 +38,9 @@ console.log(navOpen);
     {title:"whatsapp", href:"https://twitter.com/BabsTohir", icon:<FaWhatsapp/>},
     {title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
     {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
-    {title:"threads", href:"https://www.threads.net/@dev_panda42", icon:<SiThreads/>},
-    {title:"pinterest", href:"https://www.pinterest.com/tohirbabs/", icon:<ImPinterest2/>},]
+    // {title:"threads", href:"https://www.threads.net/@dev_panda42", icon:<SiThreads/>},
+    // {title:"pinterest", href:"https://www.pinterest.com/tohirbabs/", icon:<ImPinterest2/>},
+]
     
 
 
