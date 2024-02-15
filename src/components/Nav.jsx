@@ -71,7 +71,7 @@ const NavButton = ({link}) => {
     
     return (
         <div
-      style={{top: !navOpen ? "calc(100dvh - 100px)":"10dvh" }}
+      style={{top: !navOpen ? "calc(100dvh - 90px)":"10dvh" }}
           className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         
         <div
