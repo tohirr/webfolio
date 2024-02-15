@@ -76,7 +76,7 @@ const NavButton = ({link}) => {
         
         <div
               {...handlers}
-              className="flex flex-col items-center gap-2">
+              className="flex flex-col items-center gap-2 sticky top-0">
                           <div className="w-16 h-1 rounded-full bg-slate-800 animate-bounce mt-2 lg:hidden"></div>
 
         <a href="/" className="flex w-full hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
@@ -87,6 +87,7 @@ const NavButton = ({link}) => {
           </div>
         </a>
         </div>  
+        <div className="flex flex-col gap-4">
         <div className="flex flex-col text-sm  ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
@@ -94,6 +95,8 @@ const NavButton = ({link}) => {
           <p className="px-2 text-slate-700">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
+        </div>
+        
       </div>
     )
 }
