@@ -71,8 +71,8 @@ const NavButton = ({link}) => {
     
     return (
         <div
-      style={{top: !navOpen ? "calc(100dvh - 90px)":"calc(100dvh - 80vh)" }}
-          className="absolute z-30 lg:static h-[80vh] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
+      style={{top: !navOpen ? "calc(100dvh - 90px)":"calc(100dvh - 700px)" }}
+          className="absolute z-30 lg:static h-[700px] w-screen transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-3xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
         
         <div
               {...handlers}
