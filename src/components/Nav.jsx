@@ -86,7 +86,7 @@ const NavButton = ({link}) => {
             <h2>ui developer</h2>
           </div>
         </a>
-        <div onClick={()=> setNavOpen((prevState) => !prevState)} className="w-12 h-12 text-2xl animate-bounce  flex items-center justify-center">
+        <div onClick={()=> setNavOpen((prevState) => !prevState)} className="w-12 h-12 text-2xl flex items-center justify-center">
         <IoMdArrowDropupCircle/>
 
         </div>
