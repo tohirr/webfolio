@@ -14,7 +14,6 @@ return (
                    {/* <img src="/sect3.png" alt="" className="object-cover w-full h-full" /> */}
             {/* <img src="/sect4.png" alt="" className="object-cover w-full h-full" /> */}
             {/* <img src="/sect5.png" alt="" className="object-cover w-full h-full" /> */}
-
       {/* <img src="/footer.png" alt="" className="object-cover w-full h-full" /> */}
 
             <a href="" className="absolute bottom-4 right-4 text-xs bg-white px-2 shadow border w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
@@ -27,10 +26,9 @@ return (
                 <DigitalClock/>     
                <Battery />
                 <Weather/>
- 
             </div></div>  
             <div className="flex flex-col  rounded-lg rounded-b-2xl border-4 border-slate-600  shadow overflow-hidden">
-        <img src="/titlebard.png" alt="" className="border-b " />
+        <img src="/titlebard.png" alt="" celassName="border-b " />
         <div className="flex flex-col relative ">
             <img src="/gal.png" alt="" className="object-cover w-full h-full" />      
             <img src="/gal2.png" alt="" className="object-cover w-full h-full" />

@@ -10,24 +10,21 @@ const list = [
   {emoji:"😄", info:"pronouns he/him"},
   {emoji:"🇳🇬", info:"based in lagos, Nigeria"},
   {emoji:"⚡", info:"fun fact: i blink alot less than average"},
-
 ]
     return (
-    <div className="lg:max-w-3xl lg:p-2 p-1  flex flex-col gap-10">
-      <div className=" text-sm lg:text-base flex flex-col lg:gap-6 gap-4">
-             <h2 className="lg:text-3xl text-2xl font-semibold">about_me.md</h2>
-
-      <p className="leading-snug max-w-2xl"> Hi there!&#x1F44B;
+    <div className="lg:max-w-3xl flex flex-col gap-10">
+      <div className=" text-sm lg:text-base flex flex-col lg:gap-6 gap-2">
+      <h2 className="lg:text-3xl text-2xl font-semibold p-2">about_me.md</h2>
+      <p className="leading-snug max-w-2xl p-2"> Hi there!&#x1F44B;
         I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
          scalable web applications.</p>         
-        <ul className="flex flex-col gap-1 lg:p-4 p-1 text-xs lg:text-sm rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
+        <ul className="flex flex-col gap-1 lg:p-4 p-1 text-xs lg:text-sm lg:rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
           {list.map((about, index)=> (
-                      <li key={index} className="flex items-center gap-2 ">
-                        <span className="text-lg flex items-center justify-center w-8 h-7 bg-white border rounded">
-                        {about.emoji}</span>  
-                        <span>{about.info}</span> 
-                      </li>       
-
+              <li key={index} className="flex items-center gap-2 ">
+                <span className="text-lg flex items-center justify-center w-8 h-7 bg-white border rounded">
+                  {about.emoji}</span>  
+                <span className="flex">{about.info}</span> 
+              </li>       
           ))}
         </ul>
     </div>
