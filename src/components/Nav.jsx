@@ -14,19 +14,10 @@ import { useRef } from "react";
 
 
 const Nav = () => {
-    // const windowSize = useRef([window.innerWidth, window.innerHeight]);
-// const [navPos, setNavPos] = useState(windowSize.current[1] - 100)
-const [navOpen, setNavOpen] = useState(false)
+// const [navOpen, setNavOpen] = useState(false)
 
 
-console.log(navOpen);
-  const handlers = useSwipeable({
-    onSwipedUp: (eventData) => {console.log("User swiped up!", eventData), setNavOpen( true)}, 
-       onSwipedDown: (eventData) => {console.log("User swiped down!", eventData), setNavOpen( false)},
-
-    
-  });
-    const navLinks = [{title:"about_me", href:"/", icon:"🏠"},
+    const navLinks = [{title:"read_me", href:"/", icon:"🏠"},
     {title:"writing", href:"/writing", icon:"✒︎"},
     {title:"projects", href:"/projects", icon:"✨"},
     {title:"tools", href:"/tools", icon:"🔧"},
@@ -47,7 +38,7 @@ console.log(navOpen);
 
 const NavButton = ({link}) => {
     return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-full lg:rounded-md items-center justify-between 
-    ${!isActive ? "text-white bg-slate-900 hover:bg-slate-800 ":"hover:bg-slate-200 font-semibold bg-slate-200"}`}>
+    ${!isActive ? "text-white  hover:bg-zinc-800 ":"hover:bg-zinc-400 font-semibold bg-zinc-400"}`}>
     <div className="flex lg:text-sm text-xs items-center gap-1 lg:gap-2">
     <div className="">
       {link.icon}
@@ -60,7 +51,7 @@ const NavButton = ({link}) => {
     
     
       const SocialLink = ({link}) => {
-        return <a href={link.href} className="flex gap-3 text-white hover:bg-slate-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
+        return <a href={link.href} className="flex gap-3 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
           <div className="flex items-center gap-2 font-semibold ">
           <div className="text-base">
             {link.icon}
@@ -79,8 +70,8 @@ const NavButton = ({link}) => {
         <div
               className="flex  items-center text-white">
 
-        <a href="/" className="flex w-full flex-1 hover:bg-slate-800 p-1 rounded-lg items-center gap-2">
-          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-slate-200" />
+        <a href="/" className="flex w-full flex-1 hover:bg-zinc-800 p-1 rounded-lg items-center gap-2">
+          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-zinc-200" />
           <div className="leading-tight">
             <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
             <h2>ui developer</h2>
@@ -93,12 +84,12 @@ const NavButton = ({link}) => {
         </div>  
         <div
         //  style={{height: !navOpen ?"500px":"0px"}} 
-        className="flex w-full  transition-all flex-col overflow-x-auto  gap-8">
+        className="flex w-full  transition-all flex-col overflow-x-auto lg:pt-6 gap-8">
         <div className="flex lg:flex-col lg:text-sm text-xs ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
         <div className="lg:flex text-sm flex-col gap-1 hidden ">
-          <p className="px-2 text-slate-700">online</p>
+          <p className="px-2 text-zinc-700">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
         </div>
