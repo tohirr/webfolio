@@ -1,14 +1,13 @@
 function Home () {
     return (
-    <div className="lg:max-w-4xl p-2 lg:pl-10 flex flex-col gap-10">
-      <div className=" text-sm lg:text-base  flex flex-col gap-6">
-             <h2 className="text-3xl font-semibold">🏠home</h2>
+    <div className="lg:max-w-3xl p-2  flex flex-col gap-10">
+      <div className=" text-sm lg:text-base flex flex-col gap-6">
+             <h2 className="text-3xl font-semibold">about_me.md</h2>
 
-      <p>Hi there!&#x1F44B;
-        I'm <span className="font-semibold">Tohir</span>&#128060; , a ui developer focused on building beautiful, snappy user interfaces and performant,
-         scalable web applications.</p>
-         
-        <ul className="flex flex-col gap-2 p-4 text-xs rounded-xl bg-slate-900 text-white">
+      <p className="leading-snug max-w-2xl"> Hi there!&#x1F44B;
+        I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
+         scalable web applications.</p>         
+        <ul className="flex flex-col gap-2 p-4 text-xs lg:text-sm rounded-xl bg-gradient-to-br from-slate-100 to-white border">
           <li>🔭 currently building web widgets @ pandawidgets.com</li>   
           <li>&#127891; in my final year studying engineering at Unilag</li>
           <li>&#9997; I write <strike className="italic">frequently</strike>  whenever i feel the muse</li>
@@ -19,7 +18,7 @@ function Home () {
           <li>⚡ fun fact: i blink alot less than average</li>
         </ul>
     </div>
-    <div className="flex flex-col gap-3">
+    {/* <div className="flex flex-col gap-3">
         <p>currently...</p>
         <div className=" grid grid-cols-12  lg:gap-5 gap-2">
             <div className="flex flex-col gap-2 lg:p-3 p-1 col-span-6 rounded-xl border bg-white shadow">
@@ -35,7 +34,7 @@ function Home () {
             </div></div>
             
         </div>
-    </div>
+    </div> */}
 </div>)
 }
 

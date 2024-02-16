@@ -46,8 +46,8 @@ console.log(navOpen);
 
 
 const NavButton = ({link}) => {
-    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-md items-center justify-between 
-    ${isActive ? "text-white bg-slate-900 hover:bg-slate-900 font-semibold hover:text-white":"hover:bg-slate-200"}`}>
+    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-lg items-center justify-between 
+    ${!isActive ? "text-white bg-slate-900 hover:bg-slate-800 ":"hover:bg-slate-200 font-semibold bg-slate-200"}`}>
     <div className="flex text-sm items-center gap-2">
     <div className="">
       {link.icon}
@@ -60,7 +60,7 @@ const NavButton = ({link}) => {
     
     
       const SocialLink = ({link}) => {
-        return <a href={link.href} className="flex gap-3 hover:bg-slate-300 transition cursor-pointer  p-2  rounded-md items-center justify-between">
+        return <a href={link.href} className="flex gap-3 text-white hover:bg-slate-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
           <div className="flex items-center gap-2 font-semibold ">
           <div className="text-base">
             {link.icon}
@@ -73,25 +73,25 @@ const NavButton = ({link}) => {
     
     return (
         <div
-      style={{top: !navOpen ? "calc(100dvh - 65px)":"calc(100dvh - 600px)" }}
-          className="absolute z-30 lg:static h-[600px] w-screen duration-300 transition-all backdrop-blur lg:backdrop-blur-none overflow-y-auto rounded-t-2xl lg:rounded-t-none flex flex-col gap-3  p-1 lg:w-64 lg:h-screen lg:bg-slate-50 bg-white/80  lg:border-r border">
+    //   style={{top: !navOpen ? "calc(100dvh - 70px)":"calc(100dvh - 600px)" }}
+          className=" lg:static  w-full duration-300 transition-all overflow-y-auto flex flex-col lg:w-64 lg:h-screen ">
         
         <div
-              className="flex  items-center gap-2 sticky top-0">
+              className="flex  items-center text-white">
 
-        <a href="/" className="flex w-full flex-1 hover:bg-slate-200 p-1 rounded-lg items-center gap-2">
-          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-slate-500" />
+        <a href="/" className="flex w-full flex-1 hover:bg-slate-800 p-1 rounded-lg items-center gap-2">
+          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-slate-200" />
           <div className="leading-tight">
             <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
             <h2>ui developer</h2>
           </div>
         </a>
-        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 h-10 text-2xl flex items-center transition-all duration-300 justify-center">
+        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
 
         </div>
         </div>  
-        <div className="flex flex-col gap-4">
+        <div style={{height: navOpen ?"500px":"0px", paddingTop: navOpen ?"20px":"0px"}} className="flex  transition-all flex-col overflow-hidden gap-8">
         <div className="flex flex-col text-sm  ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
