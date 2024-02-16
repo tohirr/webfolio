@@ -23,7 +23,7 @@ const list = [
         <ul className="flex flex-col gap-1 lg:p-4 p-1 text-xs lg:text-sm rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
           {list.map((about, index)=> (
                       <li key={index} className="flex items-center gap-2 ">
-                        <span className="text-lg flex items-center justify-center w-7 h-7 bg-white border rounded">
+                        <span className="text-lg flex items-center justify-center w-8 h-7 bg-white border rounded">
                         {about.emoji}</span>  
                         <span>{about.info}</span> 
                       </li>       
