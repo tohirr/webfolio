@@ -26,7 +26,7 @@ console.log(navOpen);
 
     
   });
-    const navLinks = [{title:"home", href:"/", icon:"🏠"},
+    const navLinks = [{title:"about_me", href:"/", icon:"🏠"},
     {title:"writing", href:"/writing", icon:"✒︎"},
     {title:"projects", href:"/projects", icon:"✨"},
     {title:"tools", href:"/tools", icon:"🔧"},
@@ -48,7 +48,7 @@ console.log(navOpen);
 const NavButton = ({link}) => {
     return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-full lg:rounded-md items-center justify-between 
     ${!isActive ? "text-white bg-slate-900 hover:bg-slate-800 ":"hover:bg-slate-200 font-semibold bg-slate-200"}`}>
-    <div className="flex text-sm items-center gap-2">
+    <div className="flex lg:text-sm text-xs items-center gap-1 lg:gap-2">
     <div className="">
       {link.icon}
     </div>
@@ -93,8 +93,8 @@ const NavButton = ({link}) => {
         </div>  
         <div
         //  style={{height: !navOpen ?"500px":"0px"}} 
-        className="flex w-full  transition-all flex-col overflow-x-auto pt-2 gap-8">
-        <div className="flex lg:flex-col text-sm  ">
+        className="flex w-full  transition-all flex-col overflow-x-auto  gap-8">
+        <div className="flex lg:flex-col lg:text-sm text-xs ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
         <div className="lg:flex text-sm flex-col gap-1 hidden ">
