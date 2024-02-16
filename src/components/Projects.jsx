@@ -5,8 +5,57 @@ import { Weather } from "./widgets/Weather"
 
 function Projects (){
 return (
-    <div className="lg:max-w-2xl p-2 flex flex-col gap-10">
-        <div className="flex flex-col rounded-lg rounded-b-2xl border-4 border-slate-500 bg-white shadow overflow-hidden">
+    <div className="p-2 ">
+            <h2 className="lg:text-3xl text-2xl font-semibold p-2">about_me.md</h2>
+<div className="flex gap-2">
+<div className="flex flex-1 flex-col gap-2">
+  <div className="">
+    <img src="/harvestgrove.png" alt="" />
+
+  </div>
+
+  <div className="">
+    <img src="/sect3.png" alt="" />
+
+  </div>
+  <div className="">
+    <img src="/footer.png" alt="" />
+
+  </div>
+</div>
+
+<div className="flex flex-1 flex-col gap-2">
+  <div className="">
+    <img src="/sect4.png" alt="" />
+
+  </div>
+
+  <div className="">
+    <img src="/footer.png" alt="" />
+
+  </div>
+  <div className="">
+    <img src="/sect2.png" alt="" />
+
+  </div>
+</div><div className="flex flex-1 flex-col gap-2">
+  <div className="">
+    <img src="/sect4.png" alt="" />
+
+  </div>
+
+  <div className="">
+    <img src="/sect3.png" alt="" />
+
+  </div>
+  <div className="">
+    <img src="/sect5.png" alt="" />
+
+  </div>
+</div>
+
+</div>
+        <div className="flex flex-col rounded-lg rounded-b-2xl  bg-white shadow overflow-hidden">
         <img src="/titlebar.png" alt="" className="border-b " />
         <div className="flex flex-col relative ">
             <img src="/harvestgrove.png" alt="" className="object-cover w-full h-full" />      
@@ -23,9 +72,9 @@ return (
             <div className="flex flex-col  gap-3 ">
             <p className="text-xs bg-red-200 m-3 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
             <div className=" relative flex max-w-[20rem] lg:max-w-none justify-center gap-4 flex-wrap">
-                <DigitalClock/>     
+              <DigitalClock/>     
                <Battery />
-                <Weather/>
+              <Weather/>
             </div></div>  
             <div className="flex flex-col  rounded-lg rounded-b-2xl border-4 border-slate-600  shadow overflow-hidden">
         <img src="/titlebard.png" alt="" celassName="border-b " />

@@ -18,10 +18,10 @@ const list = [
       <p className="leading-snug max-w-2xl p-2"> Hi there!&#x1F44B;
         I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
          scalable web applications.</p>         
-        <ul className="flex flex-col gap-1 lg:p-4 p-1 text-xs lg:text-sm lg:rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
+        <ul className="flex flex-col gap-1 lg:p-4 p-2 text-xs lg:text-sm lg:rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
           {list.map((about, index)=> (
               <li key={index} className="flex items-center gap-2 ">
-                <span className="text-lg flex items-center justify-center w-8 h-7 bg-white border rounded">
+                <span className="text-lg">
                   {about.emoji}</span>  
                 <span className="flex">{about.info}</span> 
               </li>       
