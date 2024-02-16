@@ -46,7 +46,7 @@ console.log(navOpen);
 
 
 const NavButton = ({link}) => {
-    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-lg items-center justify-between 
+    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-full lg:rounded-md items-center justify-between 
     ${!isActive ? "text-white bg-slate-900 hover:bg-slate-800 ":"hover:bg-slate-200 font-semibold bg-slate-200"}`}>
     <div className="flex text-sm items-center gap-2">
     <div className="">
@@ -86,16 +86,18 @@ const NavButton = ({link}) => {
             <h2>ui developer</h2>
           </div>
         </a>
-        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
+        {/* <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
 
-        </div>
+        </div> */}
         </div>  
-        <div style={{height: navOpen ?"500px":"0px", paddingTop: navOpen ?"20px":"0px"}} className="flex  transition-all flex-col overflow-hidden gap-8">
-        <div className="flex flex-col text-sm  ">
+        <div
+        //  style={{height: !navOpen ?"500px":"0px"}} 
+        className="flex w-full  transition-all flex-col overflow-x-auto pt-2 gap-8">
+        <div className="flex lg:flex-col text-sm  ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
-        <div className="flex text-sm flex-col gap-1">
+        <div className="lg:flex text-sm flex-col gap-1 hidden ">
           <p className="px-2 text-slate-700">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>

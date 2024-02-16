@@ -1,8 +1,8 @@
 function Home () {
     return (
     <div className="lg:max-w-3xl p-2  flex flex-col gap-10">
-      <div className=" text-sm lg:text-base flex flex-col gap-6">
-             <h2 className="text-3xl font-semibold">about_me.md</h2>
+      <div className=" text-sm lg:text-base flex flex-col lg:gap-6 gap-4">
+             <h2 className="lg:text-3xl text-2xl font-semibold">about_me.md</h2>
 
       <p className="leading-snug max-w-2xl"> Hi there!&#x1F44B;
         I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
