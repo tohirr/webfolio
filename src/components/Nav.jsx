@@ -37,9 +37,9 @@ const Nav = () => {
 
 
 const NavButton = ({link}) => {
-    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-full lg:rounded-md items-center justify-between 
-    ${!isActive ? "text-white  hover:bg-zinc-800 ":"hover:bg-zinc-400 font-semibold bg-zinc-400"}`}>
-    <div className="flex lg:text-sm text-xs items-center gap-1 lg:gap-2">
+    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2  rounded-full items-center justify-between 
+    ${!isActive ? "text-white  bg-zinc-800 hover:border ":"hover:bg-zinc-400 font-semibold bg-zinc-300"}`}>
+    <div className="flex text-xs items-center gap-1 lg:gap-2">
     <div className="">
       {link.icon}
     </div>
@@ -70,12 +70,13 @@ const NavButton = ({link}) => {
         <div
               className="flex  items-center text-white">
 
-        <a href="/" className="flex w-full flex-1 hover:bg-zinc-800 p-1 rounded-lg items-center gap-2">
-          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-zinc-200" />
-          <div className="leading-tight">
-            <h1 className="font-semibold text-base">Tohir Babátúndé</h1>
-            <h2>ui developer</h2>
+        <a href="/" className="flex w-full flex-1 justify-between hover:bg-zinc-800 p-1 rounded-lg items-center gap-2">
+          <div className="leading-snug">
+            <h1 className=" text-xl">Tohir Babátúndé</h1>
+            <h2 className="text-white/70 ">ui developer</h2>
           </div>
+          <img src="/selfai.png" alt="" className="w-12 h-12 rounded-lg bg-zinc-200" />
+
         </a>
         {/* <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
@@ -85,13 +86,13 @@ const NavButton = ({link}) => {
         <div
         //  style={{height: !navOpen ?"500px":"0px"}} 
         className="flex w-full  transition-all flex-col overflow-x-auto lg:pt-6 py-2 gap-8">
-        <div className="flex lg:flex-col py-2 lg:text-sm text-xs ">
+        <div className="flex lg:gap-2 gap-1 lg:flex-wrap py-2">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div>
-        <div className="lg:flex text-sm flex-col gap-1 hidden ">
+        {/* <div className="lg:flex text-sm flex-col gap-1 hidden ">
           <p className="px-2 text-zinc-700">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
-        </div>
+        </div> */}
         </div>
         
       </div>
