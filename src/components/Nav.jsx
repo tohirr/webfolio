@@ -66,8 +66,8 @@ const NavButton = ({link}) => {
     
     return (
         <div
-    //   style={{top: !navOpen ? "calc(100dvh - 70px)":"calc(100dvh - 600px)" }}
-          className=" lg:static  w-full duration-300 transition-all overflow-y-auto flex flex-col lg:w-64 lg:h-screen sticky top-0 z-20 bg-zinc-900/80 backdrop-blur-md ">
+      style={{height: navOpen ? "570px":"60px" }}
+          className=" lg:static  w-full duration-300 transition-all overflow-y-auto flex flex-col lg:w-64 lg:h-screen ">
         
         <div
               className="flex  items-center text-white">
@@ -82,7 +82,7 @@ const NavButton = ({link}) => {
           </div>
 
         </a>
-        <div style={{transform: navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
+        <div style={{transform: !navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
 
         </div>
