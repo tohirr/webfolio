@@ -14,8 +14,8 @@ const list = [
     return (
     <div className="lg:max-w-3xl flex flex-col gap-10">
       <div className=" text-sm lg:text-base flex flex-col lg:gap-6 gap-2">
-      <h2 className="lg:text-3xl text-2xl font-semibold p-2">about_me.md</h2>
-      <p className="leading-snug max-w-2xl p-2"> Hi there!&#x1F44B;
+      {/* <h2 className="lg:text-3xl text-xl font-semibold p-2">about_me.md</h2> */}
+      <p className="leading-snug max-w-2xl p-3"> Hi there!&#x1F44B;
         I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
          scalable web applications.</p>         
         <ul className="flex flex-col gap-1 lg:p-4 p-2 text-xs lg:text-sm lg:rounded-xl bg-gradient-to-br from-zinc-200 to-white border">

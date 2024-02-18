@@ -2,12 +2,40 @@ import { HiOutlineArrowUpRight } from "react-icons/hi2"
 import { DigitalClock } from "./widgets/DigitalClock"
 import { Battery } from "./widgets/Battery"
 import { Weather } from "./widgets/Weather"
+import { NavLink } from "react-router-dom"
 
 function Projects (){
+    
+
+const NavButton = ({link}) => {
+  return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-3   rounded-full items-center justify-between 
+  ${!isActive ? "text-black  hover:bg-zinc-800 bg-zinc-300 ":"hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"}`}>
+  <div className="flex text-xs items-center gap-1 lg:gap-2">
+  <div className="">
+    {link.icon}
+  </div>
+  {link.title}
+  </div>
+  
+  </NavLink>
+    }
+  const navLinks = [
+    {title:"projects", href:"/projects", icon:"✨"},
+    {title:"read_me", href:"/", icon:"🏠"},
+  {title:"writing", href:"/writing", icon:"✒︎"},
+  {title:"tools", href:"/tools", icon:"🔧"},
+  {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
+  
 return (
     <div className="p-2 ">
-            <h2 className="lg:text-3xl text-2xl font-semibold p-2">about_me.md</h2>
-<div className="flex gap-2">
+
+<div
+        //  style={{height: !navOpen ?"500px":"0px"}} 
+        className="flex w-full  transition-all flex-col overflow-x-auto   gap-8">
+      <div className="flex  gap-1  ">
+          {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
+        </div></div>
+<div className="flex gap-2 py-3">
 <div className="flex flex-1 flex-col gap-2">
   <div className="">
     <img src="/harvestgrove.png" alt="" />
