@@ -66,7 +66,7 @@ const NavButton = ({link}) => {
     
     return (
         <div
-          className=" lg:static  w-full duration-300 transition-all overflow-hidden lg:overflow-visible flex flex-col lg:w-64 lg:h-screen ">
+          className=" lg:static  w-full duration-300 transition-all overflow-hidden lg:overflow-visible flex flex-col lg:w-64 lg:h-screen sticky top-0">
         
         <div
               className="flex  items-center text-white">

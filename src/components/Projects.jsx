@@ -5,8 +5,6 @@ import { Weather } from "./widgets/Weather"
 import { NavLink } from "react-router-dom"
 
 function Projects (){
-    
-
 const NavButton = ({link}) => {
   return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-4  rounded-full items-center justify-between 
   ${!isActive ? "text-black  hover:bg-zinc-800 bg-zinc-300 ":"hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"}`}>
