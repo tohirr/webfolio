@@ -8,9 +8,9 @@ function Projects (){
     
 
 const NavButton = ({link}) => {
-  return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-3   rounded-full items-center justify-between 
+  return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-4  rounded-full items-center justify-between 
   ${!isActive ? "text-black  hover:bg-zinc-800 bg-zinc-300 ":"hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"}`}>
-  <div className="flex text-xs items-center gap-1 lg:gap-2">
+  <div className="flex text-xs items-center gap-1">
   <div className="">
     {link.icon}
   </div>

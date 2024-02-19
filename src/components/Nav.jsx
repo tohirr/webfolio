@@ -66,8 +66,7 @@ const NavButton = ({link}) => {
     
     return (
         <div
-      style={{height: navOpen ? "570px":"60px" }}
-          className=" lg:static  w-full duration-300 transition-all overflow-y-auto flex flex-col lg:w-64 lg:h-screen ">
+          className=" lg:static  w-full duration-300 transition-all overflow-hidden lg:overflow-visible flex flex-col lg:w-64 lg:h-screen ">
         
         <div
               className="flex  items-center text-white">
@@ -88,7 +87,7 @@ const NavButton = ({link}) => {
         </div>
         </div>  
         <div
-        //  style={{height: !navOpen ?"500px":"0px"}} 
+         style={{height: navOpen ?"500px":"0px"}} 
         className="flex w-full  transition-all flex-col overflow-x-auto lg:pt-6 p-2  gap-8">
         <div className="flex  gap-1 flex-col py-2">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
