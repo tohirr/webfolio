@@ -5,6 +5,7 @@ import { Weather } from "./widgets/Weather"
 import { NavLink } from "react-router-dom"
 
 function Projects (){
+
 const NavButton = ({link}) => {
   return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-4  rounded-full items-center justify-between 
   ${!isActive ? "text-black  hover:bg-zinc-800 bg-zinc-300 ":"hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"}`}>
@@ -25,15 +26,15 @@ const NavButton = ({link}) => {
   {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
   
 return (
-    <div className="p-2 ">
+    <div className="">
 
 <div
         //  style={{height: !navOpen ?"500px":"0px"}} 
-        className="flex w-full  transition-all flex-col overflow-x-auto   gap-8">
+        className="flex w-full  transition-all flex-col overflow-x-auto sticky bg-white/50 backdrop-blur-sm rounded-3xl top-0 p-2 gap-8">
       <div className="flex  gap-1  ">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div></div>
-<div className="flex gap-2 py-3">
+<div className="flex gap-2 p-2">
 <div className="flex flex-1 flex-col gap-2">
   <div className="">
     <img src="/harvestgrove.png" alt="" />
