@@ -18,8 +18,8 @@ const [navOpen, setNavOpen] = useState(false)
 
 
     const navLinks = [
-      {title:"projects", href:"/projects", icon:"✨"},
       {title:"read_me", href:"/", icon:"🏠"},
+      {title:"projects", href:"/projects", icon:"✨"},
     {title:"writing", href:"/writing", icon:"✒︎"},
     {title:"tools", href:"/tools", icon:"🔧"},
     {title:"bookmarks", href:"/bookmarks", icon:"🔖"},
@@ -46,21 +46,18 @@ const NavButton = ({link}) => {
       {link.icon}
     </div>
     {link.title}
-    </div>
-    
+    </div>    
     </NavLink>
-      }
-    
-    
+      }   
       const SocialLink = ({link}) => {
-        return <a href={link.href} className="flex gap-3 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
+        return <a href={link.href} className="flex lg:gap-3 gap-1 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
           <div className="flex items-center gap-2 font-semibold ">
           <div className="text-base">
             {link.icon}
           </div>
-           {link.title}
+          <p className="hidden lg:flex">           {link.title}</p>
           </div>
-          <HiOutlineArrowUpRight/>     
+          <HiOutlineArrowUpRight className="hidden lg:flex"/>     
         </a>
           }
     
@@ -75,7 +72,6 @@ const NavButton = ({link}) => {
                                 <img src="/selfai.png" alt="" className="w-10 h-10 rounded-lg bg-zinc-200" />
 
           <div className="leading-snug">
-
             <h1 className=" text-lg">Tohir Babátúndé</h1>
             <h2 className="text-white/70 ">ui developer</h2>
           </div>
@@ -87,13 +83,12 @@ const NavButton = ({link}) => {
         </div>
         </div>  
         <div
-         style={{height: navOpen ?"500px":"0px"}} 
-        className="flex w-full  transition-all flex-col overflow-x-auto lg:pt-6 p-2  gap-8">
-        <div className="flex  gap-1 flex-col py-2">
+        className="flex w-full transition-all flex-col overflow-x-auto lg:pt-6 lg:gap-8">
+        {/* <div className="flex  gap-1 flex-col py-2">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
-        </div>
-        <div className="flex text-sm flex-col gap-1  ">
-          <p className="px-2 text-zinc-700">online</p>
+        </div> */}
+        <div className="flex text-sm lg:flex-col gap-4 p-1 lg:px-0 ">
+          <p className="px-2 text-zinc-700 hidden lg:flex">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
         </div>

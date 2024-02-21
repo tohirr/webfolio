@@ -19,69 +19,15 @@ const NavButton = ({link}) => {
   </NavLink>
     }
   const navLinks = [
-    {title:"projects", href:"/projects", icon:"✨"},
-    {title:"read_me", href:"/", icon:"🏠"},
+  {title:"projects", href:"/projects", icon:"✨"},
+  {title:"read_me", href:"/", icon:"🏠"},
   {title:"writing", href:"/writing", icon:"✒︎"},
   {title:"tools", href:"/tools", icon:"🔧"},
   {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
   
 return (
-    <div className="">
+    <div className=" max-w-2xl">
 
-<div
-        //  style={{height: !navOpen ?"500px":"0px"}} 
-        className="flex w-full  transition-all flex-col overflow-x-auto sticky bg-white/50 backdrop-blur-sm rounded-3xl top-0 p-2 gap-8">
-      <div className="flex  gap-1  ">
-          {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
-        </div></div>
-<div className="flex gap-2 p-2">
-<div className="flex flex-1 flex-col gap-2">
-  <div className="">
-    <img src="/harvestgrove.png" alt="" />
-
-  </div>
-
-  <div className="">
-    <img src="/sect3.png" alt="" />
-
-  </div>
-  <div className="">
-    <img src="/footer.png" alt="" />
-
-  </div>
-</div>
-
-<div className="flex flex-1 flex-col gap-2">
-  <div className="">
-    <img src="/sect4.png" alt="" />
-
-  </div>
-
-  <div className="">
-    <img src="/footer.png" alt="" />
-
-  </div>
-  <div className="">
-    <img src="/sect2.png" alt="" />
-
-  </div>
-</div><div className="flex flex-1 flex-col gap-2">
-  <div className="">
-    <img src="/sect4.png" alt="" />
-
-  </div>
-
-  <div className="">
-    <img src="/sect3.png" alt="" />
-
-  </div>
-  <div className="">
-    <img src="/sect5.png" alt="" />
-
-  </div>
-</div>
-
-</div>
         <div className="flex flex-col rounded-lg rounded-b-2xl  bg-white shadow overflow-hidden">
         <img src="/titlebar.png" alt="" className="border-b " />
         <div className="flex flex-col relative ">

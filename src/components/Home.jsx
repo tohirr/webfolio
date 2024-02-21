@@ -12,13 +12,23 @@ const list = [
   {emoji:"⚡", info:"fun fact: i blink alot less than average"},
 ]
     return (
-    <div className="lg:max-w-3xl flex flex-col gap-10">
+    <div className="lg:max-w-2xl flex flex-col gap-10">
       <div className=" text-sm lg:text-base flex flex-col lg:gap-6 gap-2">
       {/* <h2 className="lg:text-3xl text-xl font-semibold p-2">about_me.md</h2> */}
-      <p className="leading-snug max-w-2xl p-3"> Hi there!&#x1F44B;
-        I'm <span className="font-semibold">Tohir</span>, a ui developer focused on building beautiful, snappy user interfaces and performant,
-         scalable web applications.</p>         
-        <ul className="flex flex-col gap-1 lg:p-4 p-2 text-xs lg:text-sm lg:rounded-xl bg-gradient-to-br from-zinc-200 to-white border">
+      {/* <div className="relative p-3 shadow rounded-md flex flex-col gap-3 bg-white">
+      <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-lg ">about_me.&#128214;</p>
+
+      <p className="leading-snug max-w-3xl "> Hi there!&#x1F44B;
+        I'm <span className="font-semibold">Tohir</span>, a ui developer focused on designing and developing beautiful, snappy user interfaces and performant,
+         scalable web applications.</p>  
+      </div>        */}
+      <div className="relative lg:p-4 p-2 shadow rounded-md flex flex-col gap-3 lg:rounded-xl bg-gradient-to-br from-slate-50 to-white border">
+      <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-lg ">about_me.&#128214;</p>
+
+<p className="leading-snug max-w-3xl "> Hi there!&#x1F44B;
+  I'm <span className="font-semibold">Tohir</span>, a ui developer focused on designing and developing beautiful, snappy user interfaces and performant,
+   scalable web applications.</p>  
+        <ul className="flex flex-col gap-1  text-xs lg:text-sm ">
           {list.map((about, index)=> (
               <li key={index} className="flex items-center gap-2 ">
                 <span className="text-lg">
@@ -27,6 +37,7 @@ const list = [
               </li>       
           ))}
         </ul>
+        </div>
     </div>
     {/* <div className="flex flex-col gap-3">
         <p>currently...</p>
