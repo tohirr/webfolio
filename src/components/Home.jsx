@@ -22,10 +22,10 @@ const list = [
         I'm <span className="font-semibold">Tohir</span>, a ui developer focused on designing and developing beautiful, snappy user interfaces and performant,
          scalable web applications.</p>  
       </div>        */}
-      <div className="relative lg:p-4 p-2 shadow rounded-md flex flex-col gap-3 lg:rounded-xl bg-gradient-to-br from-slate-50 to-white border">
+      <div className="relative lg:p-4 p-2 shadow rounded-xl flex flex-col gap-3 lg:rounded-xl bg-gradient-to-br from-slate-50 to-white border">
       <p className="text-xs bg-red-200 shadow border w-max p-1 px-2 rounded-lg ">about_me.&#128214;</p>
 
-<p className="leading-snug max-w-3xl "> Hi there!&#x1F44B;
+<p className=" "> Hi there!&#x1F44B;
   I'm <span className="font-semibold">Tohir</span>, a ui developer focused on designing and developing beautiful, snappy user interfaces and performant,
    scalable web applications.</p>  
         <ul className="flex flex-col lg:gap-1  text-xs lg:text-sm ">
