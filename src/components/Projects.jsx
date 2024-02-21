@@ -38,8 +38,11 @@ return (
             {/* <img src="/sect5.png" alt="" className="object-cover w-full h-full" /> */}
       {/* <img src="/footer.png" alt="" className="object-cover w-full h-full" /> */}
 
-            <a href="" className="absolute bottom-4 right-4 text-xs bg-white px-2 shadow border w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
-          <HiOutlineArrowUpRight/>
+            <a href="https://harvestgrover.vercel.app/" className="absolute bottom-4 right-4 text-xs bg-zinc-900 text-white shadow border border-zinc-400 w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
+            <div className="p-1  text-black bg-white rounded">
+            <HiOutlineArrowUpRight />
+
+            </div>
         </a>
             </div></div>
             <div className="flex flex-col  gap-3 ">

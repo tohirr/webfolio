@@ -51,13 +51,13 @@ const NavButton = ({link}) => {
       }   
       const SocialLink = ({link}) => {
         return <a href={link.href} className="flex lg:gap-3 gap-1 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold ">
-          <div className="text-base">
+          <div className="flex items-center gap-2  ">
+          <div className="text-lg">
             {link.icon}
           </div>
-          <p className="hidden lg:flex">           {link.title}</p>
+          <p className="hidden lg:flex text-xs">           {link.title}</p>
           </div>
-          <HiOutlineArrowUpRight className="hidden lg:flex"/>     
+          <HiOutlineArrowUpRight className="hidden lg:flex "/>     
         </a>
           }
     
@@ -68,11 +68,11 @@ const NavButton = ({link}) => {
         <div
               className="flex  items-center text-white">
 
-        <a href="/" className="flex justify-between w-full flex-1 hover:bg-zinc-800 p-2 px-3 lg:p-0 rounded-lg items-center gap-2">
+        <a href="/" className="flex justify-between w-full flex-1  hover:bg-zinc-800 p-2 px-3 lg:p-2 rounded-lg items-center gap-2">
 
           <div className="leading-snug">
             <h1 className=" text-lg">Tohir Babátúndé</h1>
-            <h2 className="text-white/70 ">ui developer</h2>
+            <h2 className="text-white/70 "> ui developer</h2>
           </div>
 
           <img src="/selfai.png" alt="" className="w-10 h-10  rounded-lg bg-zinc-200" />
@@ -91,7 +91,7 @@ const NavButton = ({link}) => {
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div> */}
         <div className="flex text-sm lg:flex-col gap-3 p-1 px-2 lg:px-0 ">
-          <p className="px-2 text-zinc-700 hidden lg:flex">online</p>
+          <p className="px-2 text-zinc-500 hidden lg:flex">@ online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
         </div>
