@@ -26,7 +26,7 @@ const NavButton = ({link}) => {
   {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
   
 return (
-    <div className=" max-w-2xl flex flex-col gap-4 lg:gap-10">
+    <div className=" max-w-2xl flex flex-col gap-8 lg:gap-10">
 
         <div className="flex items-center justify-center  relative lg:rounded-2xl rounded-xl lg:py-16 lg:px-10 py-6 px-4 pb-10  bg-white shadow overflow-hidden">
         <img src="/field.png" alt="" className="absolute top-0 h-full" />
@@ -44,13 +44,13 @@ return (
 
             </div>
         </a></div>
-        <div className="flex items-center justify-center relative lg:rounded-2xl rounded-lg lg:py-16 lg:px-10  shadow overflow-hidden">
+        <div className="flex items-center justify-center relative lg:rounded-2xl rounded-lg   shadow overflow-hidden">
         {/* <img src="/field.png" alt="" className="absolute top-0 h-full w-full" /> */}
 <div className="bg-white  rounded-xl overflow-hidden">
 <img src="/titlebar.png" alt="" className="border-b " />    
 
-<img src="/gallaria.png" alt="" className="object-cover w-full h-full" />      
-<img src="/gallaria2.png" alt="" className="object-cover w-full h-full" />      
+<img src="/gallara.png" alt="" className="object-cover w-full h-full" />      
+<img src="/galara2.png" alt="" className="object-cover w-full h-full" />      
 
 
 </div>
@@ -62,9 +62,9 @@ return (
 
             </div>
         </a></div>
-            <div className="flex flex-col  gap-3 ">
-            <p className="text-xs bg-red-200 m-3 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p>
-            <div className=" relative flex max-w-[20rem] lg:max-w-none justify-center gap-4 flex-wrap">
+            <div className="flex flex-col items-center  gap-3 ">
+            {/* <p className="text-xs bg-red-200 m-3 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p> */}
+            <div className=" relative flex max-w-[24rem] bg-zinc-300 lg:p-8 lg:py-8 p-3 py-5 rounded-2xl lg:max-w-none justify-center gap-6 my-8 flex-wrap">
               <DigitalClock/>     
                <Battery />
               <Weather/>

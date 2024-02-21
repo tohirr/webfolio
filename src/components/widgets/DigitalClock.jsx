@@ -21,11 +21,11 @@ export const DigitalClock = ({}) => {
  const minutesArray = Array.from({ length: 60 }, (_, index) => index < 10? "0"+index : index);
 
   return (
-      <div className="md:col-span-3 col-span-6  h-[9rem] w-[9rem] relative overflow-hidden font-bold bg-[#0e0e0e] rounded-3xl text-white flex items-center justify-center  text-3xl">
+      <div className="md:col-span-3 col-span-6  h-[10rem] w-[10rem] relative overflow-hidden font-bold bg-[#0e0e0e] rounded-3xl text-white flex items-center justify-center  text-3xl">
           <div className='flex items-center'>
           <span className=''>09</span><span className='animate-pulse'>:</span>
             <div className='flex flex-col gap-2 justify-center  relative  transition-all'>
-            <div className='absolute  h-[9rem] w-full bg-gradient-to-b from-[#0e0e0e] via-transparent to-[#0e0e0e] z-20'></div>
+            <div className='absolute  h-[10rem] w-full bg-gradient-to-b from-[#0e0e0e] via-transparent to-[#0e0e0e] z-20'></div>
           <div
             className='flex relative flex-col  w-[38px] h-[36px]'>
             <div 
