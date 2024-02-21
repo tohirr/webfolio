@@ -68,19 +68,22 @@ const NavButton = ({link}) => {
         <div
               className="flex  items-center text-white">
 
-        <a href="/" className="flex w-full flex-1 hover:bg-zinc-800 p-2 lg:p-0 rounded-lg items-center gap-2">
-                                <img src="/selfai.png" alt="" className="w-10 h-10 rounded-lg bg-zinc-200" />
+        <a href="/" className="flex justify-between w-full flex-1 hover:bg-zinc-800 p-2 lg:p-0 rounded-lg items-center gap-2">
 
           <div className="leading-snug">
             <h1 className=" text-lg">Tohir Babátúndé</h1>
             <h2 className="text-white/70 ">ui developer</h2>
           </div>
 
+          <img src="/selfai.png" alt="" className="w-10 h-10  rounded-lg bg-zinc-200" />
+
+
         </a>
-        <div style={{transform: !navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
+
+        {/* <div style={{transform: !navOpen ? "rotate(180deg)":""}} onClick={()=> setNavOpen((prevState) => !prevState)} className="w-10 lg:hidden h-10 text-2xl flex items-center transition-all duration-300 justify-center">
         <IoMdArrowDropupCircle/>
 
-        </div>
+        </div> */}
         </div>  
         <div
         className="flex w-full transition-all flex-col overflow-x-auto lg:pt-6 lg:gap-8">
