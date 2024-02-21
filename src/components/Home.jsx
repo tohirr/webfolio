@@ -2,10 +2,10 @@ function Home () {
 
 
 const list = [
-  {emoji:"🔭", info:"currently building web widgets @ pandawidgets.com"},
-  {emoji:"🎓", info:"in my final year studying engineering at Unilag"},
+  {emoji:"🔭", info:"currently building web widgets "},
+  {emoji:"🎓", info:"in my final year studying engr. at Unilag"},
   {emoji:"✍", info:"i write whenever i feel the muse"},
-  {emoji:"💬", info:"love chatting about technology, movies and music"},
+  {emoji:"💬", info:"love chatting about technology and music"},
   {emoji:"🧠", info:"learning Typescript and skateboarding"},
   {emoji:"😄", info:"pronouns he/him"},
   {emoji:"🇳🇬", info:"based in lagos, Nigeria"},
@@ -28,7 +28,7 @@ const list = [
 <p className="leading-snug max-w-3xl "> Hi there!&#x1F44B;
   I'm <span className="font-semibold">Tohir</span>, a ui developer focused on designing and developing beautiful, snappy user interfaces and performant,
    scalable web applications.</p>  
-        <ul className="flex flex-col gap-1  text-xs lg:text-sm ">
+        <ul className="flex flex-col lg:gap-1  text-xs lg:text-sm ">
           {list.map((about, index)=> (
               <li key={index} className="flex items-center gap-2 ">
                 <span className="text-lg">

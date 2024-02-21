@@ -68,7 +68,7 @@ const NavButton = ({link}) => {
         <div
               className="flex  items-center text-white">
 
-        <a href="/" className="flex justify-between w-full flex-1 hover:bg-zinc-800 p-2 lg:p-0 rounded-lg items-center gap-2">
+        <a href="/" className="flex justify-between w-full flex-1 hover:bg-zinc-800 p-2 px-3 lg:p-0 rounded-lg items-center gap-2">
 
           <div className="leading-snug">
             <h1 className=" text-lg">Tohir Babátúndé</h1>
@@ -90,7 +90,7 @@ const NavButton = ({link}) => {
         {/* <div className="flex  gap-1 flex-col py-2">
           {navLinks.map((link, index) => <NavButton key={index} link={link}/>)}
         </div> */}
-        <div className="flex text-sm lg:flex-col gap-4 p-1 lg:px-0 ">
+        <div className="flex text-sm lg:flex-col gap-3 p-1 px-2 lg:px-0 ">
           <p className="px-2 text-zinc-700 hidden lg:flex">online</p>
           {socialLinks.map((link, index) => <SocialLink key={index} link={link}/>)}
         </div>
