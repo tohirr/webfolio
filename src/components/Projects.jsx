@@ -44,9 +44,9 @@ return (
 
             </div>
         </a></div>
-        <div className="flex items-center justify-center relative lg:rounded-2xl rounded-xl lg:py-16 lg:px-10 py-6 px-4 pb-10 bg-zinc-800 shadow overflow-hidden">
+        <div className="flex items-center justify-center relative lg:rounded-2xl rounded-lg lg:py-16 lg:px-10  shadow overflow-hidden">
         {/* <img src="/field.png" alt="" className="absolute top-0 h-full w-full" /> */}
-<div className="bg-white z-10 rounded-xl overflow-hidden">
+<div className="bg-white  rounded-xl overflow-hidden">
 <img src="/titlebar.png" alt="" className="border-b " />    
 
 <img src="/gallaria.png" alt="" className="object-cover w-full h-full" />      
@@ -55,7 +55,7 @@ return (
 
 </div>
 
-            <a href="https://harvestgrover.vercel.app/" className="absolute  lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-red-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1">
+            <a href="https://harvestgrover.vercel.app/" className="absolute  lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-red-300 transition shadow border border-slate-50 w-max p-1   rounded-md flex items-center gap-1">
               <span>galaria</span>
             <div className="p-1  text-white bg-red-800 rounded">
             <HiOutlineArrowUpRight />
