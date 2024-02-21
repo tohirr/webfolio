@@ -26,9 +26,9 @@ const NavButton = ({link}) => {
   {title:"bookmarks", href:"/bookmarks", icon:"🔖"},]
   
 return (
-    <div className=" max-w-2xl">
+    <div className=" max-w-2xl flex flex-col gap-4 lg:gap-10">
 
-        <div className="flex items-center justify-center rounded-lg relative rounded-b-2xl py-16 px-10  bg-white shadow overflow-hidden">
+        <div className="flex items-center justify-center  relative lg:rounded-2xl rounded-xl lg:py-16 lg:px-10 py-6 px-4 pb-10  bg-white shadow overflow-hidden">
         <img src="/field.png" alt="" className="absolute top-0 h-full" />
 <div className="bg-white z-10 rounded-lg">
 <img src="/titlebar.png" alt="" className="border-b " />    
@@ -38,8 +38,26 @@ return (
 
 </div>
 
-            <a href="https://harvestgrover.vercel.app/" className="absolute bottom-4 right-4 text-xs bg-slate-200 text-black hover:bg-green-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
+            <a href="https://harvestgrover.vercel.app/" className="absolute lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-green-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
             <div className="p-1  text-white bg-green-800 rounded">
+            <HiOutlineArrowUpRight />
+
+            </div>
+        </a></div>
+        <div className="flex items-center justify-center relative lg:rounded-2xl rounded-xl lg:py-16 lg:px-10 py-6 px-4 pb-10 bg-zinc-800 shadow overflow-hidden">
+        {/* <img src="/field.png" alt="" className="absolute top-0 h-full w-full" /> */}
+<div className="bg-white z-10 rounded-xl overflow-hidden">
+<img src="/titlebar.png" alt="" className="border-b " />    
+
+<img src="/gallaria.png" alt="" className="object-cover w-full h-full" />      
+<img src="/gallaria2.png" alt="" className="object-cover w-full h-full" />      
+
+
+</div>
+
+            <a href="https://harvestgrover.vercel.app/" className="absolute  lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-red-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1">
+              <span>galaria</span>
+            <div className="p-1  text-white bg-red-800 rounded">
             <HiOutlineArrowUpRight />
 
             </div>
@@ -51,16 +69,7 @@ return (
                <Battery />
               <Weather/>
             </div></div>  
-            <div className="flex flex-col  rounded-lg rounded-b-2xl border-4 border-slate-600  shadow overflow-hidden">
-        {/* <img src="/titlebard.png" alt="" celassName="border-b " /> */}
-        <div className="flex flex-col relative ">
-            <img src="/gal.png" alt="" className="object-cover w-full h-full" />      
-            <img src="/gal2.png" alt="" className="object-cover w-full h-full" />
-
-            <a href="" className="absolute bottom-4 right-4 text-xs bg-white px-2 shadow border w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
-          <HiOutlineArrowUpRight/>
-        </a>
-        </div></div>          
+                   
 </div>
 )
 }
