@@ -65,7 +65,7 @@ export const Weather = () => {
   console.log(weatherForecastData);
   const daysIndex = [0,8,16,24,32]
     return (
-        <div className="h-[9rem] w-[22rem] relative overflow-hidden  bg-[#0e0e0e]  rounded-3xl text-white flex items-center justify-center ">    
+        <div className="h-[9rem] w-[20rem] relative overflow-hidden  bg-[#0e0e0e]  rounded-3xl text-white flex items-center justify-center ">    
             <div className='flex-col  p-3 justify-between w-full h-full flex  gap-2'>
                     <div className='flex justify-between items-center'>
               <div className='flex gap-2 items-center'>

@@ -26,7 +26,7 @@ export const Battery = () => {
   }, [batteryLevel]);
   
   return (
-      <div className="md:col-span-3 col-span-6 h-[10rem] w-[10rem] relative overflow-hidden  bg-[#0e0e0e] rounded-3xl text-white flex items-center justify-center ">
+      <div className="md:col-span-3 col-span-6 h-[9rem] w-[9rem] relative overflow-hidden  bg-[#0e0e0e] rounded-3xl text-white flex items-center justify-center ">
           <div className='flex-col items-center w-full h-full justify-center flex  gap-2'>
             <span className='text-2xl text-center font-semibold'>{batteryLevel}%</span>
             <div className='h-[25%] w-[60%] rounded-md bg-[#d9d9d9]/50  flex items-center justify-center overflow-hidden relative'>
