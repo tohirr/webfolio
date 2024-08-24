@@ -28,7 +28,7 @@ const [navOpen, setNavOpen] = useState(false)
     const socialLinks = [
     {title:"gmail", href:"https://github.com/TohirBabs", icon:<SiGmail/>},  
     {title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
-    {title:"X/twitter", href:"https://twitter.com/BabsTohir", icon:<FaXTwitter/>},
+    {title:"X/twitter", href:"https://twitter.com/tohir_dev", icon:<FaXTwitter/>},
     {title:"whatsapp", href:"https://twitter.com/BabsTohir", icon:<FaWhatsapp/>},
     {title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
     {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
