@@ -38,7 +38,7 @@ return (
 
 </div>
 
-            <a href="https://harvestgrover.vercel.app/" className="absolute lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-green-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
+            <a target="_blank" href="https://harvestgrover.vercel.app/" className="absolute lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-green-300 transition shadow border border-slate-50 w-max p-1  rounded-md flex items-center gap-1"><span>harvestgrove</span>
             <div className="p-1  text-white bg-green-800 rounded">
             <HiOutlineArrowUpRight />
 
@@ -55,7 +55,7 @@ return (
 
 </div>
 
-            <a href="https://harvestgrover.vercel.app/" className="absolute  lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-red-300 transition shadow border border-slate-50 w-max p-1   rounded-md flex items-center gap-1">
+            <a target="_blank" href="https://galaria.vercel.app/" className="absolute  lg:bottom-4 lg:right-4 bottom-1 right-1 text-xs bg-slate-200 text-black hover:bg-red-300 transition shadow border border-slate-50 w-max p-1   rounded-md flex items-center gap-1">
               <span>galaria</span>
             <div className="p-1  text-white bg-red-800 rounded">
             <HiOutlineArrowUpRight />
