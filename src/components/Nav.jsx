@@ -1,35 +1,35 @@
 import { TfiGithub } from "react-icons/tfi";
 import { FaWhatsapp, FaXTwitter } from "react-icons/fa6";
-import { ImPinterest2 } from "react-icons/im";
-import { IoMdArrowDropupCircle } from "react-icons/io";
-import { SiGmail, SiThreads } from "react-icons/si";
+// import { ImPinterest2 } from "react-icons/im";
+// import { IoMdArrowDropupCircle } from "react-icons/io";
+import { SiGmail} from "react-icons/si";
 import { LuLinkedin } from "react-icons/lu";
 import { SlSocialSpotify } from "react-icons/sl";
-import { useSwipeable } from "react-swipeable";
+// import { useSwipeable } from "react-swipeable";
 import { HiOutlineArrowUpRight } from "react-icons/hi2";
-import { NavLink } from 'react-router-dom';
-import { useState } from "react";
-import { useRef } from "react";
+// import { NavLink } from 'react-router-dom';
+// import { useState } from "react";
+// import { useRef } from "react";
 
 
 
 const Nav = () => {
-const [navOpen, setNavOpen] = useState(false)
+// const [navOpen, setNavOpen] = useState(false)
 
 
-    const navLinks = [
-      {title:"read_me", href:"/", icon:"🏠"},
-      {title:"projects", href:"/projects", icon:"✨"},
-    {title:"writing", href:"/writing", icon:"✒︎"},
-    {title:"tools", href:"/tools", icon:"🔧"},
-    {title:"bookmarks", href:"/bookmarks", icon:"🔖"},
-  ]
+  //   const navLinks = [
+  //     {title:"read_me", href:"/", icon:"🏠"},
+  //     {title:"projects", href:"/projects", icon:"✨"},
+  //   {title:"writing", href:"/writing", icon:"✒︎"},
+  //   {title:"tools", href:"/tools", icon:"🔧"},
+  //   {title:"bookmarks", href:"/bookmarks", icon:"🔖"},
+  // ]
     
     const socialLinks = [
-    {title:"gmail", href:"https://github.com/TohirBabs", icon:<SiGmail/>},  
+    {title:"gmail", href:"https://mail.google.com/mail/u/0/?fs=1&to=tohirbabs@gmail.com", icon:<SiGmail/>},  
     {title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
     {title:"X/twitter", href:"https://twitter.com/tohir_dev", icon:<FaXTwitter/>},
-    {title:"whatsapp", href:"https://twitter.com/BabsTohir", icon:<FaWhatsapp/>},
+    {title:"whatsapp", href:"https://wa.link/l4h8xz", icon:<FaWhatsapp/>},
     {title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
     {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
     // {title:"threads", href:"https://www.threads.net/@dev_panda42", icon:<SiThreads/>},
@@ -38,17 +38,17 @@ const [navOpen, setNavOpen] = useState(false)
     
 
 
-const NavButton = ({link}) => {
-    return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2 rounded-md items-center justify-between 
-    ${!isActive ? "text-white  hover:bg-zinc-800 ":"hover:bg-zinc-400 font-semibold bg-zinc-400"}`}>
-    <div className="flex text-xs items-center gap-1 lg:gap-2">
-    <div className="">
-      {link.icon}
-    </div>
-    {link.title}
-    </div>    
-    </NavLink>
-      }   
+// const NavButton = ({link}) => {
+//     return <NavLink exact to={link.href} className={({isActive})=>`flex gap-3  transition cursor-pointer  p-2 rounded-md items-center justify-between 
+//     ${!isActive ? "text-white  hover:bg-zinc-800 ":"hover:bg-zinc-400 font-semibold bg-zinc-400"}`}>
+//     <div className="flex text-xs items-center gap-1 lg:gap-2">
+//     <div className="">
+//       {link.icon}
+//     </div>
+//     {link.title}
+//     </div>    
+//     </NavLink>
+//       }   
       const SocialLink = ({link}) => {
         return <a href={link.href} className="flex lg:gap-3 gap-1 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
           <div className="flex items-center gap-2  ">
