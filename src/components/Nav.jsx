@@ -26,7 +26,7 @@ const Nav = () => {
   // ]
     
     const socialLinks = [
-    {title:"gmail", href:"https://mail.google.com/mail/u/0/?fs=1&to=tohirbabs@gmail.com", icon:<SiGmail/>},  
+    {title:"gmail", href:"https://mail.google.com/mail/u/0/?fs=1&to=tohirbabs@gmail.com&su=SUBJECT&body=BODY&tf=cm", icon:<SiGmail/>},  
     {title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
     {title:"X/twitter", href:"https://twitter.com/tohir_dev", icon:<FaXTwitter/>},
     {title:"whatsapp", href:"https://wa.link/l4h8xz", icon:<FaWhatsapp/>},
