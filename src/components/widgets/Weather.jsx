@@ -1,42 +1,35 @@
-import React from 'react'
-import { useState } from 'react';
-import { useEffect } from 'react';
+
 
 export const Weather = () => {
-   const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  const [city, setCity] = useState('');
-  const [weatherForecastData, setWeatherForecastData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
 
   const now = new Date();
     const dayIndex = now.getDay()
     const weekdays = ["sun","mon","tue","wed","thur","fri","sat"]
     
 
-  useEffect(() => {
-    const getLocation = async () => {
-      try {
-        // Get user's location using the browser's geolocation API
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setLatitude(position.coords.latitude);
-            setLongitude(position.coords.longitude);
-          },
-          (error) => {
-            setError(`Error getting location: ${error.message}`);
-            setLoading(false);
-          }
-        );
-      } catch (error) {
-        setError(`Error getting location: ${error.message}`);
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const getLocation = async () => {
+  //     try {
+  //       // Get user's location using the browser's geolocation API
+  //       navigator.geolocation.getCurrentPosition(
+  //         (position) => {
+  //           setLatitude(position.coords.latitude);
+  //           setLongitude(position.coords.longitude);
+  //         },
+  //         (error) => {
+  //           setError(`Error getting location: ${error.message}`);
+  //           setLoading(false);
+  //         }
+  //       );
+  //     } catch (error) {
+  //       setError(`Error getting location: ${error.message}`);
+  //       setLoading(false);
+  //     }
+  //   };
 
-    getLocation();
-  }, []);
+    // getLocation();
+  // }, []);
 
 
   // useEffect(() => {
@@ -62,7 +55,7 @@ export const Weather = () => {
   //   }
   // }, [latitude, longitude]);
 
-  console.log(weatherForecastData);
+  // console.log(weatherForecastData);
   const daysIndex = [0,8,16,24,32]
     return (
         <div className="h-[9rem] w-[20rem] relative overflow-hidden  bg-[#0e0e0e]  rounded-3xl text-white flex items-center justify-center ">    
