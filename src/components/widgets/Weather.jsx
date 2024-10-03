@@ -39,28 +39,28 @@ export const Weather = () => {
   }, []);
 
 
-  useEffect(() => {
-    const getWeather = async () => {
-      try {
-        // Fetch weather information using OpenWeatherMap API
-        const openWeatherApiKey = '54c6fc1cede766e66b898f32c3a3c03e';
-        const openWeatherUrl = `https://api.openweathermap.org/data/2.5/forecast?&lat=${latitude}&lon=${longitude}&appid=${openWeatherApiKey}`;
+  // useEffect(() => {
+  //   const getWeather = async () => {
+  //     try {
+  //       // Fetch weather information using OpenWeatherMap API
+  //       const openWeatherApiKey = '54c6fc1cede766e66b898f32c3a3c03e';
+  //       const openWeatherUrl = `https://api.openweathermap.org/data/2.5/forecast?&lat=${latitude}&lon=${longitude}&appid=${openWeatherApiKey}`;
 
-        const response = await fetch(openWeatherUrl);
-        const data = await response.json();
+  //       const response = await fetch(openWeatherUrl);
+  //       const data = await response.json();
 
-        setWeatherForecastData(data);
-      } catch (error) {
-        setError(`Error fetching weather information: ${error.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       setWeatherForecastData(data);
+  //     } catch (error) {
+  //       setError(`Error fetching weather information: ${error.message}`);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    if (latitude !== null && longitude !== null) {
-      getWeather();
-    }
-  }, [latitude, longitude]);
+  //   if (latitude !== null && longitude !== null) {
+  //     getWeather();
+  //   }
+  // }, [latitude, longitude]);
 
   console.log(weatherForecastData);
   const daysIndex = [0,8,16,24,32]
