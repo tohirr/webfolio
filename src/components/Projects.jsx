@@ -41,7 +41,7 @@ function Projects() {
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a
             target="_blank"
-            href=""
+            href="https://harvestgrover.vercel.app/"
             className="text-lg border-b w-max border-black"
           >
             harvestgrove <HiOutlineArrowUpRight className="inline" />
@@ -99,7 +99,7 @@ function Projects() {
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a
             target="_blank"
-            href=""
+            href="https://southsidefood.vercel.app/"
             className="text-lg border-b w-max border-black"
           >
             southsidefood <HiOutlineArrowUpRight className="inline" />
@@ -163,7 +163,7 @@ function Projects() {
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a
             target="_blank"
-            href=""
+            href="https://galaria.vercel.app/"
             className="text-lg border-b w-max border-black"
           >
             galeria <HiOutlineArrowUpRight className="inline" />
@@ -177,8 +177,7 @@ function Projects() {
           <img src="/galara2.png" alt="" className="w-full" />
         </div>
       </div>
-      <div className="flex flex-col items-center p-2">
-        {" "}
+      <div className="flex flex-col items-center">
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a
             target="_blank"
@@ -188,7 +187,7 @@ function Projects() {
             pandawidgets <HiOutlineArrowUpRight className="inline" />
           </a>
           <p className="opacity-60 text-xs md:text-base my-3 ">
-           compact utility widgets - but for the web
+            compact utility widgets - but for the web
           </p>
         </div>
         {/* <p className="text-xs bg-red-200 m-3 shadow border w-max p-1 px-2 rounded-md ">pandawidgtes.&#128214;</p> */}
