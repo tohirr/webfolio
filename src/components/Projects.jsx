@@ -90,49 +90,20 @@ function Projects() {
           <a href="" className="text-lg border-b w-max border-black">southsidefood <HiOutlineArrowUpRight className="inline"/></a>
            <p className="opacity-60 text-xs md:text-base my-3 ">an ecommerce website for a restaurant</p>
         </div>
-        <div className="hidden lg:block  z-10 p-3 rounded-lg flex overflow-x-scroll flex gap-4 lg:gap-6 h-[32rem] lg:h-[32rem]">
+        <div className="hidden lg:flex  z-10 p-3   overflow-x-scroll  gap-6 h-[32rem] w-full">
           <img
-            src="/project_imgs/hero.jpg"
+            src="/project_imgs/southsidefood/desktop/home.png"
             alt=""
-            className="border-b rounded-2xl hidden lg:block border"
-          />
-          <img
-            src="/project_imgs/southsidefood/mobilehero.png"
-            alt=""
-            className="rounded-2xl lg:hidden border"
-          />
-          <img
-            src="/project_imgs/southsidefood/about.png"
-            alt=""
-            className="border-b rounded-xl hidden lg:block"
-          />
-          <img
-            src="/project_imgs/southsidefood/mobileabout.png"
-            alt=""
-            className="rounded-xl lg:hidden"
-          />
-          <img
-            src="/project_imgs/southsidefood/cards.png"
-            alt=""
-            className="border-b rounded-2xl hidden lg:block"
-          />
-          <img
-            src="/project_imgs/southsidefood/mobilecards.png"
-            alt=""
-            className="rounded-xl lg:hidden"
-          />
-          <img
-            src="/project_imgs/southsidefood/section.png"
-            alt=""
-            className="border-b rounded-2xl hidden lg:block"
-          />
-          <img
-            src="/project_imgs/southsidefood/mobilesection.png"
-            alt=""
-            className="rounded-xl lg:hidden"
-          />
+            className="border-b rounded-2xl bg-white  border"
+          /> <img
+          src="/project_imgs/southsidefood/desktop/dishes.png"
+          alt=""
+          className="border-b rounded-2xl bg-white  border"
+        />
+          
+         
         </div>
-        <div className="lg:hidden z-10 p-3 rounded-lg flex overflow-x-scroll w-full flex gap-4 lg:gap-6 h-[32rem] lg:h-[32rem]">
+        <div className="lg:hidden z-10 p-3 rounded-lg flex overflow-x-scroll w-full flex gap-4 lg:gap-6 h-[32rem] ">
           <img
             src="/project_imgs/southsidefood/mobile/home.png"
             alt=""
