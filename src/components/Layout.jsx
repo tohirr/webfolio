@@ -6,7 +6,7 @@ function Layout() {
   return (
     <div className="lg:p-4 p-2 bg-zinc-900 font-mono text-sm relative flex lg:flex-row flex-col lg:gap-2 gap-1 w-screen lg:overflow-hidden h-screen">
       <Nav/>
-      <div className="bg-grid-[#80808012] bg-slate-100 rounded-2xl flex flex-col items-center  gap-4 lg:gap-6 lg:p-10 p-2 overflow-y-auto flex-1">
+      <div className="bg-grid-[#80808012] bg-slate-100 rounded-2xl flex flex-col  gap-4 lg:gap-6 overflow-y-auto flex-1">
         <Home/>
         <Projects/>
       </div>
