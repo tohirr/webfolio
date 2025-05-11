@@ -1,12 +1,11 @@
 function Home() {
   const list = [
     { emoji: "🔭", info: "currently building web widgets " },
-    { emoji: "🎓", info: "in my final year studying engr. at Unilag" },
+    { emoji: "🎓", info: "studied enineering at Unilag" },
     { emoji: "✍", info: "i write whenever i feel the muse" },
     { emoji: "💬", info: "love chatting about technology and music" },
     { emoji: "🧠", info: "learning Typescript and skateboarding" },
     { emoji: "😄", info: "pronouns he/him" },
-    { emoji: "🇳🇬", info: "based in lagos, Nigeria" },
     { emoji: "⚡", info: "fun fact: i blink alot less than average" },
   ];
   return (
