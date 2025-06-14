@@ -75,7 +75,7 @@ const Nav = () => {
             <h2 className="text-white/70 "> ui developer</h2>
           </div>
 
-          <img src="emoji-alien.svg" alt="" className="w-10 h-10  rounded-lg bg-zinc-200" />
+          <img src="emoji-alien.svg" alt="" className="w-10 h-10  " />
 
 
         </a>
