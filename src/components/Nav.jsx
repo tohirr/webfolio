@@ -75,7 +75,7 @@ const Nav = () => {
             <h2 className="text-white/70 "> ui developer</h2>
           </div>
 
-          <img src="/selfai.png" alt="" className="w-10 h-10  rounded-lg bg-zinc-200" />
+          <img src="https://drive.google.com/uc?export=download&id=1-9J_XeXihX-Dcs2v07lOvM1auz71JdOy" alt="" className="w-10 h-10  rounded-lg bg-zinc-200" />
 
 
         </a>
