@@ -2,7 +2,7 @@ function Home() {
   const list = [
     { emoji: "🔭", info: "currently building web widgets " },
     { emoji: "🎓", info: "studied enineering at Unilag" },
-    { emoji: "✍", info: "i write whenever i feel the muse" },
+    { emoji: "✍️", info: "i write whenever i feel the muse" },
     { emoji: "💬", info: "love chatting about technology and music" },
     { emoji: "🧠", info: "learning Typescript and skateboarding" },
     { emoji: "😄", info: "pronouns he/him" },
