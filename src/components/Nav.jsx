@@ -27,8 +27,8 @@ const Nav = () => {
     
     const socialLinks = [
     {title:"gmail", href:"https://mail.google.com/mail/u/0/?fs=1&to=tohirbabs@gmail.com&su=SUBJECT&body=BODY&tf=cm", icon:<SiGmail/>},  
-    {title:"github", href:"https://github.com/TohirBabs", icon:<TfiGithub/>},
-    {title:"X/twitter", href:"https://twitter.com/tohir_dev", icon:<FaXTwitter/>},
+    {title:"github", href:"https://github.com/tohirr", icon:<TfiGithub/>},
+    {title:"X/twitter", href:"https://x.com/_tohirr", icon:<FaXTwitter/>},
     {title:"whatsapp", href:"https://wa.link/l4h8xz", icon:<FaWhatsapp/>},
     {title:"linkedin", href:"https://www.linkedin.com/in/tohir-babs-6a0045167/", icon:<LuLinkedin/>},
     {title:"spotify", href:"https://open.spotify.com/user/e48xr1tcz09muuqh1oski4qme", icon:<SlSocialSpotify/>},
@@ -50,7 +50,7 @@ const Nav = () => {
 //     </NavLink>
 //       }   
       const SocialLink = ({link}) => {
-        return <a href={link.href} className="flex lg:gap-3 gap-1 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
+        return <a href={link.href} target="_blank" className="flex lg:gap-3 gap-1 text-white hover:bg-zinc-800 transition cursor-pointer  p-2  rounded-md items-center justify-between">
           <div className="flex items-center gap-2  ">
           <div className="text-lg">
             {link.icon}
