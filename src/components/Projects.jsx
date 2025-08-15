@@ -173,8 +173,8 @@ function Projects() {
           </p>
         </div>
         <div className="bg-white rounded-2xl">
-          <img src="/gallara.png" alt="" className="w-full" />
-          <img src="/galara2.png" alt="" className="w-full" />
+          <img src="/project_imgs/galaria-web.png" alt="" className="w-full hidden lg:block" />
+          <img src="/project_imgs/galaria-mobile.png" alt="" className="w-full lg:hidden " />
         </div>
       </div>
       <div className="flex flex-col items-center">
