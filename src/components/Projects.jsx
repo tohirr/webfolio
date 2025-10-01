@@ -5,27 +5,27 @@ import { Weather } from "./widgets/Weather";
 import { NavLink } from "react-router-dom";
 
 function Projects() {
-  const NavButton = ({ link }) => {
-    return (
-      <NavLink
-        exact
-        to={link.href}
-        className={({
-          isActive,
-        }) => `flex gap-3  transition cursor-pointer  p-4  rounded-full items-center justify-between 
-  ${
-    !isActive
-      ? "text-black  hover:bg-zinc-800 bg-zinc-300 "
-      : "hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"
-  }`}
-      >
-        <div className="flex text-xs items-center gap-1">
-          <div className="">{link.icon}</div>
-          {link.title}
-        </div>
-      </NavLink>
-    );
-  };
+  // const NavButton = ({ link }) => {
+  //   return (
+  //     <NavLink
+  //       exact
+  //       to={link.href}
+  //       className={({
+  //         isActive,
+  //       }) => `flex gap-3  transition cursor-pointer  p-4  rounded-full items-center justify-between
+  // ${
+  //   !isActive
+  //     ? "text-black  hover:bg-zinc-800 bg-zinc-300 "
+  //     : "hover:bg-zinc-800 font-semibold bg-zinc-800 text-white"
+  // }`}
+  //     >
+  //       <div className="flex text-xs items-center gap-1">
+  //         <div className="">{link.icon}</div>
+  //         {link.title}
+  //       </div>
+  //     </NavLink>
+  //   );
+  // };
   const navLinks = [
     { title: "projects", href: "/projects", icon: "✨" },
     { title: "read_me", href: "/", icon: "🏠" },
@@ -173,8 +173,16 @@ function Projects() {
           </p>
         </div>
         <div className="bg-white rounded-2xl">
-          <img src="/project_imgs/galaria-web.png" alt="" className="w-full hidden lg:block" />
-          <img src="/project_imgs/galaria-mobile.png" alt="" className="w-full lg:hidden " />
+          <img
+            src="/project_imgs/galaria-web.png"
+            alt=""
+            className="w-full hidden lg:block"
+          />
+          <img
+            src="/project_imgs/galaria-mobile.png"
+            alt=""
+            className="w-full lg:hidden "
+          />
         </div>
       </div>
       <div className="flex flex-col items-center">
