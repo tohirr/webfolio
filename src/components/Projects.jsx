@@ -26,13 +26,13 @@ function Projects() {
   //     </NavLink>
   //   );
   // };
-  const navLinks = [
-    { title: "projects", href: "/projects", icon: "✨" },
-    { title: "read_me", href: "/", icon: "🏠" },
-    { title: "writing", href: "/writing", icon: "✒︎" },
-    { title: "tools", href: "/tools", icon: "🔧" },
-    { title: "bookmarks", href: "/bookmarks", icon: "🔖" },
-  ];
+  // const navLinks = [
+  //   { title: "projects", href: "/projects", icon: "✨" },
+  //   { title: "read_me", href: "/", icon: "🏠" },
+  //   { title: "writing", href: "/writing", icon: "✒︎" },
+  //   { title: "tools", href: "/tools", icon: "🔧" },
+  //   { title: "bookmarks", href: "/bookmarks", icon: "🔖" },
+  // ];
 
   return (
     <div className="  flex flex-col gap-8 lg:gap-10 ">
