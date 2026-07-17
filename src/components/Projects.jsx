@@ -36,7 +36,33 @@ function Projects() {
 
   return (
     <div className="  flex flex-col gap-8 lg:gap-10 ">
-      <div className="h-[2px] bg-zinc-300 w-[95%] mx-auto"></div>
+      <div className="flex flex-col relative ">
+        {/* <img src="/field.png" alt="" className="absolute top-0 h-full w-full" /> */}
+        <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
+          <a
+            target="_blank"
+            href="https://galaria.vercel.app/"
+            className="text-lg border-b w-max border-black"
+          >
+            galeria <HiOutlineArrowUpRight className="inline" />
+          </a>
+          <p className="opacity-60 text-xs md:text-base my-3 ">
+            a curated colection of african art
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl">
+          <img
+            src="/project_imgs/galaria-web.png"
+            alt=""
+            className="w-full hidden lg:block"
+          />
+          <img
+            src="/project_imgs/galaria-mobile.png"
+            alt=""
+            className="w-full lg:hidden "
+          />
+        </div>
+      </div>
       <div className="flex flex-col  relative lg:rounded-2xl overflow-hidden">
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a
@@ -93,7 +119,6 @@ function Projects() {
           />
         </div>
       </div>
-      <div className="h-[2px] bg-zinc-300 w-[95%] mx-auto "></div>
 
       <div className="flex flex-col  relative lg:rounded-2xl overflow-hidden">
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
@@ -158,33 +183,7 @@ function Projects() {
           />
         </div>
       </div>
-      <div className="flex flex-col relative ">
-        {/* <img src="/field.png" alt="" className="absolute top-0 h-full w-full" /> */}
-        <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
-          <a
-            target="_blank"
-            href="https://galaria.vercel.app/"
-            className="text-lg border-b w-max border-black"
-          >
-            galeria <HiOutlineArrowUpRight className="inline" />
-          </a>
-          <p className="opacity-60 text-xs md:text-base my-3 ">
-            a curated colection of african art
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl">
-          <img
-            src="/project_imgs/galaria-web.png"
-            alt=""
-            className="w-full hidden lg:block"
-          />
-          <img
-            src="/project_imgs/galaria-mobile.png"
-            alt=""
-            className="w-full lg:hidden "
-          />
-        </div>
-      </div>
+
       <div className="flex flex-col items-center">
         <div className="mx-auto max-w-2xl w-full p-3 md:p-5">
           <a

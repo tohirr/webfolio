@@ -6,7 +6,7 @@ function Home() {
     { emoji: "💬", info: "love chatting about technology and music" },
     { emoji: "🧠", info: "learning Typescript and skateboarding" },
     { emoji: "😄", info: "pronouns he/him" },
-    { emoji: "⚡", info: "fun fact: i blink alot less than average" },
+    { emoji: "⚡", info: "fun fact: i rarely blink" },
   ];
   return (
     <div className="flex flex-col gap-10">
