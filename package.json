@@ -20,7 +20,8 @@
     "react-icons": "^5.0.1",
     "react-router-dom": "^6.22.0",
     "react-swipeable": "^7.0.1",
-    "sort-by": "^1.2.0"
+    "sort-by": "^1.2.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",

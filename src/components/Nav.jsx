@@ -81,7 +81,7 @@ const Nav = () => {
         >
           <div className="leading-snug">
             <h1 className=" text-lg">Tohir</h1>
-            <h2 className="text-white/70 "> ui developer</h2>
+            <h2 className="text-white/70 "> 3d / graphics engineer</h2>
           </div>
 
           <img src="emoji-alien.svg" alt="" className="w-10 h-10  " />
