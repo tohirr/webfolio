@@ -33,7 +33,7 @@ const projects = [
 const links = [
   { name: "github", href: "https://github.com/tohirr" },
   { name: "x", href: "https://x.com/_tohirr" },
-  { name: "email", href: "mailto:tohirbabs@gmail.com" },
+  { name: "email", href: "mailto:tohirr.dev@gmail.com" },
   {
     name: "linkedin",
     href: "https://www.linkedin.com/in/tohir-babs-6a0045167/",
@@ -89,7 +89,7 @@ __/ =| o |=-~~\  /~~\  /~~\  /~~\ ____Y___________|__
 
 const WhoAmI = () => (
   <>
-    <h1>tohir babátúndé</h1>
+    <h1>tohirr</h1>
     <p className="dim">3d / graphics engineer · pixel art × webdev</p>
   </>
 );
@@ -144,7 +144,7 @@ const ContactTxt = () => (
     </p>
     <p className="dim">
       open to 3d / graphics &amp; cad software roles —{" "}
-      <a href="mailto:tohirbabs@gmail.com">say hi</a>.
+      <a href="mailto:tohirr.dev@gmail.com">say hi</a>.
     </p>
   </>
 );
