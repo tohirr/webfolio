@@ -242,7 +242,14 @@ function sliceNode(rawNode, budget) {
   if (typeof node === "string" || typeof node === "number") {
     const s = String(node);
     if (s.length <= budget) return [s, s.length];
-    return [s.slice(0, budget), budget];
+    // the reveal tip — park the blinking cursor right here
+    return [
+      <>
+        {s.slice(0, budget)}
+        <span className="cursor" aria-hidden="true" />
+      </>,
+      budget,
+    ];
   }
   if (Array.isArray(node)) {
     let used = 0;
@@ -690,7 +697,7 @@ function App() {
           </div>
         ))}
 
-      {phase === "term" && !introDone && (
+      {phase === "term" && !introDone && !busy && (
         <p className="cmdline">
           {prompt} <span>{INTRO_BLOCKS[introIdx].cmd.slice(0, typed)}</span>
           <span className="cursor" aria-hidden="true" />
