@@ -49,7 +49,7 @@ const KEYSTROKE_MS_MIN = 40; // intro commands: fastest keypress
 const KEYSTROKE_MS_JITTER = 45; // extra random per-keypress delay
 const CMD_START_DELAY_MS = 650; // pause before a command starts typing
 const OUTPUT_DELAY_MS = 380; // pause between command and its output
-const BOOT_LINE_MS = 170; // per boot line (first line waits 350ms)
+const BOOT_LINE_MS = 300; // per boot line (first line waits 350ms)
 const BOOT_HOLD_MS = 1000; // hold the finished boot screen before clearing
 
 const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
