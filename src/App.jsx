@@ -49,7 +49,7 @@ const KEYSTROKE_MS_MIN = 40; // intro commands: fastest keypress
 const KEYSTROKE_MS_JITTER = 45; // extra random per-keypress delay
 const CMD_START_DELAY_MS = 650; // pause before a command starts typing
 const OUTPUT_DELAY_MS = 380; // pause between command and its output
-const BOOT_LINE_MS = 300; // per boot line (first line waits 350ms)
+const BOOT_LINE_MS = 300; // pause between boot lines (chars ride the stream dials)
 const BOOT_HOLD_MS = 1000; // hold the finished boot screen before clearing
 
 const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -373,16 +373,10 @@ function App() {
     );
   }, []);
 
-  // fake POST screen, every load
+  // fake POST screen, every load — lines type in one at a time (the
+  // per-char pacing rides the stream dials); hold, then clear to the shell
   useEffect(() => {
-    if (phase !== "boot") return;
-    if (bootN < BOOT_LINES.length) {
-      const t = setTimeout(
-        () => setBootN((n) => n + 1),
-        bootN === 0 ? 350 : BOOT_LINE_MS,
-      );
-      return () => clearTimeout(t);
-    }
+    if (phase !== "boot" || bootN < BOOT_LINES.length) return;
     const t = setTimeout(() => setPhase("term"), BOOT_HOLD_MS);
     return () => clearTimeout(t);
   }, [phase, bootN]);
@@ -678,6 +672,17 @@ function App() {
               {l}
             </p>
           ))}
+          {bootN < BOOT_LINES.length && (
+            <p className="dim" key={BOOT_LINES[bootN]}>
+              <Stream
+                onDone={() =>
+                  setTimeout(() => setBootN((n) => n + 1), BOOT_LINE_MS)
+                }
+              >
+                {BOOT_LINES[bootN]}
+              </Stream>
+            </p>
+          )}
         </div>
       )}
 
