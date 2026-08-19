@@ -109,6 +109,15 @@ a:hover {
   color: #f87171;
 }
 
+/* boot progress bar */
+.boot p {
+  white-space: pre-wrap;
+}
+
+.bar-fill {
+  color: var(--fg);
+}
+
 /* one prompt + command + its output */
 .block {
   margin-bottom: 0.4rem;

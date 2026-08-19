@@ -64,12 +64,50 @@ function browserName() {
   return "browser";
 }
 
-const BOOT_LINES = [
-  "tohirOS bios v2.6 — pixel edition",
-  "mem check ............ 65536k ok",
-  "sprite daemon ........ loaded",
-  "booting /bin/zsh ...",
+const BOOT_STEPS = [
+  { text: "tohirOS bios v2.6 — pixel edition" },
+  { text: "mem check ............ 65536k ok" },
+  { text: "sprite daemon ........ loaded" },
+  { bar: "loading pixels ......." }, // fills in place, package-manager style
+  { text: "booting /bin/zsh ..." },
 ];
+
+const BAR_CELLS = 18;
+
+// eslint-disable-next-line react/prop-types
+function BarLine({ label, pct }) {
+  const filled = Math.round((pct / 100) * BAR_CELLS);
+  return (
+    <p className="dim bar">
+      {label} [<span className="bar-fill">{"█".repeat(filled)}</span>
+      {"░".repeat(BAR_CELLS - filled)}]{String(Math.round(pct)).padStart(4)}%
+    </p>
+  );
+}
+
+// creeps up in uneven jumps, hitches around 80% — as is tradition
+// eslint-disable-next-line react/prop-types
+function BootBar({ label, onDone }) {
+  const [pct, setPct] = useState(0);
+  const doneRef = useRef(false);
+  useEffect(() => {
+    if (pct >= 100) {
+      if (!doneRef.current) {
+        doneRef.current = true;
+        onDone?.();
+      }
+      return;
+    }
+    const hitch = pct > 76 && pct < 92 && Math.random() < 0.4;
+    const t = setTimeout(
+      () => setPct((p) => Math.min(100, p + 1 + Math.floor(Math.random() * 7))),
+      hitch ? 300 : 50 + Math.random() * 90
+    );
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pct]);
+  return <BarLine label={label} pct={pct} />;
+}
 
 const THEMES = ["default", "green", "amber"];
 
@@ -376,7 +414,7 @@ function App() {
   // fake POST screen, every load — lines type in one at a time (the
   // per-char pacing rides the stream dials); hold, then clear to the shell
   useEffect(() => {
-    if (phase !== "boot" || bootN < BOOT_LINES.length) return;
+    if (phase !== "boot" || bootN < BOOT_STEPS.length) return;
     const t = setTimeout(() => setPhase("term"), BOOT_HOLD_MS);
     return () => clearTimeout(t);
   }, [phase, bootN]);
@@ -667,22 +705,35 @@ function App() {
     <main onClick={onMainClick}>
       {phase === "boot" && (
         <div className="boot">
-          {BOOT_LINES.slice(0, bootN).map((l) => (
-            <p className="dim" key={l}>
-              {l}
-            </p>
-          ))}
-          {bootN < BOOT_LINES.length && (
-            <p className="dim" key={BOOT_LINES[bootN]}>
-              <Stream
+          {BOOT_STEPS.slice(0, bootN).map((s, i) =>
+            s.bar ? (
+              <BarLine label={s.bar} pct={100} key={i} />
+            ) : (
+              <p className="dim" key={i}>
+                {s.text}
+              </p>
+            )
+          )}
+          {bootN < BOOT_STEPS.length &&
+            (BOOT_STEPS[bootN].bar ? (
+              <BootBar
+                key={bootN}
+                label={BOOT_STEPS[bootN].bar}
                 onDone={() =>
                   setTimeout(() => setBootN((n) => n + 1), BOOT_LINE_MS)
                 }
-              >
-                {BOOT_LINES[bootN]}
-              </Stream>
-            </p>
-          )}
+              />
+            ) : (
+              <p className="dim" key={bootN}>
+                <Stream
+                  onDone={() =>
+                    setTimeout(() => setBootN((n) => n + 1), BOOT_LINE_MS)
+                  }
+                >
+                  {BOOT_STEPS[bootN].text}
+                </Stream>
+              </p>
+            ))}
         </div>
       )}
 
