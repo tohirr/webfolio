@@ -212,7 +212,18 @@ const COMPLETIONS = [
 /* ---- output streaming --------------------------------------------------
    reveals arbitrary JSX in fast character chunks, llm-chat style */
 
-function countChars(node) {
+// function components are opaque until rendered — their children don't
+// exist yet, so the streamer would see them as 1 char and dump everything.
+// ours are pure and hook-free, so we can just call them to get the tree.
+function expand(node) {
+  while (isValidElement(node) && typeof node.type === "function") {
+    node = node.type(node.props);
+  }
+  return node;
+}
+
+function countChars(rawNode) {
+  const node = expand(rawNode);
   if (node == null || typeof node === "boolean") return 0;
   if (typeof node === "string" || typeof node === "number")
     return String(node).length;
@@ -224,7 +235,8 @@ function countChars(node) {
   return 0;
 }
 
-function sliceNode(node, budget) {
+function sliceNode(rawNode, budget) {
+  const node = expand(rawNode);
   if (node == null || typeof node === "boolean" || budget <= 0)
     return [null, 0];
   if (typeof node === "string" || typeof node === "number") {

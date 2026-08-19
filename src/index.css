@@ -274,6 +274,6 @@ ul {
   }
 
   main {
-    padding-top: 1.5rem;
+    padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
   }
 }
