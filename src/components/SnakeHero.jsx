@@ -46,7 +46,7 @@ function SnakeHero() {
     // --- Arena: wireframe cube -------------------------------------------
     const arena = new THREE.LineSegments(
       new THREE.EdgesGeometry(new THREE.BoxGeometry(N, N, N)),
-      new THREE.LineBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.55 })
+      new THREE.LineBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.35 })
     );
     scene.add(arena);
 
@@ -297,8 +297,7 @@ function SnakeHero() {
     <div
       ref={mountRef}
       aria-hidden="true"
-      className="w-full h-full"
-      style={{ minHeight: "100%" }}
+      style={{ width: "100%", height: "100%", minHeight: "100%" }}
     />
   );
 }

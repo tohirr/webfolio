@@ -1,3 +1,182 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+:root {
+  --bg: #0a0a0a;
+  --fg: #d6d6d6;
+  --dim: #757575;
+  --accent: #4ade80;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+main {
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 6rem;
+  min-height: 100vh;
+  cursor: default;
+}
+
+h1 {
+  font-size: 1em;
+  font-weight: 700;
+  margin: 0;
+}
+
+p {
+  margin: 0 0 1.2em;
+}
+
+a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--dim);
+  text-underline-offset: 4px;
+}
+
+/* instant invert on hover — game-ui, no easing */
+a:hover {
+  background: var(--accent);
+  color: var(--bg);
+  text-decoration: none;
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+/* one prompt + command + its output */
+.block {
+  margin-bottom: 0.4rem;
+}
+
+.cmdline {
+  margin: 0 0 0.9em;
+  word-break: break-all;
+}
+
+.output {
+  margin-bottom: 2.2em;
+}
+
+.output > :last-child,
+.output p:last-child {
+  margin-bottom: 0;
+}
+
+/* blinking block cursor */
+.cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.15em;
+  vertical-align: -0.12em;
+  background: var(--accent);
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  margin: 0 0 1.1em;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.row .desc {
+  color: var(--dim);
+  display: block;
+}
+
+.elsewhere {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em 1.4em;
+  margin-bottom: 1.2em;
+}
+
+/* the snake-summoning hint, styled as a shell comment */
+.hint {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--dim);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.hint:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* easter egg overlay */
+.snake-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.snake-overlay .scene {
+  position: absolute;
+  inset: 0;
+}
+
+.snake-overlay .caption {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--dim);
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  main {
+    padding-top: 2rem;
+  }
+}
