@@ -1,15 +1,11 @@
 import {
   cloneElement,
   isValidElement,
-  lazy,
-  Suspense,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-
-const SnakeHero = lazy(() => import("./components/SnakeHero"));
 
 const projects = [
   {
@@ -56,27 +52,28 @@ function browserName() {
 const BOOT_LINES = [
   "tohirOS bios v2.6 — pixel edition",
   "mem check ............ 65536k ok",
-  "snake daemon ......... loaded",
+  "sprite daemon ........ loaded",
   "booting /bin/zsh ...",
 ];
 
-const BANNER = [
-  "█████ █████ █   █ █████ ████ ",
-  "  █   █   █ █   █   █   █   █",
-  "  █   █   █ █████   █   ████ ",
-  "  █   █   █ █   █   █   █  █ ",
-  "  █   █████ █   █ █████ █   █",
-].join("\n");
-
 const THEMES = ["default", "green", "amber"];
+
+// typo `ls` and find out. sl ignores interrupts, as is tradition.
+const TRAIN = String.raw`      ====        ________                ___________
+  _D _|  |_______/        \__I_I_____===__|_________|
+   |(_)---  |   H\________/ |   |        =|___ ___|
+   /     |  |   H  |  |     |   |         ||_| |_||
+  |      |  |   H  |__--------------------| [___] |
+  | ________|___H__/__|_____/[][]~\_______|       |
+  |/ |   |-----------I_____I [][] []  D   |=======|__
+__/ =| o |=-~~\  /~~\  /~~\  /~~\ ____Y___________|__
+ |/-=|___|=    ||    ||    ||    |_____/~\___/
+  \_/      \O=====O=====O=====O_/      \_/`;
 
 /* ---- command outputs --------------------------------------------------- */
 
 const WhoAmI = () => (
   <>
-    <pre className="banner" aria-hidden="true">
-      {BANNER}
-    </pre>
     <h1>tohir babátúndé</h1>
     <p className="dim">3d / graphics engineer · pixel art × webdev</p>
   </>
@@ -154,7 +151,6 @@ const Help = () => (
       open &lt;project&gt;{"  "}<span className="dim">open a project in a new tab</span>{"\n"}
       theme &lt;name&gt;{"    "}<span className="dim">green · amber · default</span>{"\n"}
       history{"         "}<span className="dim">command history</span>{"\n"}
-      snake{"           "}<span className="dim">🐍</span>{"\n"}
       clear{"           "}<span className="dim">clear the screen</span>
     </p>
   </div>
@@ -177,7 +173,6 @@ const COMPLETIONS = [
   ...projects.map((p) => `open ${p.name}`),
   ...THEMES.map((t) => `theme ${t}`),
   "history",
-  "snake",
   "clear",
   "pwd",
   "date",
@@ -240,8 +235,8 @@ function Stream({ children, instant, onDone }) {
       return;
     }
     const t = setTimeout(
-      () => setN((x) => Math.min(total, x + 4 + Math.floor(Math.random() * 5))),
-      12
+      () => setN((x) => Math.min(total, x + 1 + Math.floor(Math.random() * 3))),
+      14
     );
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -271,7 +266,7 @@ function applyTheme(name) {
 /* ---- the terminal ------------------------------------------------------ */
 
 function App() {
-  const [snake, setSnake] = useState(false);
+  const [train, setTrain] = useState(false);
   const [vim, setVim] = useState(null); // {buf, cmd, insert, err}
   const reduceMotion = useMemo(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -293,8 +288,6 @@ function App() {
   const inputRef = useRef(null);
   const historyRef = useRef(null);
   const idRef = useRef(INTRO_BLOCKS.length);
-  const vimRef = useRef(null);
-  vimRef.current = vim;
 
   if (historyRef.current === null) {
     let saved = [];
@@ -377,16 +370,6 @@ function App() {
     if (vim) inputRef.current?.focus({ preventScroll: true });
   }, [vim]);
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key !== "Escape") return;
-      if (vimRef.current) return; // vim owns escape
-      setSnake(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   const saveHistory = () => {
     const list = historyRef.current.list.slice(-50);
     localStorage.setItem("wf-history", JSON.stringify(list));
@@ -462,9 +445,16 @@ function App() {
       ) : (
         <p className="dim">no history yet</p>
       );
-    } else if (name === "snake" || cmd === "./snake") {
-      setSnake(true);
-      output = <p className="dim">🐍 esc or click to come back</p>;
+    } else if (name === "sl") {
+      setTrain(true);
+      setBusy(true);
+      output = null;
+    } else if (name === "snake") {
+      output = (
+        <p className="dim">
+          🐍 the real one lives in a cube — try: open colubrid
+        </p>
+      );
     } else if (name === "vi" || name === "vim" || name === "nvim") {
       setVim({ buf: "", cmd: "", insert: false, err: "" });
     } else if (name === "nano" || name === "emacs")
@@ -712,35 +702,17 @@ function App() {
         </div>
       )}
 
-      {snake && (
-        <div
-          className="snake-overlay"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSnake(false);
+      {train && (
+        <pre
+          className="sl"
+          aria-hidden="true"
+          onAnimationEnd={() => {
+            setTrain(false);
+            setBusy(false);
           }}
-          role="button"
-          aria-label="close snake"
         >
-          <Suspense fallback={null}>
-            <div className="scene">
-              <SnakeHero />
-            </div>
-          </Suspense>
-          <p className="caption">
-            🐍 a taste of colubrid —{" "}
-            <a
-              className="ln"
-              href="https://colubrid.tohirr.xyz"
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              play the real game
-            </a>{" "}
-            · esc or click to close
-          </p>
-        </div>
+          {TRAIN}
+        </pre>
       )}
     </main>
   );

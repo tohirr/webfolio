@@ -187,16 +187,6 @@ ul {
   white-space: pre-wrap;
 }
 
-/* whoami block-letter banner */
-.banner {
-  font-family: inherit;
-  font-size: 11px;
-  line-height: 1.15;
-  color: var(--green);
-  margin: 0 0 1em;
-  overflow-x: auto;
-}
-
 /* fake vim */
 .vim {
   position: fixed;
@@ -255,28 +245,27 @@ ul {
   color: transparent;
 }
 
-/* easter egg overlay */
-.snake-overlay {
+/* the sl locomotive — typo ls, receive train. cannot be interrupted. */
+.sl {
   position: fixed;
-  inset: 0;
-  z-index: 10;
-  background: var(--bg);
-  cursor: pointer;
-}
-
-.snake-overlay .scene {
-  position: absolute;
-  inset: 0;
-}
-
-.snake-overlay .caption {
-  position: absolute;
-  bottom: 1.2rem;
+  top: 35vh;
   left: 0;
-  right: 0;
-  text-align: center;
-  color: var(--dim);
+  z-index: 9;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: pre;
   pointer-events: none;
+  animation: sl-run 7s linear forwards;
+}
+
+@keyframes sl-run {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-105%);
+  }
 }
 
 @media (max-width: 480px) {
