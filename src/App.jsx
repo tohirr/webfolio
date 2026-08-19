@@ -34,12 +34,15 @@ const links = [
   { name: "github", href: "https://github.com/tohirr" },
   { name: "x", href: "https://x.com/_tohirr" },
   { name: "email", href: "mailto:tohirbabs@gmail.com" },
-  { name: "linkedin", href: "https://www.linkedin.com/in/tohir-babs-6a0045167/" },
+  {
+    name: "linkedin",
+    href: "https://www.linkedin.com/in/tohir-babs-6a0045167/",
+  },
 ];
 
 /* ---- speed dials --------------------------------------------------------
    all the pacing knobs, in one place. tweak to taste. */
-const STREAM_TICK_MS = 14; // ms between output chunks (lower = faster)
+const STREAM_TICK_MS = 30; // ms between output chunks (lower = faster)
 const STREAM_CHUNK_MIN = 1; // chars revealed per chunk, at least…
 const STREAM_CHUNK_EXTRA = 3; // …plus up to this many more, randomly
 const KEYSTROKE_MS_MIN = 40; // intro commands: fastest keypress
@@ -47,7 +50,7 @@ const KEYSTROKE_MS_JITTER = 45; // extra random per-keypress delay
 const CMD_START_DELAY_MS = 650; // pause before a command starts typing
 const OUTPUT_DELAY_MS = 380; // pause between command and its output
 const BOOT_LINE_MS = 170; // per boot line (first line waits 350ms)
-const BOOT_HOLD_MS = 500; // hold the finished boot screen before clearing
+const BOOT_HOLD_MS = 1000; // hold the finished boot screen before clearing
 
 const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
@@ -94,9 +97,9 @@ const WhoAmI = () => (
 const AboutTxt = () => (
   <>
     <p>
-      i build interactive 3d things for the browser — lately at the
-      intersection of pixel art and the web: crisp grids, small sprites,
-      playful interfaces that feel like game ui.
+      i build interactive 3d things for the browser — lately at the intersection
+      of pixel art and the web: crisp grids, small sprites, playful interfaces
+      that feel like game ui.
     </p>
     <p>
       mechanical engineering background (cad, fea, simulation). currently
@@ -148,7 +151,8 @@ const ContactTxt = () => (
 
 const RootLs = () => (
   <p>
-    about.txt&nbsp;&nbsp;contact.txt&nbsp;&nbsp;<span className="dir">projects/</span>
+    about.txt&nbsp;&nbsp;contact.txt&nbsp;&nbsp;
+    <span className="dir">projects/</span>
   </p>
 );
 
@@ -156,14 +160,29 @@ const Help = () => (
   <div className="help">
     <p className="dim">available commands:</p>
     <p>
-      help{"            "}<span className="dim">show this list</span>{"\n"}
-      whoami{"          "}<span className="dim">who is this guy</span>{"\n"}
-      ls [dir]{"        "}<span className="dim">list files</span>{"\n"}
-      cat &lt;file&gt;{"      "}<span className="dim">print a file</span>{"\n"}
-      open &lt;project&gt;{"  "}<span className="dim">open a project in a new tab</span>{"\n"}
-      theme &lt;name&gt;{"    "}<span className="dim">green · amber · default</span>{"\n"}
-      history{"         "}<span className="dim">command history</span>{"\n"}
-      clear{"           "}<span className="dim">clear the screen</span>
+      help{"            "}
+      <span className="dim">show this list</span>
+      {"\n"}
+      whoami{"          "}
+      <span className="dim">who is this guy</span>
+      {"\n"}
+      ls [dir]{"        "}
+      <span className="dim">list files</span>
+      {"\n"}
+      cat &lt;file&gt;{"      "}
+      <span className="dim">print a file</span>
+      {"\n"}
+      open &lt;project&gt;{"  "}
+      <span className="dim">open a project in a new tab</span>
+      {"\n"}
+      theme &lt;name&gt;{"    "}
+      <span className="dim">green · amber · default</span>
+      {"\n"}
+      history{"         "}
+      <span className="dim">command history</span>
+      {"\n"}
+      clear{"           "}
+      <span className="dim">clear the screen</span>
     </p>
   </div>
 );
@@ -251,10 +270,12 @@ function Stream({ children, instant, onDone }) {
         setN((x) =>
           Math.min(
             total,
-            x + STREAM_CHUNK_MIN + Math.floor(Math.random() * (STREAM_CHUNK_EXTRA + 1))
-          )
+            x +
+              STREAM_CHUNK_MIN +
+              Math.floor(Math.random() * (STREAM_CHUNK_EXTRA + 1)),
+          ),
         ),
-      STREAM_TICK_MS
+      STREAM_TICK_MS,
     );
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -262,8 +283,7 @@ function Stream({ children, instant, onDone }) {
 
   // follow the output while it streams
   useEffect(() => {
-    if (n < total)
-      window.scrollTo(0, document.documentElement.scrollHeight);
+    if (n < total) window.scrollTo(0, document.documentElement.scrollHeight);
   }, [n, total]);
 
   if (n >= total) return children;
@@ -288,15 +308,15 @@ function App() {
   const [vim, setVim] = useState(null); // {buf, cmd, insert, err}
   const reduceMotion = useMemo(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    []
+    [],
   );
   const [phase, setPhase] = useState(reduceMotion ? "term" : "boot");
   const [bootN, setBootN] = useState(0);
   const [blocks, setBlocks] = useState(() =>
-    reduceMotion ? INTRO_BLOCKS.map((b, i) => ({ ...b, id: i })) : []
+    reduceMotion ? INTRO_BLOCKS.map((b, i) => ({ ...b, id: i })) : [],
   );
   const [introIdx, setIntroIdx] = useState(
-    reduceMotion ? INTRO_BLOCKS.length : 0
+    reduceMotion ? INTRO_BLOCKS.length : 0,
   );
   const [typed, setTyped] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -340,7 +360,7 @@ function App() {
     if (bootN < BOOT_LINES.length) {
       const t = setTimeout(
         () => setBootN((n) => n + 1),
-        bootN === 0 ? 350 : BOOT_LINE_MS
+        bootN === 0 ? 350 : BOOT_LINE_MS,
       );
       return () => clearTimeout(t);
     }
@@ -358,13 +378,16 @@ function App() {
         () => setTyped((n) => n + 1),
         typed === 0
           ? CMD_START_DELAY_MS
-          : KEYSTROKE_MS_MIN + Math.random() * KEYSTROKE_MS_JITTER
+          : KEYSTROKE_MS_MIN + Math.random() * KEYSTROKE_MS_JITTER,
       );
       return () => clearTimeout(t);
     }
     const t = setTimeout(() => {
       setBusy(true);
-      setBlocks((b) => [...b, { ...INTRO_BLOCKS[introIdx], id: idRef.current++ }]);
+      setBlocks((b) => [
+        ...b,
+        { ...INTRO_BLOCKS[introIdx], id: idRef.current++ },
+      ]);
       setIntroIdx((i) => i + 1);
       setTyped(0);
     }, OUTPUT_DELAY_MS);
@@ -447,19 +470,13 @@ function App() {
         applyTheme(arg);
         output = <p className="dim">phosphor set to {arg}</p>;
       } else {
-        output = (
-          <p>
-            usage: theme &lt;{THEMES.join(" | ")}&gt;
-          </p>
-        );
+        output = <p>usage: theme &lt;{THEMES.join(" | ")}&gt;</p>;
       }
     } else if (name === "history") {
       const list = historyRef.current.list;
       output = list.length ? (
         <p className="history">
-          {list
-            .map((h, i) => `${String(i + 1).padStart(4)}  ${h}`)
-            .join("\n")}
+          {list.map((h, i) => `${String(i + 1).padStart(4)}  ${h}`).join("\n")}
         </p>
       ) : (
         <p className="dim">no history yet</p>
@@ -532,9 +549,17 @@ function App() {
         err: "E37: No write since last change (add ! to override)",
       });
     else if (c === ":w" || c === ":wq" || c === ":x")
-      setVim({ ...v, cmd: "", err: "E45: 'readonly' option is set (add ! to override)" });
+      setVim({
+        ...v,
+        cmd: "",
+        err: "E45: 'readonly' option is set (add ! to override)",
+      });
     else if (c.startsWith(":") && c.length > 1)
-      setVim({ ...v, cmd: "", err: `E492: Not an editor command: ${c.slice(1)}` });
+      setVim({
+        ...v,
+        cmd: "",
+        err: `E492: Not an editor command: ${c.slice(1)}`,
+      });
     else setVim({ ...v, cmd: "" });
   };
 
