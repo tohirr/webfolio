@@ -37,6 +37,18 @@ const links = [
   { name: "linkedin", href: "https://www.linkedin.com/in/tohir-babs-6a0045167/" },
 ];
 
+/* ---- speed dials --------------------------------------------------------
+   all the pacing knobs, in one place. tweak to taste. */
+const STREAM_TICK_MS = 14; // ms between output chunks (lower = faster)
+const STREAM_CHUNK_MIN = 1; // chars revealed per chunk, at least…
+const STREAM_CHUNK_EXTRA = 3; // …plus up to this many more, randomly
+const KEYSTROKE_MS_MIN = 40; // intro commands: fastest keypress
+const KEYSTROKE_MS_JITTER = 45; // extra random per-keypress delay
+const CMD_START_DELAY_MS = 650; // pause before a command starts typing
+const OUTPUT_DELAY_MS = 380; // pause between command and its output
+const BOOT_LINE_MS = 170; // per boot line (first line waits 350ms)
+const BOOT_HOLD_MS = 500; // hold the finished boot screen before clearing
+
 const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 function browserName() {
@@ -235,8 +247,14 @@ function Stream({ children, instant, onDone }) {
       return;
     }
     const t = setTimeout(
-      () => setN((x) => Math.min(total, x + 1 + Math.floor(Math.random() * 3))),
-      14
+      () =>
+        setN((x) =>
+          Math.min(
+            total,
+            x + STREAM_CHUNK_MIN + Math.floor(Math.random() * (STREAM_CHUNK_EXTRA + 1))
+          )
+        ),
+      STREAM_TICK_MS
     );
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -272,8 +290,7 @@ function App() {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     []
   );
-  const skipBoot = reduceMotion || !!localStorage.getItem("wf-booted");
-  const [phase, setPhase] = useState(skipBoot ? "term" : "boot");
+  const [phase, setPhase] = useState(reduceMotion ? "term" : "boot");
   const [bootN, setBootN] = useState(0);
   const [blocks, setBlocks] = useState(() =>
     reduceMotion ? INTRO_BLOCKS.map((b, i) => ({ ...b, id: i })) : []
@@ -317,17 +334,17 @@ function App() {
     );
   }, []);
 
-  // fake POST screen, first visit only
+  // fake POST screen, every load
   useEffect(() => {
     if (phase !== "boot") return;
     if (bootN < BOOT_LINES.length) {
-      const t = setTimeout(() => setBootN((n) => n + 1), bootN === 0 ? 350 : 170);
+      const t = setTimeout(
+        () => setBootN((n) => n + 1),
+        bootN === 0 ? 350 : BOOT_LINE_MS
+      );
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => {
-      localStorage.setItem("wf-booted", "1");
-      setPhase("term");
-    }, 500);
+    const t = setTimeout(() => setPhase("term"), BOOT_HOLD_MS);
     return () => clearTimeout(t);
   }, [phase, bootN]);
 
@@ -339,7 +356,9 @@ function App() {
     if (typed < cmd.length) {
       const t = setTimeout(
         () => setTyped((n) => n + 1),
-        typed === 0 ? 650 : 40 + Math.random() * 45
+        typed === 0
+          ? CMD_START_DELAY_MS
+          : KEYSTROKE_MS_MIN + Math.random() * KEYSTROKE_MS_JITTER
       );
       return () => clearTimeout(t);
     }
@@ -348,7 +367,7 @@ function App() {
       setBlocks((b) => [...b, { ...INTRO_BLOCKS[introIdx], id: idRef.current++ }]);
       setIntroIdx((i) => i + 1);
       setTyped(0);
-    }, 380);
+    }, OUTPUT_DELAY_MS);
     return () => clearTimeout(t);
   }, [phase, introIdx, typed, introDone, busy]);
 
@@ -591,7 +610,6 @@ function App() {
 
   const onMainClick = () => {
     if (phase === "boot") {
-      localStorage.setItem("wf-booted", "1");
       setPhase("term");
       return;
     }
