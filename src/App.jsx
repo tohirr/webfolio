@@ -64,12 +64,14 @@ function browserName() {
   return "browser";
 }
 
+// every check runs a live progress bar, then resolves to its status —
+// only the title line streams as plain text
 const BOOT_STEPS = [
   { text: "tohirOS bios v2.6 — pixel edition" },
-  { text: "mem check ............ 65536k ok" },
-  { text: "sprite daemon ........ loaded" },
-  { bar: "loading pixels ......." }, // fills in place, package-manager style
-  { text: "booting /bin/zsh ..." },
+  { label: "mem check ............", result: "65536k ok" },
+  { label: "sprite daemon ........", result: "loaded" },
+  { label: "loading pixels .......", result: "done" },
+  { label: "booting /bin/zsh .....", result: "ok" },
 ];
 
 const BAR_CELLS = 18;
@@ -98,10 +100,10 @@ function BootBar({ label, onDone }) {
       }
       return;
     }
-    const hitch = pct > 76 && pct < 92 && Math.random() < 0.4;
+    const hitch = pct > 76 && pct < 92 && Math.random() < 0.35;
     const t = setTimeout(
-      () => setPct((p) => Math.min(100, p + 1 + Math.floor(Math.random() * 7))),
-      hitch ? 300 : 50 + Math.random() * 90
+      () => setPct((p) => Math.min(100, p + 2 + Math.floor(Math.random() * 7))),
+      hitch ? 280 : 40 + Math.random() * 60
     );
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -706,8 +708,10 @@ function App() {
       {phase === "boot" && (
         <div className="boot">
           {BOOT_STEPS.slice(0, bootN).map((s, i) =>
-            s.bar ? (
-              <BarLine label={s.bar} pct={100} key={i} />
+            s.label ? (
+              <p className="dim" key={i}>
+                {s.label} {s.result}
+              </p>
             ) : (
               <p className="dim" key={i}>
                 {s.text}
@@ -715,10 +719,10 @@ function App() {
             )
           )}
           {bootN < BOOT_STEPS.length &&
-            (BOOT_STEPS[bootN].bar ? (
+            (BOOT_STEPS[bootN].label ? (
               <BootBar
                 key={bootN}
-                label={BOOT_STEPS[bootN].bar}
+                label={BOOT_STEPS[bootN].label}
                 onDone={() =>
                   setTimeout(() => setBootN((n) => n + 1), BOOT_LINE_MS)
                 }
