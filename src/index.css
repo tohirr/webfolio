@@ -1,3 +1,288 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+:root {
+  --bg: #0a0a0a;
+  --fg: #d6d6d6;
+  --dim: #757575;
+  /* ANSI-ish palette */
+  --green: #4ade80;
+  --blue: #6cb2f7;
+  --cyan: #67e8f9;
+}
+
+/* phosphor themes — `theme green` / `theme amber` */
+:root[data-theme="green"] {
+  --fg: #4ade80;
+  --dim: #2e7d4f;
+  --green: #86efac;
+  --blue: #4ade80;
+  --cyan: #a7f3d0;
+}
+
+:root[data-theme="amber"] {
+  --fg: #ffb000;
+  --dim: #8a6a1f;
+  --green: #ffd75f;
+  --blue: #ffb000;
+  --cyan: #ffe6a1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+/* terminal selection */
+::selection {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+main {
+  max-width: 76ch;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 5rem;
+  min-height: 100vh;
+  cursor: text;
+}
+
+h1 {
+  font-size: 1em;
+  font-weight: 700;
+  margin: 0;
+}
+
+p {
+  margin: 0 0 1.2em;
+}
+
+/* links look like terminal text; underline only on hover (iterm-style) */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dim {
+  color: var(--dim);
+}
+
+/* prompt pieces — classic bash coloring */
+.p-user {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.p-path {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* directories in ls output */
+.dir {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* symlink-colored project/contact links */
+.ln {
+  color: var(--cyan);
+}
+
+/* broken symlink, like ls paints them */
+.broken {
+  color: #f87171;
+}
+
+/* boot progress bar */
+.boot p {
+  white-space: pre-wrap;
+}
+
+.bar-fill {
+  color: var(--fg);
+}
+
+/* one prompt + command + its output */
+.block {
+  margin-bottom: 0.4rem;
+}
+
+.cmdline {
+  margin: 0 0 0.9em;
+  word-break: break-all;
+}
+
+.output {
+  margin-bottom: 2.2em;
+}
+
+.output > :last-child,
+.output p:last-child,
+.output .row:last-child {
+  margin-bottom: 0;
+}
+
+/* blinking block cursor; hollow when the terminal loses focus */
+.cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.15em;
+  vertical-align: -0.12em;
+  background: var(--fg);
+  animation: blink 1.1s steps(1) infinite;
+}
+
+.cursor.hollow {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--fg);
+  animation: none;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  margin: 0 0 1.1em;
+}
+
+.row .desc {
+  color: var(--dim);
+  display: block;
+}
+
+.brackets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 1em;
+}
+
+.brackets a:hover {
+  text-decoration: none;
+}
+
+.brackets a:hover .ln {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.help p,
+.history {
+  white-space: pre-wrap;
+}
+
+/* fake vim */
+.vim {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+  cursor: default;
+}
+
+.vim-buf {
+  flex: 1;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.vim-tilde {
+  margin: 0;
+}
+
+.vim-status {
+  margin: 0;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 0 0.5em;
+  display: flex;
+  justify-content: space-between;
+}
+
+.vim-hint {
+  opacity: 0.65;
+}
+
+.vim-cmdline {
+  margin: 0;
+  min-height: 1.75em;
+}
+
+.comment {
+  margin-top: -0.4em;
+}
+
+/* real input element, parked invisibly — keystrokes land here */
+.ghost-input {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: transparent;
+}
+
+/* the sl locomotive — typo ls, receive train. cannot be interrupted. */
+.sl {
+  position: fixed;
+  top: 35vh;
+  left: 0;
+  z-index: 9;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: pre;
+  pointer-events: none;
+  animation: sl-run 7s linear forwards;
+}
+
+@keyframes sl-run {
+  from {
+    transform: translateX(100vw);
+  }
+  to {
+    transform: translateX(-105%);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  main {
+    padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+  }
+}
