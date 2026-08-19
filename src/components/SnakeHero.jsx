@@ -171,14 +171,6 @@ function SnakeHero() {
       ensureMeshes();
     };
 
-    // Segment interpolation state (world-space lerp between ticks).
-    let prev = snake.map((s) => new THREE.Vector3(toWorld(s.x), toWorld(s.y), toWorld(s.z)));
-    const syncTargets = () => {
-      // grow prev to match
-      while (prev.length < snake.length) prev.push(prev[prev.length - 1].clone());
-      while (prev.length > snake.length) prev.pop();
-    };
-
     const TICK = 190; // ms per grid move
     let last = performance.now();
     let acc = 0;
@@ -202,26 +194,20 @@ function SnakeHero() {
       last = now;
       acc += dt;
 
-      // advance the sim in fixed ticks
+      // advance the sim in fixed ticks; segments snap cell-to-cell like the
+      // real game — no interpolation
       while (acc >= TICK) {
         acc -= TICK;
-        prev = snake.map(
-          (s) => new THREE.Vector3(toWorld(s.x), toWorld(s.y), toWorld(s.z))
-        );
         step();
-        syncTargets();
       }
 
-      const t = Math.min(acc / TICK, 1);
-      meshes.forEach((m, i) => {
-        const target = new THREE.Vector3(
+      meshes.forEach((m, i) =>
+        m.position.set(
           toWorld(snake[i].x),
           toWorld(snake[i].y),
           toWorld(snake[i].z)
-        );
-        const from = prev[i] || target;
-        m.position.lerpVectors(from, target, t);
-      });
+        )
+      );
 
       // gem gentle spin + bob
       gem.rotation.y = now * 0.0018;
