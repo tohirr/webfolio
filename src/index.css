@@ -6,6 +6,23 @@
   --green: #4ade80;
   --blue: #6cb2f7;
   --cyan: #67e8f9;
+  --red: #f87171;
+  --sel: rgba(255, 255, 255, 0.22);
+}
+
+/* light terminal when the device is in light mode;
+   phosphor themes stay dark — they only read on a dark screen */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #f6f6f4;
+    --fg: #2a2a2a;
+    --dim: #8a8a8a;
+    --green: #15803d;
+    --blue: #1d63c4;
+    --cyan: #0e7490;
+    --red: #c53030;
+    --sel: rgba(0, 0, 0, 0.14);
+  }
 }
 
 /* phosphor themes — `theme green` / `theme amber` */
@@ -46,7 +63,7 @@ body {
 
 /* terminal selection */
 ::selection {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--sel);
 }
 
 main {
@@ -106,7 +123,7 @@ a:hover {
 
 /* broken symlink, like ls paints them */
 .broken {
-  color: #f87171;
+  color: var(--red);
 }
 
 /* boot progress bar */

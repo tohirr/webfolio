@@ -26,10 +26,24 @@
       html {
         background: #0a0a0a;
       }
+      /* match the light palette before the app mounts — no dark flash */
+      @media (prefers-color-scheme: light) {
+        html:not([data-theme]) {
+          background: #f6f6f4;
+        }
+      }
     </style>
+    <script>
+      /* restore a saved phosphor theme before first paint */
+      try {
+        var t = localStorage.getItem("wf-theme");
+        if (t === "green" || t === "amber")
+          document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <main id="term"></main>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
