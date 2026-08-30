@@ -213,6 +213,81 @@ ul {
   white-space: pre-wrap;
 }
 
+/* lab entries are clickable even though they're not real links */
+[data-lab] {
+  cursor: pointer;
+}
+
+/* lab window — one floating window over the terminal */
+.window {
+  position: fixed;
+  z-index: 8;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 2rem));
+  background: var(--bg);
+  border: 1px solid var(--dim);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  animation: win-in 0.18s ease-out;
+}
+
+.win-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  padding: 0.25em 0.6em;
+  border-bottom: 1px solid var(--dim);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.win-bar:active {
+  cursor: grabbing;
+}
+
+.win-title {
+  color: var(--dim);
+}
+
+.win-close {
+  background: none;
+  border: 0;
+  padding: 0 0.2em;
+  font: inherit;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.win-close:hover {
+  color: var(--red);
+}
+
+.win-body {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.win-body > :last-child {
+  margin-bottom: 0;
+}
+
+@keyframes win-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window {
+    animation: none;
+  }
+}
+
 /* fake vim */
 .vim {
   position: fixed;

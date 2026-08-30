@@ -25,6 +25,26 @@ const projects = [
   },
 ];
 
+/* the lab: self-contained interaction pieces, lazy-loaded into a window
+   over the terminal. each module exports mount(el) → optional cleanup fn */
+const lab = [
+  {
+    name: "spring-toggle",
+    desc: "a toggle driven by a real damped spring — interrupt it mid-flight and it keeps its momentum",
+    load: () => import("./lab/spring-toggle.js"),
+  },
+  {
+    name: "elastic-tabs",
+    desc: "a tab indicator that stretches toward where it's going — leading edge sprints, trailing edge drags",
+    load: () => import("./lab/elastic-tabs.js"),
+  },
+  {
+    name: "scramble-hover",
+    desc: "labels that decode out of terminal noise, one locked character at a time",
+    load: () => import("./lab/scramble-hover.js"),
+  },
+];
+
 const links = [
   { name: "github", href: "https://github.com/tohirr" },
   { name: "x", href: "https://x.com/_tohirr" },
@@ -102,11 +122,11 @@ __/ =| o |=-~~\  /~~\  /~~\  /~~\ ____Y___________|__
 
 const WHOAMI_HTML =
   "<h1>tohirr</h1>" +
-  '<p class="dim">3d / graphics engineer · pixel art × webdev</p>';
+  '<p class="dim">design engineer · interfaces, motion &amp; pixels</p>';
 
 const ABOUT_HTML =
-  "<p>i build interactive 3d things for the browser — lately at the intersection of pixel art and the web: crisp grids, small sprites, playful interfaces that feel like game ui.</p>" +
-  "<p>mechanical engineering background (cad, fea, simulation). currently building 3d web software remotely for a us startup.</p>";
+  "<p>i design and build interfaces where the details carry the feel — springs instead of easing curves, states that respond mid-gesture, pixels placed on purpose. the lab/ below is the working proof.</p>" +
+  "<p>background in mechanical engineering (cad, fea, simulation) and 3d for the browser. currently building 3d web software remotely for a us startup.</p>";
 
 const PROJECTS_HTML =
   "<ul>" +
@@ -134,11 +154,27 @@ const CONTACT_HTML =
     )
     .join("") +
   "</p>" +
-  '<p class="dim">open to 3d / graphics &amp; cad software roles — <a href="mailto:tohirr.dev@gmail.com">say hi</a>.</p>';
+  '<p class="dim">open to design engineer &amp; creative frontend roles — <a href="mailto:tohirr.dev@gmail.com">say hi</a>.</p>';
 
 const ROOT_LS_HTML =
   "<p>about.txt&nbsp;&nbsp;contact.txt&nbsp;&nbsp;" +
+  '<span class="dir">lab/</span>&nbsp;&nbsp;' +
   '<span class="dir">projects/</span></p>';
+
+// lab listing — entries are clickable, so nobody has to type to see the work
+const LAB_LS_HTML =
+  "<ul>" +
+  lab
+    .map(
+      (p) =>
+        '<li class="row">' +
+        `<a class="ln" data-lab="${p.name}">${p.name}</a>` +
+        `<span class="dim"> -&gt; ./${p.name}.js</span>` +
+        `<span class="desc">${esc(p.desc)}</span></li>`,
+    )
+    .join("") +
+  "</ul>" +
+  '<p class="dim">click a piece to run it — or: open lab/&lt;name&gt;</p>';
 
 // .help p is pre-wrap — the padding spaces and \n are load-bearing
 const HELP_HTML =
@@ -147,7 +183,7 @@ const HELP_HTML =
   'whoami          <span class="dim">who is this guy</span>\n' +
   'ls [dir]        <span class="dim">list files</span>\n' +
   'cat &lt;file&gt;      <span class="dim">print a file</span>\n' +
-  'open &lt;project&gt;  <span class="dim">open a project in a new tab</span>\n' +
+  'open &lt;name&gt;     <span class="dim">open a project or lab piece</span>\n' +
   'theme &lt;name&gt;    <span class="dim">green · amber · default</span>\n' +
   'history         <span class="dim">command history</span>\n' +
   'clear           <span class="dim">clear the screen</span>' +
@@ -157,6 +193,7 @@ const INTRO_BLOCKS = [
   { cmd: "whoami", html: WHOAMI_HTML },
   { cmd: "cat about.txt", html: ABOUT_HTML },
   { cmd: "ls projects/", html: PROJECTS_HTML },
+  { cmd: "ls lab/", html: LAB_LS_HTML },
   { cmd: "cat contact.txt", html: CONTACT_HTML },
 ];
 
@@ -166,8 +203,10 @@ const COMPLETIONS = [
   "cat about.txt",
   "cat contact.txt",
   "ls",
+  "ls lab/",
   "ls projects/",
   ...projects.map((p) => `open ${p.name}`),
+  ...lab.map((p) => `open lab/${p.name}`),
   ...THEMES.map((t) => `theme ${t}`),
   "history",
   "clear",
@@ -562,18 +601,27 @@ function run(raw) {
     const dir = arg.replace(/\/$/, "");
     if (!dir || dir === ".") output = ROOT_LS_HTML;
     else if (dir === "projects") output = PROJECTS_HTML;
+    else if (dir === "lab") output = LAB_LS_HTML;
     else output = `<p>ls: ${esc(arg)}: No such file or directory</p>`;
   } else if (name === "open") {
+    const labName = (
+      arg.startsWith("lab/") ? arg.slice(4) : arg
+    ).replace(/\/$/, "");
+    const piece = lab.find((x) => x.name === labName);
     const p = projects.find((x) => x.name === arg);
-    if (p && !p.href) {
+    if (piece) {
+      openLab(piece.name);
+      output = `<p class="dim">running lab/${piece.name} …</p>`;
+    } else if (p && !p.href) {
       output = `<p class="dim">open: ${p.name}: broken symlink — still being built. soon.</p>`;
     } else if (p) {
       window.open(p.href, "_blank", "noopener");
       output = `<p class="dim">opening ${stripUrl(p.href)} …</p>`;
     } else {
       output =
-        `<p>open: ${esc(arg || "?")}: not a project ` +
-        `<span class="dim">(try: ${projects.map((x) => x.name).join(", ")})</span></p>`;
+        `<p>open: ${esc(arg || "?")}: not a project or lab piece ` +
+        `<span class="dim">(try: ${projects.map((x) => x.name).join(", ")}, ` +
+        `${lab.map((x) => `lab/${x.name}`).join(", ")})</span></p>`;
     }
   } else if (name === "theme") {
     if (THEMES.includes(arg)) {
@@ -619,6 +667,95 @@ function run(raw) {
   });
   renderPrompt();
 }
+
+/* ---- the lab window manager -------------------------------------------- */
+
+let winEl = null;
+let winCleanup = null;
+let winToken = 0; // guards a load that resolves after its window closed
+
+function closeWin() {
+  if (!winEl) return;
+  winToken += 1;
+  try {
+    winCleanup?.();
+  } catch {
+    // demo cleanup is best-effort
+  }
+  winCleanup = null;
+  winEl.remove();
+  winEl = null;
+}
+
+function dragWin(el) {
+  const bar = el.querySelector(".win-bar");
+  let dx = 0;
+  let dy = 0;
+  bar.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".win-close")) return;
+    e.preventDefault();
+    const sx = e.clientX - dx;
+    const sy = e.clientY - dy;
+    const move = (ev) => {
+      dx = ev.clientX - sx;
+      dy = ev.clientY - sy;
+      el.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+}
+
+async function openLab(name) {
+  const piece = lab.find((p) => p.name === name);
+  if (!piece) return;
+  closeWin();
+  const token = ++winToken;
+  winEl = document.createElement("div");
+  winEl.className = "window";
+  winEl.setAttribute("role", "dialog");
+  winEl.setAttribute("aria-label", `lab/${name}`);
+  winEl.innerHTML =
+    `<div class="win-bar"><span class="win-title">lab/${name}</span>` +
+    '<button class="win-close" aria-label="close window">[x]</button></div>' +
+    `<div class="win-body"><p class="dim">loading ${name} …</p></div>`;
+  winEl.querySelector(".win-close").addEventListener("click", () => {
+    closeWin();
+    if (!window.matchMedia("(pointer: coarse)").matches)
+      ghost.focus({ preventScroll: true });
+  });
+  dragWin(winEl);
+  document.body.appendChild(winEl);
+  const body = winEl.querySelector(".win-body");
+  try {
+    const mod = await piece.load();
+    if (token !== winToken) return; // window was closed while loading
+    body.innerHTML = "";
+    winCleanup = mod.mount(body) || null;
+  } catch {
+    if (token === winToken)
+      body.innerHTML =
+        '<p class="dim">failed to load — check the connection and retry</p>';
+  }
+}
+
+// esc closes the window (vim owns esc while it's up)
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && winEl && !vim) closeWin();
+});
+
+// clickable lab entries in any listing, streamed partials included
+main.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-lab]");
+  if (t) {
+    e.preventDefault();
+    openLab(t.dataset.lab);
+  }
+});
 
 /* ---- the sl locomotive ------------------------------------------------- */
 
