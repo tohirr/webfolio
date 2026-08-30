@@ -213,6 +213,93 @@ ul {
   white-space: pre-wrap;
 }
 
+/* the quiet page — sections over transcript */
+.sec {
+  margin-bottom: 2.6em;
+}
+
+.sec-head {
+  margin: 0 0 0.9em;
+}
+
+.sec-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 1.6em;
+  margin: 0;
+}
+
+/* reserves one line so hover disclosure never shifts the layout */
+.sec-desc {
+  min-height: 1.75em;
+  margin: 0.45em 0 0;
+}
+
+.sec-note {
+  margin: 0.9em 0 0;
+}
+
+/* quiet links: ink at rest, pixel-dashed underline, color only on hover */
+.q {
+  color: inherit;
+  cursor: pointer;
+  padding-bottom: 3px;
+  background-image: linear-gradient(90deg, var(--dim) 0 4px, transparent 4px 7px);
+  background-size: 7px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+}
+
+a.q:hover {
+  text-decoration: none;
+}
+
+.q:hover {
+  color: var(--cyan);
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0 4px,
+    transparent 4px 7px
+  );
+}
+
+.q.wip:hover {
+  color: var(--red);
+}
+
+/* contact names stay ink until hovered */
+.brackets a:hover {
+  color: var(--cyan);
+}
+
+/* neofetch block — portrait left, key-value info right */
+.fetch {
+  display: flex;
+  gap: 1.6em;
+  align-items: flex-start;
+}
+
+.fetch-img {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  image-rendering: pixelated;
+}
+
+.fetch-info p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.fetch-key {
+  color: var(--dim);
+}
+
+.fetch-name {
+  color: var(--green);
+  font-weight: 700;
+}
+
 /* lab entries are clickable even though they're not real links */
 [data-lab] {
   cursor: pointer;
@@ -376,5 +463,10 @@ ul {
 
   main {
     padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  .fetch {
+    flex-direction: column;
+    gap: 1em;
   }
 }

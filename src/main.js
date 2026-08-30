@@ -1,4 +1,5 @@
 import "./index.css";
+import { buildFetch } from "./fetch.js";
 
 /* ---- data -------------------------------------------------------------- */
 
@@ -7,21 +8,25 @@ const projects = [
     name: "colubrid",
     href: "https://colubrid.tohirr.xyz",
     desc: "snake, but the grid is a cube — a full 3d volume with a free-orbiting camera. three.js · typescript · pwa · redis leaderboard",
+    blurb: "snake in a full 3d cube — three.js · typescript · pwa",
   },
   {
     name: "bookmarx",
     href: "https://bookmarx.space",
     desc: "type a vague query, get back the saved x post you meant — hybrid semantic search over your bookmarks. next.js · postgres + pgvector",
+    blurb: "semantic search over your saved x posts — next.js · pgvector",
   },
   {
     name: "avatarsprite",
     href: null, // not deployed yet — renders as a broken symlink
     desc: "deterministic pixel avatars — type any string, get back the same 16×16 creature forever. typescript · svg · oklch",
+    blurb: "??? [wip] — deterministic pixel avatars, still being built",
   },
   {
     name: "galeria",
     href: "https://galaria.vercel.app/",
     desc: "a curated collection of african art",
+    blurb: "a curated collection of african art",
   },
 ];
 
@@ -29,18 +34,27 @@ const projects = [
    over the terminal. each module exports mount(el) → optional cleanup fn */
 const lab = [
   {
+    name: "dot-bars",
+    desc: "a bar chart set in braille dots, animated one dot-row per frame — and it's all just text: select it, copy it",
+    blurb: "bar charts set in braille dots — it's all just text",
+    load: () => import("./lab/dot-bars.js"),
+  },
+  {
     name: "spring-toggle",
     desc: "a toggle driven by a real damped spring — interrupt it mid-flight and it keeps its momentum",
+    blurb: "a toggle on a real damped spring — interrupt it mid-flight",
     load: () => import("./lab/spring-toggle.js"),
   },
   {
     name: "elastic-tabs",
     desc: "a tab indicator that stretches toward where it's going — leading edge sprints, trailing edge drags",
+    blurb: "an indicator that stretches toward where it's going",
     load: () => import("./lab/elastic-tabs.js"),
   },
   {
     name: "scramble-hover",
     desc: "labels that decode out of terminal noise, one locked character at a time",
+    blurb: "labels that decode out of terminal noise",
     load: () => import("./lab/scramble-hover.js"),
   },
 ];
@@ -60,12 +74,8 @@ const links = [
 const STREAM_TICK_MS = 30; // ms between output chunks (lower = faster)
 const STREAM_CHUNK_MIN = 1; // chars revealed per chunk, at least…
 const STREAM_CHUNK_EXTRA = 3; // …plus up to this many more, randomly
-const KEYSTROKE_MS_MIN = 40; // intro commands: fastest keypress
-const KEYSTROKE_MS_JITTER = 45; // extra random per-keypress delay
-const CMD_START_DELAY_MS = 650; // pause before a command starts typing
-const OUTPUT_DELAY_MS = 380; // pause between command and its output
 const BOOT_LINE_MS = 300; // pause between boot lines (chars ride the stream dials)
-const BOOT_HOLD_MS = 1000; // hold the finished boot screen before clearing
+const DECODE_MS_PER_CHAR = 12; // hover blurbs lock in at this rate
 
 const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
@@ -91,16 +101,6 @@ function browserName() {
   if (/safari/i.test(ua)) return "safari";
   return "browser";
 }
-
-// every check runs a live progress bar, then resolves to its status —
-// only the title line streams as plain text
-const BOOT_STEPS = [
-  { text: "tohirOS bios v2.6 — pixel edition" },
-  { label: "mem check ............", result: "65536k ok" },
-  { label: "sprite daemon ........", result: "loaded" },
-  { label: "loading pixels .......", result: "done" },
-  { label: "booting /bin/zsh .....", result: "ok" },
-];
 
 const BAR_CELLS = 18;
 
@@ -128,7 +128,21 @@ const ABOUT_HTML =
   "<p>i design and build interfaces where the details carry the feel — springs instead of easing curves, states that respond mid-gesture, pixels placed on purpose. the lab/ below is the working proof.</p>" +
   "<p>background in mechanical engineering (cad, fea, simulation) and 3d for the browser. currently building 3d web software remotely for a us startup.</p>";
 
-const PROJECTS_HTML =
+/* listings come in two densities, like a real shell: `ls` prints bare
+   names in a row, `ls -l` gets the descriptions */
+
+const PROJECTS_LS_HTML =
+  "<p>" +
+  projects
+    .map((p) =>
+      p.href
+        ? `<a class="ln" href="${p.href}" target="_blank" rel="noreferrer">${p.name}</a>`
+        : `<span class="broken">${p.name}</span>`,
+    )
+    .join("&nbsp;&nbsp;") +
+  "</p>";
+
+const PROJECTS_DETAIL_HTML =
   "<ul>" +
   projects
     .map(
@@ -161,8 +175,15 @@ const ROOT_LS_HTML =
   '<span class="dir">lab/</span>&nbsp;&nbsp;' +
   '<span class="dir">projects/</span></p>';
 
-// lab listing — entries are clickable, so nobody has to type to see the work
+// lab listings — entries are clickable, so nobody has to type to see the work
 const LAB_LS_HTML =
+  "<p>" +
+  lab
+    .map((p) => `<a class="ln" data-lab="${p.name}">${p.name}</a>`)
+    .join("&nbsp;&nbsp;") +
+  "</p>";
+
+const LAB_DETAIL_HTML =
   "<ul>" +
   lab
     .map(
@@ -180,8 +201,9 @@ const LAB_LS_HTML =
 const HELP_HTML =
   '<div class="help"><p class="dim">available commands:</p><p>' +
   'help            <span class="dim">show this list</span>\n' +
+  'fetch           <span class="dim">system info, with a face</span>\n' +
   'whoami          <span class="dim">who is this guy</span>\n' +
-  'ls [dir]        <span class="dim">list files</span>\n' +
+  'ls [-l] [dir]   <span class="dim">list files (-l for details)</span>\n' +
   'cat &lt;file&gt;      <span class="dim">print a file</span>\n' +
   'open &lt;name&gt;     <span class="dim">open a project or lab piece</span>\n' +
   'theme &lt;name&gt;    <span class="dim">green · amber · default</span>\n' +
@@ -189,22 +211,66 @@ const HELP_HTML =
   'clear           <span class="dim">clear the screen</span>' +
   "</p></div>";
 
-const INTRO_BLOCKS = [
-  { cmd: "whoami", html: WHOAMI_HTML },
-  { cmd: "cat about.txt", html: ABOUT_HTML },
-  { cmd: "ls projects/", html: PROJECTS_HTML },
-  { cmd: "ls lab/", html: LAB_LS_HTML },
-  { cmd: "cat contact.txt", html: CONTACT_HTML },
-];
+/* the quiet page: sections rendered instantly after boot, one live prompt
+   below them. names sit in ink with pixel-dashed underlines; hovering one
+   decodes its blurb into the section's disclosure line. the transcript
+   ceremony lives on only in the shell itself. */
+
+const item = (attrs, cls, name, blurb) =>
+  `<a class="q${cls}" ${attrs} data-blurb="${esc(blurb)}">${name}</a>`;
+
+const SECTIONS_HTML =
+  '<section class="sec" id="sec-fetch"></section>' +
+  '<section class="sec">' +
+  '<p class="sec-head dim">~/projects</p>' +
+  '<p class="sec-row">' +
+  projects
+    .map((p) =>
+      p.href
+        ? item(
+            `href="${p.href}" target="_blank" rel="noreferrer"`,
+            "",
+            p.name,
+            p.blurb,
+          )
+        : item("", " wip", p.name, p.blurb),
+    )
+    .join("") +
+  "</p>" +
+  '<p class="sec-desc dim" aria-hidden="true"></p>' +
+  "</section>" +
+  '<section class="sec">' +
+  '<p class="sec-head dim">~/lab</p>' +
+  '<p class="sec-row">' +
+  lab.map((p) => item(`data-lab="${p.name}"`, "", p.name, p.blurb)).join("") +
+  "</p>" +
+  '<p class="sec-desc dim" aria-hidden="true"></p>' +
+  "</section>" +
+  '<section class="sec">' +
+  '<p class="sec-head dim">~/contact</p>' +
+  '<p class="sec-row brackets">' +
+  links
+    .map(
+      (l) =>
+        `<a href="${l.href}" target="_blank" rel="noreferrer">` +
+        `<span class="dim">[</span>${l.name}<span class="dim">]</span></a>`,
+    )
+    .join("") +
+  "</p>" +
+  '<p class="dim sec-note">open to design engineer &amp; creative frontend roles — <a href="mailto:tohirr.dev@gmail.com">say hi</a>.</p>' +
+  "</section>";
 
 const COMPLETIONS = [
   "help",
+  "fetch",
   "whoami",
   "cat about.txt",
   "cat contact.txt",
   "ls",
   "ls lab/",
   "ls projects/",
+  "ls -l lab/",
+  "ls -l projects/",
   ...projects.map((p) => `open ${p.name}`),
   ...lab.map((p) => `open lab/${p.name}`),
   ...THEMES.map((t) => `theme ${t}`),
@@ -259,7 +325,13 @@ function sliceDom(node, budget) {
   }
   if (node.nodeType !== Node.ELEMENT_NODE) return [null, 0];
   const kids = node.childNodes;
-  if (!kids.length) return [node.cloneNode(true), 1];
+  if (!kids.length) {
+    const clone = node.cloneNode(true);
+    // cloned canvases come back blank — copy the drawn pixels across
+    if (node.tagName === "CANVAS" && node.width && node.height)
+      clone.getContext("2d").drawImage(node, 0, 0);
+    return [clone, 1];
+  }
   const clone = node.cloneNode(false);
   let used = 0;
   for (const c of kids) {
@@ -337,8 +409,8 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
 const main = document.getElementById("term");
 main.innerHTML =
   '<div class="boot" hidden></div>' +
+  `<div id="sections" hidden>${SECTIONS_HTML}</div>` +
   '<div id="blocks"></div>' +
-  '<p class="cmdline" id="introline" hidden></p>' +
   '<div class="block" id="promptblock" hidden>' +
   '<p class="cmdline" id="promptline"></p>' +
   '<p class="dim comment" id="hint" hidden># try: help</p>' +
@@ -348,8 +420,8 @@ main.innerHTML =
   "</div>";
 
 const bootEl = main.querySelector(".boot");
+const sectionsEl = main.querySelector("#sections");
 const blocksEl = main.querySelector("#blocks");
-const introLine = main.querySelector("#introline");
 const promptBlock = main.querySelector("#promptblock");
 const promptLine = main.querySelector("#promptline");
 const hintEl = main.querySelector("#hint");
@@ -360,14 +432,12 @@ const PROMPT_HTML =
   '<span class="p-path">~</span> <span class="dim">%</span> ';
 
 let phase = "boot"; // boot | term
-let introIdx = 0;
-let introDone = false;
+let pageShown = false;
 let busy = false;
 let focused = true;
 let vim = null; // {buf, cmd, insert, err}
 let vimEl = null;
 let bootTimer = null;
-let introTimer = null;
 
 // command history, persisted
 let history = [];
@@ -390,10 +460,10 @@ const saveHistory = () =>
 /* ---- prompt line ------------------------------------------------------- */
 
 function renderPrompt() {
-  promptBlock.hidden = !(phase === "term" && introDone);
-  const showLine = phase === "term" && introDone && !busy;
+  promptBlock.hidden = !pageShown;
+  const showLine = pageShown && !busy;
   promptLine.hidden = !showLine;
-  hintEl.hidden = !showLine || blocksEl.childElementCount > INTRO_BLOCKS.length;
+  hintEl.hidden = !showLine || blocksEl.childElementCount > 0;
   if (!showLine) return;
   promptLine.innerHTML = PROMPT_HTML;
   const span = document.createElement("span");
@@ -408,7 +478,9 @@ function setBusy(b) {
 
 /* ---- blocks ------------------------------------------------------------ */
 
-function addBlock(cmd, html, { instant = false, onDone } = {}) {
+// content: an html string, or a DocumentFragment for outputs that carry
+// live elements (fetch's canvas)
+function addBlock(cmd, content, { instant = false, onDone } = {}) {
   const div = document.createElement("div");
   div.className = "block";
   const p = document.createElement("p");
@@ -418,13 +490,16 @@ function addBlock(cmd, html, { instant = false, onDone } = {}) {
   span.textContent = cmd;
   p.appendChild(span);
   div.appendChild(p);
-  if (html) {
+  if (content) {
     const out = document.createElement("div");
     out.className = "output";
     div.appendChild(out);
     blocksEl.appendChild(div);
     follow();
-    stream(out, frag(html), { instant, onDone });
+    stream(out, typeof content === "string" ? frag(content) : content, {
+      instant,
+      onDone,
+    });
   } else {
     blocksEl.appendChild(div);
     follow();
@@ -432,7 +507,53 @@ function addBlock(cmd, html, { instant = false, onDone } = {}) {
   }
 }
 
-/* ---- boot sequence ----------------------------------------------------- */
+/* ---- boot sequence ------------------------------------------------------
+   dmesg-style: lines stay in the scrollback and the shell starts below
+   them, like a real terminal. every readout is real state — what's
+   actually mounted, restored, and loaded for this visit. */
+
+let bootSteps = [];
+
+const loginStamp = () => {
+  const d = new Date();
+  return `${d.toDateString().toLowerCase()} ${d.toTimeString().slice(0, 8)}`;
+};
+
+function makeBootSteps() {
+  let lastVisit = null;
+  try {
+    lastVisit = localStorage.getItem("wf-last-visit");
+    localStorage.setItem("wf-last-visit", loginStamp());
+  } catch {
+    // private mode — boot without a login record
+  }
+  return [
+    { label: "tohirOS v2.6 .........", result: "ready" },
+    {
+      text: lastVisit
+        ? `last login: ${lastVisit} on ttys001`
+        : "last login: first visit — welcome",
+    },
+  ];
+}
+
+function renderBootFinal() {
+  bootEl.innerHTML = "";
+  for (const s of bootSteps) {
+    const p = document.createElement("p");
+    p.className = "dim";
+    p.textContent = s.label ? `${s.label} ${s.result}` : s.text;
+    bootEl.appendChild(p);
+  }
+}
+
+// click-to-skip: settle every line to its final state, keep the scrollback
+function finishBoot() {
+  clearTimeout(bootTimer);
+  for (const h of [...activeStreams]) h.finish(true);
+  renderBootFinal();
+  showPage();
+}
 
 function runBar(p, label, onDone) {
   p.className = "dim bar";
@@ -469,11 +590,11 @@ function runBar(p, label, onDone) {
 }
 
 function bootStep(i) {
-  if (i >= BOOT_STEPS.length) {
-    bootTimer = setTimeout(startTerm, BOOT_HOLD_MS);
+  if (i >= bootSteps.length) {
+    bootTimer = setTimeout(showPage, BOOT_LINE_MS);
     return;
   }
-  const s = BOOT_STEPS[i];
+  const s = bootSteps[i];
   const p = document.createElement("p");
   p.className = "dim";
   bootEl.appendChild(p);
@@ -496,81 +617,72 @@ function bootStep(i) {
   }
 }
 
-function startTerm() {
+// the page arrives all at once — no typing theater. keyboard goes to the
+// prompt (not on touch devices — popping the keyboard open uninvited is rude)
+function showPage() {
+  if (pageShown) return;
   phase = "term";
   clearTimeout(bootTimer);
-  bootEl.hidden = true;
-  bootEl.innerHTML = "";
-  if (reduceMotion) {
-    finishIntro();
-    return;
-  }
-  introStep();
-}
-
-/* ---- intro session (auto-typed) ---------------------------------------- */
-
-function introStep() {
-  if (introIdx >= INTRO_BLOCKS.length) {
-    introFinishedUi();
-    return;
-  }
-  const { cmd } = INTRO_BLOCKS[introIdx];
-  introLine.hidden = false;
-  let typed = 0;
-  const render = () => {
-    introLine.innerHTML = PROMPT_HTML;
-    const span = document.createElement("span");
-    span.textContent = cmd.slice(0, typed);
-    introLine.append(span, makeCursor());
-    follow();
-  };
-  const typeNext = () => {
-    render();
-    if (typed >= cmd.length) {
-      introTimer = setTimeout(() => {
-        introLine.hidden = true;
-        const b = INTRO_BLOCKS[introIdx];
-        introIdx += 1;
-        addBlock(b.cmd, b.html, { onDone: introStep });
-      }, OUTPUT_DELAY_MS);
-      return;
-    }
-    introTimer = setTimeout(
-      () => {
-        typed += 1;
-        typeNext();
-      },
-      typed === 0
-        ? CMD_START_DELAY_MS
-        : KEYSTROKE_MS_MIN + Math.random() * KEYSTROKE_MS_JITTER,
-    );
-  };
-  typeNext();
-}
-
-// fast-forward: finish whatever is streaming, dump the rest instantly
-function finishIntro() {
-  clearTimeout(introTimer);
-  introLine.hidden = true;
-  for (const h of [...activeStreams]) h.finish(true);
-  for (let i = introIdx; i < INTRO_BLOCKS.length; i++) {
-    addBlock(INTRO_BLOCKS[i].cmd, INTRO_BLOCKS[i].html, { instant: true });
-  }
-  introIdx = INTRO_BLOCKS.length;
-  introFinishedUi();
-}
-
-// hand the keyboard to the prompt once the intro finishes (not on touch
-// devices — popping the keyboard open uninvited is rude)
-function introFinishedUi() {
-  introDone = true;
+  pageShown = true;
+  sectionsEl.hidden = false;
+  sectionsEl.querySelector("#sec-fetch").appendChild(buildFetch());
   renderPrompt();
-  follow();
   if (!window.matchMedia("(pointer: coarse)").matches) {
     ghost.focus({ preventScroll: true });
   }
 }
+
+/* ---- hover disclosure: blurbs decode into the section's desc line ------ */
+
+const DECODE_NOISE = "█▓▒░<>/\\|=+*·";
+
+function decodeInto(el, text) {
+  if (el._raf) cancelAnimationFrame(el._raf);
+  if (reduceMotion) {
+    el.textContent = text;
+    return;
+  }
+  const t0 = performance.now();
+  const frame = (t) => {
+    el._raf = null;
+    const n = Math.min(text.length, Math.floor((t - t0) / DECODE_MS_PER_CHAR));
+    el.textContent =
+      text.slice(0, n) +
+      [...text.slice(n)]
+        .map((c) =>
+          c === " "
+            ? " "
+            : DECODE_NOISE[Math.floor(Math.random() * DECODE_NOISE.length)],
+        )
+        .join("");
+    if (n < text.length) el._raf = requestAnimationFrame(frame);
+  };
+  el._raf = requestAnimationFrame(frame);
+}
+
+function clearDecode(el) {
+  if (el._raf) cancelAnimationFrame(el._raf);
+  el._raf = null;
+  el.textContent = "";
+}
+
+let hoverItem = null;
+
+sectionsEl.addEventListener("pointerover", (e) => {
+  const t = e.target.closest("[data-blurb]");
+  if (!t || t === hoverItem) return;
+  hoverItem = t;
+  const slot = t.closest(".sec")?.querySelector(".sec-desc");
+  if (slot) decodeInto(slot, t.dataset.blurb);
+});
+
+sectionsEl.addEventListener("pointerout", (e) => {
+  const t = e.target.closest("[data-blurb]");
+  if (!t || t.contains(e.relatedTarget)) return;
+  if (t === hoverItem) hoverItem = null;
+  const slot = t.closest(".sec")?.querySelector(".sec-desc");
+  if (slot) clearDecode(slot);
+});
 
 /* ---- commands ---------------------------------------------------------- */
 
@@ -592,17 +704,20 @@ function run(raw) {
   }
 
   if (name === "help") output = HELP_HTML;
+  else if (name === "fetch") output = buildFetch();
   else if (name === "whoami") output = WHOAMI_HTML;
   else if (name === "cat") {
     if (arg === "about.txt" || arg === "about") output = ABOUT_HTML;
     else if (arg === "contact.txt" || arg === "contact") output = CONTACT_HTML;
     else output = `<p>cat: ${esc(arg || "cat")}: No such file or directory</p>`;
   } else if (name === "ls") {
-    const dir = arg.replace(/\/$/, "");
-    if (!dir || dir === ".") output = ROOT_LS_HTML;
-    else if (dir === "projects") output = PROJECTS_HTML;
-    else if (dir === "lab") output = LAB_LS_HTML;
-    else output = `<p>ls: ${esc(arg)}: No such file or directory</p>`;
+    const long = rest[0] === "-l";
+    const target = (long ? rest.slice(1).join(" ") : arg).replace(/\/$/, "");
+    if (!target || target === ".") output = ROOT_LS_HTML;
+    else if (target === "projects")
+      output = long ? PROJECTS_DETAIL_HTML : PROJECTS_LS_HTML;
+    else if (target === "lab") output = long ? LAB_DETAIL_HTML : LAB_LS_HTML;
+    else output = `<p>ls: ${esc(target)}: No such file or directory</p>`;
   } else if (name === "open") {
     const labName = (
       arg.startsWith("lab/") ? arg.slice(4) : arg
@@ -941,11 +1056,7 @@ ghost.addEventListener("blur", () => {
 
 main.addEventListener("click", () => {
   if (phase === "boot") {
-    startTerm();
-    return;
-  }
-  if (!introDone) {
-    finishIntro();
+    finishBoot();
     return;
   }
   // don't steal a text-selection drag
@@ -955,9 +1066,11 @@ main.addEventListener("click", () => {
 
 /* ---- go ---------------------------------------------------------------- */
 
+bootSteps = makeBootSteps();
+bootEl.hidden = false;
 if (reduceMotion) {
-  startTerm();
+  renderBootFinal();
+  showPage();
 } else {
-  bootEl.hidden = false;
   bootStep(0);
 }
