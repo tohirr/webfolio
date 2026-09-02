@@ -24,26 +24,18 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
       html {
-        background: #0a0a0a;
+        background: #0e0e0e;
       }
       /* match the light palette before the app mounts — no dark flash */
       @media (prefers-color-scheme: light) {
-        html:not([data-theme]) {
-          background: #f6f6f4;
+        html {
+          background: #ffffff;
         }
       }
     </style>
-    <script>
-      /* restore a saved phosphor theme before first paint */
-      try {
-        var t = localStorage.getItem("wf-theme");
-        if (t === "green" || t === "amber")
-          document.documentElement.setAttribute("data-theme", t);
-      } catch (e) {}
-    </script>
   </head>
   <body>
-    <main id="term"></main>
+    <main id="app"></main>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

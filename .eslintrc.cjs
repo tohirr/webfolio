@@ -4,4 +4,5 @@ module.exports = {
   extends: ['eslint:recommended'],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  overrides: [{ files: ['vite.config.js'], env: { node: true } }],
 }

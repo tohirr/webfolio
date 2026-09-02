@@ -1,1076 +1,119 @@
 import "./index.css";
-import { buildFetch } from "./fetch.js";
 
-/* ---- data -------------------------------------------------------------- */
+/* ---- blocks ------------------------------------------------------------
+   the work row: live pieces mounted right in their tile, plus placeholders
+   for what's coming. each live module exports mount(el) → optional cleanup */
 
-const projects = [
+const blocks = [
   {
-    name: "colubrid",
-    href: "https://colubrid.tohirr.xyz",
-    desc: "snake, but the grid is a cube — a full 3d volume with a free-orbiting camera. three.js · typescript · pwa · redis leaderboard",
-    blurb: "snake in a full 3d cube — three.js · typescript · pwa",
+    name: "facet-card",
+    sub: "pixel holo foil · webgl",
+    load: () => import("./lab/facet-card.js"),
   },
-  {
-    name: "bookmarx",
-    href: "https://bookmarx.space",
-    desc: "type a vague query, get back the saved x post you meant — hybrid semantic search over your bookmarks. next.js · postgres + pgvector",
-    blurb: "semantic search over your saved x posts — next.js · pgvector",
-  },
-  {
-    name: "avatarsprite",
-    href: null, // not deployed yet — renders as a broken symlink
-    desc: "deterministic pixel avatars — type any string, get back the same 16×16 creature forever. typescript · svg · oklch",
-    blurb: "??? [wip] — deterministic pixel avatars, still being built",
-  },
-  {
-    name: "galeria",
-    href: "https://galaria.vercel.app/",
-    desc: "a curated collection of african art",
-    blurb: "a curated collection of african art",
-  },
+  { name: "dot-bars", sub: "soon" },
+  { name: "spring-toggle", sub: "soon" },
+  { name: "more", sub: "soon" },
 ];
 
-/* the lab: self-contained interaction pieces, lazy-loaded into a window
-   over the terminal. each module exports mount(el) → optional cleanup fn */
-const lab = [
-  {
-    name: "dot-bars",
-    desc: "a bar chart set in braille dots, animated one dot-row per frame — and it's all just text: select it, copy it",
-    blurb: "bar charts set in braille dots — it's all just text",
-    load: () => import("./lab/dot-bars.js"),
-  },
-  {
-    name: "spring-toggle",
-    desc: "a toggle driven by a real damped spring — interrupt it mid-flight and it keeps its momentum",
-    blurb: "a toggle on a real damped spring — interrupt it mid-flight",
-    load: () => import("./lab/spring-toggle.js"),
-  },
-  {
-    name: "elastic-tabs",
-    desc: "a tab indicator that stretches toward where it's going — leading edge sprints, trailing edge drags",
-    blurb: "an indicator that stretches toward where it's going",
-    load: () => import("./lab/elastic-tabs.js"),
-  },
-  {
-    name: "scramble-hover",
-    desc: "labels that decode out of terminal noise, one locked character at a time",
-    blurb: "labels that decode out of terminal noise",
-    load: () => import("./lab/scramble-hover.js"),
-  },
+const EMAIL = "tohirr.dev@gmail.com";
+
+/* google calendar appointment-schedule booking page */
+const CAL_URL = "https://calendar.app.google/6M3QwajrfAX85EaC8";
+
+/* round icon buttons up top — github + x for now */
+const GH_ICON =
+  '<svg viewBox="0 0 16 16" width="19" height="19" fill="currentColor" aria-hidden="true">' +
+  '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 ' +
+  "0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 " +
+  "1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 " +
+  "0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 " +
+  "2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 " +
+  "3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 " +
+  '8c0-4.42-3.58-8-8-8z"/></svg>';
+
+const X_ICON =
+  '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">' +
+  '<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 ' +
+  '21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+
+const MAIL_ICON =
+  '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" ' +
+  'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/>' +
+  '<path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg>';
+
+const nav = [
+  { label: "GitHub", href: "https://github.com/tohirr", icon: GH_ICON },
+  { label: "X (Twitter)", href: "https://x.com/_tohirr", icon: X_ICON },
+  { label: "Email", href: `mailto:${EMAIL}`, icon: MAIL_ICON },
 ];
 
-const links = [
-  { name: "github", href: "https://github.com/tohirr" },
-  { name: "x", href: "https://x.com/_tohirr" },
-  { name: "email", href: "mailto:tohirr.dev@gmail.com" },
-  {
-    name: "linkedin",
-    href: "https://www.linkedin.com/in/tohir-babs-6a0045167/",
-  },
-];
+// home timezone shown in the footer
+const TIME_ZONE = "Africa/Lagos";
+const TIME_ZONE_LABEL = "GMT+1";
 
-/* ---- speed dials --------------------------------------------------------
-   all the pacing knobs, in one place. tweak to taste. */
-const STREAM_TICK_MS = 30; // ms between output chunks (lower = faster)
-const STREAM_CHUNK_MIN = 1; // chars revealed per chunk, at least…
-const STREAM_CHUNK_EXTRA = 3; // …plus up to this many more, randomly
-const BOOT_LINE_MS = 300; // pause between boot lines (chars ride the stream dials)
-const DECODE_MS_PER_CHAR = 12; // hover blurbs lock in at this rate
+/* ---- page -------------------------------------------------------------- */
 
-const stripUrl = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
+const ext = 'target="_blank" rel="noreferrer"';
 
-const esc = (s) =>
-  String(s).replace(
-    /[&<>"']/g,
-    (c) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[c],
-  );
+const tile = (b) =>
+  `<figure class="block">` +
+  (b.load
+    ? `<div class="tile" data-mount="${b.name}"></div>`
+    : `<div class="tile ph" aria-hidden="true"><span>+</span></div>`) +
+  `<figcaption><span class="t-name">${b.name}</span>` +
+  `<span class="t-sub">${b.sub}</span></figcaption>` +
+  `</figure>`;
 
-function browserName() {
-  const ua = navigator.userAgent;
-  if (/firefox/i.test(ua)) return "firefox";
-  if (/edg\//i.test(ua)) return "edge";
-  if (/opr|opera/i.test(ua)) return "opera";
-  if (/chrome|chromium|crios/i.test(ua)) return "chrome";
-  if (/safari/i.test(ua)) return "safari";
-  return "browser";
-}
-
-const BAR_CELLS = 18;
-
-const THEMES = ["default", "green", "amber"];
-
-// typo `ls` and find out. sl ignores interrupts, as is tradition.
-const TRAIN = String.raw`      ====        ________                ___________
-  _D _|  |_______/        \__I_I_____===__|_________|
-   |(_)---  |   H\________/ |   |        =|___ ___|
-   /     |  |   H  |  |     |   |         ||_| |_||
-  |      |  |   H  |__--------------------| [___] |
-  | ________|___H__/__|_____/[][]~\_______|       |
-  |/ |   |-----------I_____I [][] []  D   |=======|__
-__/ =| o |=-~~\  /~~\  /~~\  /~~\ ____Y___________|__
- |/-=|___|=    ||    ||    ||    |_____/~\___/
-  \_/      \O=====O=====O=====O_/      \_/`;
-
-/* ---- command outputs (html strings; dynamic bits go through esc) ------- */
-
-const WHOAMI_HTML =
-  "<h1>tohirr</h1>" +
-  '<p class="dim">design engineer · interfaces, motion &amp; pixels</p>';
-
-const ABOUT_HTML =
-  "<p>i design and build interfaces where the details carry the feel — springs instead of easing curves, states that respond mid-gesture, pixels placed on purpose. the lab/ below is the working proof.</p>" +
-  "<p>background in mechanical engineering (cad, fea, simulation) and 3d for the browser. currently building 3d web software remotely for a us startup.</p>";
-
-/* listings come in two densities, like a real shell: `ls` prints bare
-   names in a row, `ls -l` gets the descriptions */
-
-const PROJECTS_LS_HTML =
-  "<p>" +
-  projects
-    .map((p) =>
-      p.href
-        ? `<a class="ln" href="${p.href}" target="_blank" rel="noreferrer">${p.name}</a>`
-        : `<span class="broken">${p.name}</span>`,
-    )
-    .join("&nbsp;&nbsp;") +
-  "</p>";
-
-const PROJECTS_DETAIL_HTML =
-  "<ul>" +
-  projects
+document.getElementById("app").innerHTML =
+  `<nav class="topnav" aria-label="social">` +
+  nav
     .map(
-      (p) =>
-        '<li class="row">' +
-        (p.href
-          ? `<a class="ln" href="${p.href}" target="_blank" rel="noreferrer">${p.name}</a>` +
-            `<span class="dim"> -&gt; ${stripUrl(p.href)}</span>`
-          : `<span class="broken">${p.name}</span>` +
-            '<span class="dim"> -&gt; ??? [wip]</span>') +
-        `<span class="desc">${esc(p.desc)}</span></li>`,
+      (n) =>
+        `<a class="icon-btn" href="${n.href}" ${ext} aria-label="${n.label}">${n.icon}</a>`,
     )
     .join("") +
-  "</ul>";
+  `</nav>` +
+  `<section class="intro">` +
+  `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="40" height="40" />` +
+  `<p class="ink">Dear visitor,</p>` +
+  `<p>I’m Tohir, a design engineer building interfaces where the ` +
+  `details carry the feel.</p>` +
+  `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
+  `</section>` +
+  `<section class="blocks" aria-label="work">` +
+  blocks.map(tile).join("") +
+  `</section>` +
+  `<footer class="foot">` +
+  `<span>${TIME_ZONE_LABEL} <time id="clock"></time></span>` +
+  `</footer>`;
 
-const CONTACT_HTML =
-  '<p class="brackets">' +
-  links
-    .map(
-      (l) =>
-        `<a href="${l.href}" target="_blank" rel="noreferrer">` +
-        `<span class="dim">[</span><span class="ln">${l.name}</span><span class="dim">]</span></a>`,
-    )
-    .join("") +
-  "</p>" +
-  '<p class="dim">open to design engineer &amp; creative frontend roles — <a href="mailto:tohirr.dev@gmail.com">say hi</a>.</p>';
+/* ---- live tiles -------------------------------------------------------- */
 
-const ROOT_LS_HTML =
-  "<p>about.txt&nbsp;&nbsp;contact.txt&nbsp;&nbsp;" +
-  '<span class="dir">lab/</span>&nbsp;&nbsp;' +
-  '<span class="dir">projects/</span></p>';
-
-// lab listings — entries are clickable, so nobody has to type to see the work
-const LAB_LS_HTML =
-  "<p>" +
-  lab
-    .map((p) => `<a class="ln" data-lab="${p.name}">${p.name}</a>`)
-    .join("&nbsp;&nbsp;") +
-  "</p>";
-
-const LAB_DETAIL_HTML =
-  "<ul>" +
-  lab
-    .map(
-      (p) =>
-        '<li class="row">' +
-        `<a class="ln" data-lab="${p.name}">${p.name}</a>` +
-        `<span class="dim"> -&gt; ./${p.name}.js</span>` +
-        `<span class="desc">${esc(p.desc)}</span></li>`,
-    )
-    .join("") +
-  "</ul>" +
-  '<p class="dim">click a piece to run it — or: open lab/&lt;name&gt;</p>';
-
-// .help p is pre-wrap — the padding spaces and \n are load-bearing
-const HELP_HTML =
-  '<div class="help"><p class="dim">available commands:</p><p>' +
-  'help            <span class="dim">show this list</span>\n' +
-  'fetch           <span class="dim">system info, with a face</span>\n' +
-  'whoami          <span class="dim">who is this guy</span>\n' +
-  'ls [-l] [dir]   <span class="dim">list files (-l for details)</span>\n' +
-  'cat &lt;file&gt;      <span class="dim">print a file</span>\n' +
-  'open &lt;name&gt;     <span class="dim">open a project or lab piece</span>\n' +
-  'theme &lt;name&gt;    <span class="dim">green · amber · default</span>\n' +
-  'history         <span class="dim">command history</span>\n' +
-  'clear           <span class="dim">clear the screen</span>' +
-  "</p></div>";
-
-/* the quiet page: sections rendered instantly after boot, one live prompt
-   below them. names sit in ink with pixel-dashed underlines; hovering one
-   decodes its blurb into the section's disclosure line. the transcript
-   ceremony lives on only in the shell itself. */
-
-const item = (attrs, cls, name, blurb) =>
-  `<a class="q${cls}" ${attrs} data-blurb="${esc(blurb)}">${name}</a>`;
-
-const SECTIONS_HTML =
-  '<section class="sec" id="sec-fetch"></section>' +
-  '<section class="sec">' +
-  '<p class="sec-head dim">~/projects</p>' +
-  '<p class="sec-row">' +
-  projects
-    .map((p) =>
-      p.href
-        ? item(
-            `href="${p.href}" target="_blank" rel="noreferrer"`,
-            "",
-            p.name,
-            p.blurb,
-          )
-        : item("", " wip", p.name, p.blurb),
-    )
-    .join("") +
-  "</p>" +
-  '<p class="sec-desc dim" aria-hidden="true"></p>' +
-  "</section>" +
-  '<section class="sec">' +
-  '<p class="sec-head dim">~/lab</p>' +
-  '<p class="sec-row">' +
-  lab.map((p) => item(`data-lab="${p.name}"`, "", p.name, p.blurb)).join("") +
-  "</p>" +
-  '<p class="sec-desc dim" aria-hidden="true"></p>' +
-  "</section>" +
-  '<section class="sec">' +
-  '<p class="sec-head dim">~/contact</p>' +
-  '<p class="sec-row brackets">' +
-  links
-    .map(
-      (l) =>
-        `<a href="${l.href}" target="_blank" rel="noreferrer">` +
-        `<span class="dim">[</span>${l.name}<span class="dim">]</span></a>`,
-    )
-    .join("") +
-  "</p>" +
-  '<p class="dim sec-note">open to design engineer &amp; creative frontend roles — <a href="mailto:tohirr.dev@gmail.com">say hi</a>.</p>' +
-  "</section>";
-
-const COMPLETIONS = [
-  "help",
-  "fetch",
-  "whoami",
-  "cat about.txt",
-  "cat contact.txt",
-  "ls",
-  "ls lab/",
-  "ls projects/",
-  "ls -l lab/",
-  "ls -l projects/",
-  ...projects.map((p) => `open ${p.name}`),
-  ...lab.map((p) => `open lab/${p.name}`),
-  ...THEMES.map((t) => `theme ${t}`),
-  "history",
-  "clear",
-  "pwd",
-  "date",
-];
-
-/* ---- tiny dom helpers -------------------------------------------------- */
-
-function frag(html) {
-  const t = document.createElement("template");
-  t.innerHTML = html;
-  return t.content;
-}
-
-function makeCursor(hollow) {
-  const s = document.createElement("span");
-  s.className = hollow ? "cursor hollow" : "cursor";
-  s.setAttribute("aria-hidden", "true");
-  return s;
-}
-
-const follow = () =>
-  window.scrollTo(0, document.documentElement.scrollHeight);
-
-/* ---- output streaming --------------------------------------------------
-   reveals an arbitrary dom fragment in fast character chunks, llm-chat
-   style. each tick rebuilds the visible prefix from the detached source —
-   cheap at these sizes, and the blinking cursor rides the reveal tip. */
-
-function countChars(node) {
-  if (node.nodeType === Node.TEXT_NODE) return node.nodeValue.length;
-  if (node.nodeType !== Node.ELEMENT_NODE) return 0;
-  const kids = node.childNodes;
-  if (!kids.length) return 1;
-  let n = 0;
-  for (const c of kids) n += countChars(c);
-  return n;
-}
-
-function sliceDom(node, budget) {
-  if (budget <= 0) return [null, 0];
-  if (node.nodeType === Node.TEXT_NODE) {
-    const s = node.nodeValue;
-    if (s.length <= budget) return [node.cloneNode(), s.length];
-    // the reveal tip — park the blinking cursor right here
-    const f = document.createDocumentFragment();
-    f.append(document.createTextNode(s.slice(0, budget)), makeCursor());
-    return [f, budget];
-  }
-  if (node.nodeType !== Node.ELEMENT_NODE) return [null, 0];
-  const kids = node.childNodes;
-  if (!kids.length) {
-    const clone = node.cloneNode(true);
-    // cloned canvases come back blank — copy the drawn pixels across
-    if (node.tagName === "CANVAS" && node.width && node.height)
-      clone.getContext("2d").drawImage(node, 0, 0);
-    return [clone, 1];
-  }
-  const clone = node.cloneNode(false);
-  let used = 0;
-  for (const c of kids) {
-    if (used >= budget) break;
-    const [k, u] = sliceDom(c, budget - used);
-    if (k) clone.appendChild(k);
-    used += u;
-  }
-  return [clone, used];
-}
-
-const activeStreams = new Set();
-
-function stream(container, source, { instant = false, onDone } = {}) {
-  const total = [...source.childNodes].reduce((a, c) => a + countChars(c), 0);
-  let n = instant ? total : 0;
-  let timer = null;
-
-  const handle = {
-    finish(silent) {
-      clearTimeout(timer);
-      activeStreams.delete(handle);
-      container.replaceChildren(source);
-      if (!silent) onDone?.();
-    },
-  };
-
-  if (n >= total) {
-    container.replaceChildren(source);
-    onDone?.();
-    return handle;
-  }
-
-  activeStreams.add(handle);
-  const step = () => {
-    n += STREAM_CHUNK_MIN + Math.floor(Math.random() * (STREAM_CHUNK_EXTRA + 1));
-    if (n >= total) {
-      handle.finish();
-      follow();
-      return;
-    }
-    const out = document.createDocumentFragment();
-    let used = 0;
-    for (const c of source.childNodes) {
-      if (used >= n) break;
-      const [k, u] = sliceDom(c, n - used);
-      if (k) out.appendChild(k);
-      used += u;
-    }
-    container.replaceChildren(out);
-    follow();
-    timer = setTimeout(step, STREAM_TICK_MS);
-  };
-  timer = setTimeout(step, STREAM_TICK_MS);
-  return handle;
-}
-
-/* ---- themes ------------------------------------------------------------ */
-
-function applyTheme(name) {
-  if (name === "default") {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.removeItem("wf-theme");
-  } else {
-    document.documentElement.setAttribute("data-theme", name);
-    localStorage.setItem("wf-theme", name);
-  }
-}
-
-/* ---- the terminal ------------------------------------------------------ */
-
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
-  .matches;
-
-const main = document.getElementById("term");
-main.innerHTML =
-  '<div class="boot" hidden></div>' +
-  `<div id="sections" hidden>${SECTIONS_HTML}</div>` +
-  '<div id="blocks"></div>' +
-  '<div class="block" id="promptblock" hidden>' +
-  '<p class="cmdline" id="promptline"></p>' +
-  '<p class="dim comment" id="hint" hidden># try: help</p>' +
-  '<form id="promptform"><input id="ghost" class="ghost-input" ' +
-  'autocapitalize="off" autocorrect="off" autocomplete="off" ' +
-  'spellcheck="false" enterkeyhint="go" aria-label="terminal input"></form>' +
-  "</div>";
-
-const bootEl = main.querySelector(".boot");
-const sectionsEl = main.querySelector("#sections");
-const blocksEl = main.querySelector("#blocks");
-const promptBlock = main.querySelector("#promptblock");
-const promptLine = main.querySelector("#promptline");
-const hintEl = main.querySelector("#hint");
-const ghost = main.querySelector("#ghost");
-
-const PROMPT_HTML =
-  `<span class="p-user">guest@${browserName()}</span> ` +
-  '<span class="p-path">~</span> <span class="dim">%</span> ';
-
-let phase = "boot"; // boot | term
-let pageShown = false;
-let busy = false;
-let focused = true;
-let vim = null; // {buf, cmd, insert, err}
-let vimEl = null;
-let bootTimer = null;
-
-// command history, persisted
-let history = [];
-try {
-  history = JSON.parse(localStorage.getItem("wf-history") || "[]");
-} catch {
-  history = [];
-}
-let histIdx = history.length;
-
-const saveHistory = () =>
-  localStorage.setItem("wf-history", JSON.stringify(history.slice(-50)));
-
-// restore a saved phosphor theme
-{
-  const t = localStorage.getItem("wf-theme");
-  if (t && THEMES.includes(t)) applyTheme(t);
-}
-
-/* ---- prompt line ------------------------------------------------------- */
-
-function renderPrompt() {
-  promptBlock.hidden = !pageShown;
-  const showLine = pageShown && !busy;
-  promptLine.hidden = !showLine;
-  hintEl.hidden = !showLine || blocksEl.childElementCount > 0;
-  if (!showLine) return;
-  promptLine.innerHTML = PROMPT_HTML;
-  const span = document.createElement("span");
-  span.textContent = ghost.value;
-  promptLine.append(span, makeCursor(!focused));
-}
-
-function setBusy(b) {
-  busy = b;
-  renderPrompt();
-}
-
-/* ---- blocks ------------------------------------------------------------ */
-
-// content: an html string, or a DocumentFragment for outputs that carry
-// live elements (fetch's canvas)
-function addBlock(cmd, content, { instant = false, onDone } = {}) {
-  const div = document.createElement("div");
-  div.className = "block";
-  const p = document.createElement("p");
-  p.className = "cmdline";
-  p.innerHTML = PROMPT_HTML;
-  const span = document.createElement("span");
-  span.textContent = cmd;
-  p.appendChild(span);
-  div.appendChild(p);
-  if (content) {
-    const out = document.createElement("div");
-    out.className = "output";
-    div.appendChild(out);
-    blocksEl.appendChild(div);
-    follow();
-    stream(out, typeof content === "string" ? frag(content) : content, {
-      instant,
-      onDone,
+for (const b of blocks) {
+  if (!b.load) continue;
+  const el = document.querySelector(`[data-mount="${b.name}"]`);
+  b.load()
+    .then((mod) => mod.mount(el))
+    .catch(() => {
+      el.innerHTML = '<span class="tile-err">failed to load</span>';
     });
-  } else {
-    blocksEl.appendChild(div);
-    follow();
-    onDone?.();
-  }
 }
 
-/* ---- boot sequence ------------------------------------------------------
-   dmesg-style: lines stay in the scrollback and the shell starts below
-   them, like a real terminal. every readout is real state — what's
-   actually mounted, restored, and loaded for this visit. */
+/* ---- clock ------------------------------------------------------------- */
 
-let bootSteps = [];
-
-const loginStamp = () => {
-  const d = new Date();
-  return `${d.toDateString().toLowerCase()} ${d.toTimeString().slice(0, 8)}`;
-};
-
-function makeBootSteps() {
-  let lastVisit = null;
-  try {
-    lastVisit = localStorage.getItem("wf-last-visit");
-    localStorage.setItem("wf-last-visit", loginStamp());
-  } catch {
-    // private mode — boot without a login record
-  }
-  return [
-    { label: "tohirOS v2.6 .........", result: "ready" },
-    {
-      text: lastVisit
-        ? `last login: ${lastVisit} on ttys001`
-        : "last login: first visit — welcome",
-    },
-  ];
-}
-
-function renderBootFinal() {
-  bootEl.innerHTML = "";
-  for (const s of bootSteps) {
-    const p = document.createElement("p");
-    p.className = "dim";
-    p.textContent = s.label ? `${s.label} ${s.result}` : s.text;
-    bootEl.appendChild(p);
-  }
-}
-
-// click-to-skip: settle every line to its final state, keep the scrollback
-function finishBoot() {
-  clearTimeout(bootTimer);
-  for (const h of [...activeStreams]) h.finish(true);
-  renderBootFinal();
-  showPage();
-}
-
-function runBar(p, label, onDone) {
-  p.className = "dim bar";
-  let pct = 0;
-  const draw = () => {
-    p.innerHTML = "";
-    p.append(`${label} [`);
-    const fill = document.createElement("span");
-    fill.className = "bar-fill";
-    fill.textContent = "█".repeat(Math.round((pct / 100) * BAR_CELLS));
-    p.append(
-      fill,
-      `${"░".repeat(BAR_CELLS - Math.round((pct / 100) * BAR_CELLS))}]` +
-        `${String(Math.round(pct)).padStart(4)}%`,
-    );
-  };
-  const tick = () => {
-    draw();
-    if (pct >= 100) {
-      onDone();
-      return;
-    }
-    // creeps up in uneven jumps, hitches around 80% — as is tradition
-    const hitch = pct > 76 && pct < 92 && Math.random() < 0.35;
-    bootTimer = setTimeout(
-      () => {
-        pct = Math.min(100, pct + 2 + Math.floor(Math.random() * 7));
-        tick();
-      },
-      hitch ? 280 : 40 + Math.random() * 60,
-    );
-  };
-  tick();
-}
-
-function bootStep(i) {
-  if (i >= bootSteps.length) {
-    bootTimer = setTimeout(showPage, BOOT_LINE_MS);
-    return;
-  }
-  const s = bootSteps[i];
-  const p = document.createElement("p");
-  p.className = "dim";
-  bootEl.appendChild(p);
-  const next = () => {
-    bootTimer = setTimeout(() => bootStep(i + 1), BOOT_LINE_MS);
-  };
-  if (s.label) {
-    runBar(p, s.label, () => {
-      // hold the full bar a beat, then settle into its status line
-      bootTimer = setTimeout(() => {
-        p.className = "dim";
-        p.textContent = `${s.label} ${s.result}`;
-        bootStep(i + 1);
-      }, BOOT_LINE_MS);
-    });
-  } else {
-    const src = document.createDocumentFragment();
-    src.append(document.createTextNode(s.text));
-    stream(p, src, { onDone: next });
-  }
-}
-
-// the page arrives all at once — no typing theater. keyboard goes to the
-// prompt (not on touch devices — popping the keyboard open uninvited is rude)
-function showPage() {
-  if (pageShown) return;
-  phase = "term";
-  clearTimeout(bootTimer);
-  pageShown = true;
-  sectionsEl.hidden = false;
-  sectionsEl.querySelector("#sec-fetch").appendChild(buildFetch());
-  renderPrompt();
-  if (!window.matchMedia("(pointer: coarse)").matches) {
-    ghost.focus({ preventScroll: true });
-  }
-}
-
-/* ---- hover disclosure: blurbs decode into the section's desc line ------ */
-
-const DECODE_NOISE = "█▓▒░<>/\\|=+*·";
-
-function decodeInto(el, text) {
-  if (el._raf) cancelAnimationFrame(el._raf);
-  if (reduceMotion) {
-    el.textContent = text;
-    return;
-  }
-  const t0 = performance.now();
-  const frame = (t) => {
-    el._raf = null;
-    const n = Math.min(text.length, Math.floor((t - t0) / DECODE_MS_PER_CHAR));
-    el.textContent =
-      text.slice(0, n) +
-      [...text.slice(n)]
-        .map((c) =>
-          c === " "
-            ? " "
-            : DECODE_NOISE[Math.floor(Math.random() * DECODE_NOISE.length)],
-        )
-        .join("");
-    if (n < text.length) el._raf = requestAnimationFrame(frame);
-  };
-  el._raf = requestAnimationFrame(frame);
-}
-
-function clearDecode(el) {
-  if (el._raf) cancelAnimationFrame(el._raf);
-  el._raf = null;
-  el.textContent = "";
-}
-
-let hoverItem = null;
-
-sectionsEl.addEventListener("pointerover", (e) => {
-  const t = e.target.closest("[data-blurb]");
-  if (!t || t === hoverItem) return;
-  hoverItem = t;
-  const slot = t.closest(".sec")?.querySelector(".sec-desc");
-  if (slot) decodeInto(slot, t.dataset.blurb);
+const clockEl = document.getElementById("clock");
+const clockFmt = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
 });
 
-sectionsEl.addEventListener("pointerout", (e) => {
-  const t = e.target.closest("[data-blurb]");
-  if (!t || t.contains(e.relatedTarget)) return;
-  if (t === hoverItem) hoverItem = null;
-  const slot = t.closest(".sec")?.querySelector(".sec-desc");
-  if (slot) clearDecode(slot);
-});
-
-/* ---- commands ---------------------------------------------------------- */
-
-function run(raw) {
-  const cmd = raw.trim().replace(/\s+/g, " ");
-  const [name, ...rest] = cmd.split(" ");
-  const arg = rest.join(" ");
-  let output = null;
-
-  if (!cmd) {
-    addBlock("", null);
-    renderPrompt();
-    return;
-  }
-  if (name === "clear") {
-    blocksEl.innerHTML = "";
-    renderPrompt();
-    return;
-  }
-
-  if (name === "help") output = HELP_HTML;
-  else if (name === "fetch") output = buildFetch();
-  else if (name === "whoami") output = WHOAMI_HTML;
-  else if (name === "cat") {
-    if (arg === "about.txt" || arg === "about") output = ABOUT_HTML;
-    else if (arg === "contact.txt" || arg === "contact") output = CONTACT_HTML;
-    else output = `<p>cat: ${esc(arg || "cat")}: No such file or directory</p>`;
-  } else if (name === "ls") {
-    const long = rest[0] === "-l";
-    const target = (long ? rest.slice(1).join(" ") : arg).replace(/\/$/, "");
-    if (!target || target === ".") output = ROOT_LS_HTML;
-    else if (target === "projects")
-      output = long ? PROJECTS_DETAIL_HTML : PROJECTS_LS_HTML;
-    else if (target === "lab") output = long ? LAB_DETAIL_HTML : LAB_LS_HTML;
-    else output = `<p>ls: ${esc(target)}: No such file or directory</p>`;
-  } else if (name === "open") {
-    const labName = (
-      arg.startsWith("lab/") ? arg.slice(4) : arg
-    ).replace(/\/$/, "");
-    const piece = lab.find((x) => x.name === labName);
-    const p = projects.find((x) => x.name === arg);
-    if (piece) {
-      openLab(piece.name);
-      output = `<p class="dim">running lab/${piece.name} …</p>`;
-    } else if (p && !p.href) {
-      output = `<p class="dim">open: ${p.name}: broken symlink — still being built. soon.</p>`;
-    } else if (p) {
-      window.open(p.href, "_blank", "noopener");
-      output = `<p class="dim">opening ${stripUrl(p.href)} …</p>`;
-    } else {
-      output =
-        `<p>open: ${esc(arg || "?")}: not a project or lab piece ` +
-        `<span class="dim">(try: ${projects.map((x) => x.name).join(", ")}, ` +
-        `${lab.map((x) => `lab/${x.name}`).join(", ")})</span></p>`;
-    }
-  } else if (name === "theme") {
-    if (THEMES.includes(arg)) {
-      applyTheme(arg);
-      output = `<p class="dim">phosphor set to ${arg}</p>`;
-    } else {
-      output = `<p>usage: theme &lt;${THEMES.join(" | ")}&gt;</p>`;
-    }
-  } else if (name === "history") {
-    output = history.length
-      ? `<p class="history">${esc(
-          history
-            .map((h, i) => `${String(i + 1).padStart(4)}  ${h}`)
-            .join("\n"),
-        )}</p>`
-      : '<p class="dim">no history yet</p>';
-  } else if (name === "sl") {
-    startTrain();
-    output = null;
-  } else if (name === "snake") {
-    output =
-      '<p class="dim">🐍 the real one lives in a cube — try: open colubrid</p>';
-  } else if (name === "vi" || name === "vim" || name === "nvim") {
-    openVim();
-  } else if (name === "nano" || name === "emacs") {
-    output = `<p>zsh: command not found: ${name} (this is a vi household)</p>`;
-  } else if (name === "pwd") output = "<p>/home/guest</p>";
-  else if (name === "date")
-    output = `<p>${new Date().toString().toLowerCase()}</p>`;
-  else if (name === "echo") output = `<p>${esc(arg) || " "}</p>`;
-  else if (name === "sudo")
-    output =
-      "<p>guest is not in the sudoers file. this incident will be reported.</p>";
-  else if (name === "exit" || name === "logout")
-    output = '<p class="dim">nice try — there is no escape.</p>';
-  else if (name === "rm") output = '<p class="dim">no.</p>';
-  else output = `<p>zsh: command not found: ${esc(name)}</p>`;
-
-  if (output) setBusy(true);
-  addBlock(cmd, output, {
-    instant: reduceMotion,
-    onDone: output ? () => setBusy(false) : undefined,
-  });
-  renderPrompt();
+function tickClock() {
+  clockEl.textContent = clockFmt.format(new Date());
 }
+tickClock();
+setInterval(tickClock, 1000);
 
-/* ---- the lab window manager -------------------------------------------- */
-
-let winEl = null;
-let winCleanup = null;
-let winToken = 0; // guards a load that resolves after its window closed
-
-function closeWin() {
-  if (!winEl) return;
-  winToken += 1;
-  try {
-    winCleanup?.();
-  } catch {
-    // demo cleanup is best-effort
-  }
-  winCleanup = null;
-  winEl.remove();
-  winEl = null;
-}
-
-function dragWin(el) {
-  const bar = el.querySelector(".win-bar");
-  let dx = 0;
-  let dy = 0;
-  bar.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".win-close")) return;
-    e.preventDefault();
-    const sx = e.clientX - dx;
-    const sy = e.clientY - dy;
-    const move = (ev) => {
-      dx = ev.clientX - sx;
-      dy = ev.clientY - sy;
-      el.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  });
-}
-
-async function openLab(name) {
-  const piece = lab.find((p) => p.name === name);
-  if (!piece) return;
-  closeWin();
-  const token = ++winToken;
-  winEl = document.createElement("div");
-  winEl.className = "window";
-  winEl.setAttribute("role", "dialog");
-  winEl.setAttribute("aria-label", `lab/${name}`);
-  winEl.innerHTML =
-    `<div class="win-bar"><span class="win-title">lab/${name}</span>` +
-    '<button class="win-close" aria-label="close window">[x]</button></div>' +
-    `<div class="win-body"><p class="dim">loading ${name} …</p></div>`;
-  winEl.querySelector(".win-close").addEventListener("click", () => {
-    closeWin();
-    if (!window.matchMedia("(pointer: coarse)").matches)
-      ghost.focus({ preventScroll: true });
-  });
-  dragWin(winEl);
-  document.body.appendChild(winEl);
-  const body = winEl.querySelector(".win-body");
-  try {
-    const mod = await piece.load();
-    if (token !== winToken) return; // window was closed while loading
-    body.innerHTML = "";
-    winCleanup = mod.mount(body) || null;
-  } catch {
-    if (token === winToken)
-      body.innerHTML =
-        '<p class="dim">failed to load — check the connection and retry</p>';
-  }
-}
-
-// esc closes the window (vim owns esc while it's up)
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && winEl && !vim) closeWin();
-});
-
-// clickable lab entries in any listing, streamed partials included
-main.addEventListener("click", (e) => {
-  const t = e.target.closest("[data-lab]");
-  if (t) {
-    e.preventDefault();
-    openLab(t.dataset.lab);
-  }
-});
-
-/* ---- the sl locomotive ------------------------------------------------- */
-
-function startTrain() {
-  setBusy(true);
-  const pre = document.createElement("pre");
-  pre.className = "sl";
-  pre.setAttribute("aria-hidden", "true");
-  pre.textContent = TRAIN;
-  pre.addEventListener("animationend", () => {
-    pre.remove();
-    setBusy(false);
-  });
-  main.appendChild(pre);
-}
-
-/* ---- fake vim ---------------------------------------------------------- */
-
-function openVim() {
-  vim = { buf: "", cmd: "", insert: false, err: "" };
-  vimEl = document.createElement("div");
-  vimEl.className = "vim";
-  vimEl.setAttribute("role", "dialog");
-  vimEl.setAttribute("aria-label", "vim");
-  vimEl.innerHTML =
-    '<div class="vim-buf"><span></span>' +
-    '<span class="cursor" aria-hidden="true"></span>' +
-    '<p class="vim-tilde dim">~</p>'.repeat(18) +
-    "</div>" +
-    '<p class="vim-status">"portfolio.txt" [readonly]' +
-    '<span class="vim-hint">:q! to leave</span></p>' +
-    '<p class="vim-cmdline"> </p>';
-  main.appendChild(vimEl);
-  renderVim();
-  ghost.focus({ preventScroll: true });
-}
-
-function closeVim() {
-  vim = null;
-  vimEl?.remove();
-  vimEl = null;
-}
-
-function renderVim() {
-  if (!vim || !vimEl) return;
-  vimEl.querySelector(".vim-buf > span").textContent = vim.buf;
-  vimEl.querySelector(".vim-cmdline").textContent = vim.insert
-    ? "-- INSERT --"
-    : vim.err || vim.cmd || " ";
-}
-
-function vimFeed(str) {
-  for (const ch of str) {
-    if (vim.insert) vim.buf += ch;
-    else if (vim.cmd) vim.cmd += ch;
-    else if (ch === ":") {
-      vim.cmd = ":";
-      vim.err = "";
-    } else if (ch === "i") {
-      vim.insert = true;
-      vim.err = "";
-    }
-  }
-  renderVim();
-}
-
-function vimEnter() {
-  if (vim.insert) {
-    vim.buf += "\n";
-    renderVim();
-    return;
-  }
-  const c = vim.cmd.trim();
-  if (c === ":q!" || c === ":wq!" || c === ":x!") {
-    closeVim();
-    return;
-  }
-  if (c === ":q")
-    vim.err = "E37: No write since last change (add ! to override)";
-  else if (c === ":w" || c === ":wq" || c === ":x")
-    vim.err = "E45: 'readonly' option is set (add ! to override)";
-  else if (c.startsWith(":") && c.length > 1)
-    vim.err = `E492: Not an editor command: ${c.slice(1)}`;
-  vim.cmd = "";
-  renderVim();
-}
-
-/* ---- input plumbing ---------------------------------------------------- */
-
-function submit() {
-  if (vim) {
-    vimEnter();
-    return;
-  }
-  const raw = ghost.value;
-  if (raw.trim()) {
-    history.push(raw);
-    saveHistory();
-  }
-  histIdx = history.length;
-  ghost.value = "";
-  run(raw);
-}
-
-// soft keyboards submit through the form; hardware Enter is handled in
-// keydown below — cover both
-main.querySelector("#promptform").addEventListener("submit", (e) => {
-  e.preventDefault();
-  submit();
-});
-
-ghost.addEventListener("input", () => {
-  if (vim) {
-    // characters land here even from soft keyboards; route them to vim
-    if (ghost.value) vimFeed(ghost.value);
-    ghost.value = "";
-    return;
-  }
-  renderPrompt();
-});
-
-ghost.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    submit();
-    return;
-  }
-  if (vim) {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      vim.insert = false;
-      vim.cmd = "";
-      vim.err = "";
-      renderVim();
-    } else if (e.key === "Backspace") {
-      e.preventDefault();
-      if (vim.insert) vim.buf = vim.buf.slice(0, -1);
-      else vim.cmd = vim.cmd.slice(0, -1);
-      renderVim();
-    }
-    return;
-  }
-  if (e.key === "ArrowUp") {
-    e.preventDefault();
-    if (histIdx > 0) {
-      histIdx -= 1;
-      ghost.value = history[histIdx] ?? "";
-      renderPrompt();
-    }
-  } else if (e.key === "ArrowDown") {
-    e.preventDefault();
-    if (histIdx < history.length) {
-      histIdx += 1;
-      ghost.value = history[histIdx] ?? "";
-      renderPrompt();
-    }
-  } else if (e.key === "Tab") {
-    e.preventDefault();
-    const input = ghost.value;
-    const matches = COMPLETIONS.filter((c) => c.startsWith(input));
-    if (matches.length === 1) ghost.value = matches[0];
-    else if (matches.length > 1) {
-      // complete to the longest common prefix
-      let prefix = matches[0];
-      for (const m of matches) {
-        while (!m.startsWith(prefix)) prefix = prefix.slice(0, -1);
-      }
-      if (prefix.length > input.length) ghost.value = prefix;
-    }
-    renderPrompt();
-  }
-});
-
-ghost.addEventListener("focus", () => {
-  focused = true;
-  renderPrompt();
-});
-
-ghost.addEventListener("blur", () => {
-  focused = false;
-  renderPrompt();
-});
-
-main.addEventListener("click", () => {
-  if (phase === "boot") {
-    finishBoot();
-    return;
-  }
-  // don't steal a text-selection drag
-  if (window.getSelection()?.toString()) return;
-  ghost.focus({ preventScroll: true });
-});
-
-/* ---- go ---------------------------------------------------------------- */
-
-bootSteps = makeBootSteps();
-bootEl.hidden = false;
-if (reduceMotion) {
-  renderBootFinal();
-  showPage();
-} else {
-  bootStep(0);
-}
+/* theme follows the system for now — no toggle */

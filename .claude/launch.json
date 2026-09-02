@@ -5,7 +5,19 @@
       "name": "webfolio",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "dotix",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "/Users/tohirr/Developer/dotix"
+      ],
+      "port": 5175
     },
     {
       "name": "webfolio-v2",
