@@ -72,6 +72,22 @@ body {
   }
 }
 
+/* desktop: the whole composition fits the viewport — no vertical scroll.
+   the work row rides the bottom edge; only it scrolls (horizontally) */
+@media (min-width: 641px) {
+  #app {
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 641px) and (max-height: 860px) {
+  .intro {
+    margin-top: 9vh;
+  }
+}
+
 p {
   margin: 0 0 1em;
 }
@@ -106,6 +122,23 @@ a:hover {
   margin-bottom: 2rem;
 }
 
+/* the particle avatar: same 40px layout slot, but the canvas hangs
+   over it so scattered pixels have room to fly */
+.avatar-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2rem;
+}
+
+.avatar-wrap canvas {
+  position: absolute;
+  inset: -56px;
+  width: 152px;
+  height: 152px;
+  pointer-events: none;
+}
+
 /* ---- blocks ------------------------------------------------------------ */
 
 /* full-bleed scroller: escapes the centered container so tiles always
@@ -113,12 +146,12 @@ a:hover {
 .blocks {
   display: flex;
   gap: 16px;
-  margin-top: 14vh;
+  margin-top: 12px;
   margin-left: calc(-1 * var(--pl));
   margin-right: calc(-1 * var(--pr));
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 4px var(--pr) 16px var(--pl);
+  padding: 4px var(--pr) 20px var(--pl);
 }
 
 .blocks::-webkit-scrollbar {
@@ -131,7 +164,9 @@ a:hover {
 }
 
 .tile {
-  width: clamp(300px, 22vw, 440px);
+  /* the cell: always half the screen tall, width locked to the ratio */
+  height: 50vh;
+  height: 50svh;
   aspect-ratio: 5 / 6;
   border-radius: 26px;
   background: var(--tile);
@@ -142,26 +177,29 @@ a:hover {
   transition: background 0.2s ease;
 }
 
-.block figcaption {
-  display: flex;
+/* the coffee tile: the whole cell is the link */
+.tile.coffee {
   flex-direction: column;
-  margin-top: 14px;
-  padding-left: 4px;
+  gap: 6px;
+  text-align: center;
+  padding: 24px;
 }
 
-.t-name {
+.tile.coffee:hover {
+  text-decoration: none;
+}
+
+.c-line {
+  color: var(--dim);
+}
+
+.c-cta {
   color: var(--ink);
 }
 
-.t-sub {
-  color: var(--dim);
-}
-
-/* placeholder tiles */
-.tile.ph span {
-  color: var(--dim);
-  font-size: 22px;
-  font-weight: 400;
+.tile.coffee:hover .c-cta {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .tile-err {
@@ -185,20 +223,58 @@ a:hover {
   width: 62%;
 }
 
-/* ---- footer ------------------------------------------------------------ */
-
-.foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  color: var(--dim);
-  margin-top: auto;
-  padding: 14vh 4px 2rem;
+/* the pulse-sphere piece: controls hidden, the whole tile becomes the display */
+.tile .ps-row,
+.tile .ps-cap {
+  display: none;
 }
 
-#clock {
-  font-variant-numeric: tabular-nums;
+.tile .ps-stage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+}
+
+/* the feedback-field piece: controls hidden, the whole tile becomes the display */
+.tile .ff-row,
+.tile .ff-cap {
+  display: none;
+}
+
+.tile .ff-stage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+}
+
+/* ---- scroll indicator ---------------------------------------------------
+   one bar per stage; bars whose stage is in the viewport grow thicker.
+   desktop: a row at the top-right of the work row. mobile: a fixed
+   vertical stack at the middle-right of the screen */
+
+.bars {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: auto; /* pins the indicator + row to the bottom edge */
+  padding: 0 4px 14px;
+  pointer-events: none;
+}
+
+.bars i {
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--dim);
+  transition: width 0.25s ease, height 0.25s ease, background 0.25s ease;
+}
+
+.bars i.on {
+  width: 5px;
+  background: var(--ink);
 }
 
 /* ---- top nav: round social buttons ------------------------------------- */
@@ -241,34 +317,84 @@ a:hover {
 
 /* ---- small screens ------------------------------------------------------ */
 
-/* phones: a vertical feed of near-screen-height tiles. native scroll-snap
-   centers one stage at a time (proximity, so the intro and footer still
-   scroll like a normal page); the next tile peeks in as the affordance */
+/* phones: a vertical carousel. native mandatory scroll-snap — one swipe
+   always lands on the next stage; stages are ~80svh so the neighbours
+   creep in at the top and bottom edges */
 @media (max-width: 640px) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+
+  /* the intro keeps its own resting point at the top of the page, and
+     fills most of the first screen so the first tile only peeks in */
+  .intro {
+    scroll-snap-align: start;
+    scroll-margin-top: 40vh;
+    min-height: 60vh;
+    min-height: 60svh;
+  }
+
   .blocks {
     flex-direction: column;
     gap: 24px;
+    margin-top: 10vh;
     margin-inline: 0;
     padding: 4px 0 16px;
     overflow-x: visible;
   }
 
-  /* one stage = tile + caption; main.js eases the nearest one to center
-     once the scroll comes to rest (soft snap, no css snap-jump) */
+  /* one stage = one tile, centered by the snap */
   .block {
     width: 100%;
+    height: 80vh; /* fallback */
+    height: 80svh;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-align: center;
   }
 
   .tile {
     width: 100%;
     aspect-ratio: auto;
-    height: 76vh; /* fallback */
-    height: 76svh;
+    height: auto;
+    flex: 1;
+    min-height: 0;
   }
 
   /* give the card more of the taller stage */
   .tile .fc-card {
     width: 76%;
+  }
+
+  /* indicator: fixed vertical stack, middle-right */
+  .bars {
+    position: fixed;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    z-index: 5;
+    transition: opacity 0.25s ease;
+  }
+
+  .bars i {
+    width: 14px;
+    height: 2px;
+  }
+
+  .bars i.on {
+    width: 14px;
+    height: 5px;
+  }
+
+  /* out of the way while the intro is on screen */
+  .bars.idle {
+    opacity: 0;
   }
 }
 
@@ -276,15 +402,13 @@ a:hover {
   .intro {
     margin-top: 14vh;
   }
-
-  .blocks {
-    margin-top: 8vh;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   body,
-  .tile {
+  .tile,
+  .bars,
+  .bars i {
     transition: none;
   }
 }

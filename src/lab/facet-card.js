@@ -193,6 +193,113 @@ const randomCardURL = () => {
   return `https://images.pokemontcg.io/${s}/${1 + ((Math.random() * n) | 0)}_hires.png`;
 };
 
+/* the wave-flip sound: a bell-tree glissando of glitter grains over a
+   thin high sheen, with pentatonic chimes riding the same accelerating
+   curve. four flavors rotate in a shuffled cycle so flips don't tire —
+   rising tree (the classic), falling tree, sparse crystal, fine fast
+   dust — and every flip is transposed and stretched a little besides.
+   built lazily on the first flip — that's a click, so the context runs */
+let sac = null;
+let noiseBuf = null;
+const GLITTER = [1760, 2093, 2637, 3136, 3520, 4186, 5274, 6272];
+const VARIANTS = [
+  // grains, gliss span (s), ladder start/ratio, jitter, grain decay,
+  // chime count, sheen level and sweep — see the flavor names above
+  { grains: 44, span: 0.6, lo: 2500, ratio: 3.4, jit: 0.06, dec: 0.02, dvar: 0.035, chimes: 12, sheen: 0.07, s0: 2400, s1: 8200 },
+  { grains: 40, span: 0.6, lo: 8200, ratio: 1 / 3.2, jit: 0.06, dec: 0.025, dvar: 0.04, chimes: 10, sheen: 0.06, s0: 7800, s1: 2600 },
+  { grains: 15, span: 0.55, lo: 2800, ratio: 2.8, jit: 0.03, dec: 0.09, dvar: 0.1, chimes: 8, sheen: 0.03, s0: 3000, s1: 6500 },
+  { grains: 60, span: 0.42, lo: 3600, ratio: 2.6, jit: 0.09, dec: 0.012, dvar: 0.018, chimes: 6, sheen: 0.05, s0: 3200, s1: 9000 },
+];
+let bag = [];
+let lastV = -1;
+
+function sweepSound() {
+  try {
+    sac ??= new AudioContext();
+    if (sac.state !== "running") sac.resume().catch(() => {});
+    if (!noiseBuf) {
+      noiseBuf = sac.createBuffer(1, sac.sampleRate * 0.8, sac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+
+    // shuffled cycle, never the same flavor twice in a row
+    if (!bag.length) bag = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+    if (bag[bag.length - 1] === lastV && bag.length > 1) bag.unshift(bag.pop());
+    lastV = bag.pop();
+    const V = VARIANTS[lastV];
+    const mul = 0.88 + Math.random() * 0.28; // per-flip transposition
+    const span = V.span * (0.92 + Math.random() * 0.16);
+    const t0 = sac.currentTime + 0.02;
+
+    // the thin "tsss" sheen — air above the bells
+    const src = sac.createBufferSource();
+    src.buffer = noiseBuf;
+    const bp = sac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 2.6;
+    bp.frequency.setValueAtTime(V.s0 * mul, t0);
+    bp.frequency.exponentialRampToValueAtTime(V.s1 * mul, t0 + span + 0.04);
+    const g = sac.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(V.sheen * 0.3, t0 + span * 0.5);
+    g.gain.exponentialRampToValueAtTime(V.sheen, t0 + span * 0.95);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + span + 0.16);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sac.destination);
+    src.start(t0);
+    src.stop(t0 + span + 0.2);
+
+    // the bell tree: an ordered glissando of grains on the accelerating
+    // curve — fewer grains ring louder so every flavor carries
+    const loud = Math.pow(44 / V.grains, 0.4);
+    for (let i = 0; i < V.grains; i++) {
+      const u = i / V.grains;
+      const t = t0 + Math.pow(u, 0.55) * span + Math.random() * 0.02;
+      const f = V.lo * mul * Math.pow(V.ratio, u) * (1 + (Math.random() - 0.5) * V.jit);
+      const osc = sac.createOscillator();
+      osc.frequency.value = f;
+      const og = sac.createGain();
+      const peak = (0.007 + Math.random() * 0.013) * (0.5 + 0.9 * u) * loud;
+      og.gain.setValueAtTime(0.0001, t);
+      og.gain.exponentialRampToValueAtTime(peak, t + 0.004);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + V.dec + Math.random() * V.dvar);
+      const pan = sac.createStereoPanner();
+      pan.pan.value = (Math.random() - 0.5) * 1.4;
+      osc.connect(og);
+      og.connect(pan);
+      pan.connect(sac.destination);
+      osc.start(t);
+      osc.stop(t + V.dec + V.dvar + 0.05);
+    }
+
+    // pentatonic chimes as accents riding the same curve
+    for (let i = 0; i < V.chimes; i++) {
+      const u = i / V.chimes;
+      const t = t0 + Math.pow(u, 0.55) * span * 0.97 + Math.random() * 0.025;
+      const rung = Math.min(GLITTER.length - 1, (Math.random() * 4 + u * 4) | 0);
+      const f = GLITTER[rung] * mul * (1 + (Math.random() - 0.5) * 0.02);
+      const osc = sac.createOscillator();
+      osc.frequency.value = f;
+      const og = sac.createGain();
+      const peak = (0.014 + Math.random() * 0.018) * (0.6 + 0.7 * u);
+      og.gain.setValueAtTime(0.0001, t);
+      og.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + 0.1 + Math.random() * 0.12);
+      const pan = sac.createStereoPanner();
+      pan.pan.value = (Math.random() - 0.5) * 1.2;
+      osc.connect(og);
+      og.connect(pan);
+      pan.connect(sac.destination);
+      osc.start(t);
+      osc.stop(t + 0.28);
+    }
+  } catch {
+    /* no audio — the flip still flips */
+  }
+}
+
 export function mount(el) {
   el.innerHTML =
     `<style>
@@ -365,6 +472,7 @@ export function mount(el) {
     fillQueue();
     if (ready && useImage(ready, flip === 0 ? "b" : "a")) {
       waveCX = u; waveCY = v; waveR = 0; waveActive = true;
+      sweepSound();
     }
   });
 

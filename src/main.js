@@ -10,12 +10,17 @@ const blocks = [
     sub: "pixel holo foil · webgl",
     load: () => import("./lab/facet-card.js"),
   },
-  { name: "dot-bars", sub: "soon" },
-  { name: "spring-toggle", sub: "soon" },
-  { name: "more", sub: "soon" },
+  {
+    name: "pulse-sphere",
+    sub: "surface-pulsing dot sphere · generative audio",
+    load: () => import("./lab/pulse-sphere.js"),
+  },
+  { name: "coffee", coffee: true },
 ];
 
 const EMAIL = "tohirr.dev@gmail.com";
+
+const SPONSOR_URL = "https://github.com/sponsors/tohirr";
 
 /* google calendar appointment-schedule booking page */
 const CAL_URL = "https://calendar.app.google/6M3QwajrfAX85EaC8";
@@ -48,21 +53,17 @@ const nav = [
   { label: "Email", href: `mailto:${EMAIL}`, icon: MAIL_ICON },
 ];
 
-// home timezone shown in the footer
-const TIME_ZONE = "Africa/Lagos";
-const TIME_ZONE_LABEL = "GMT+1";
-
 /* ---- page -------------------------------------------------------------- */
 
 const ext = 'target="_blank" rel="noreferrer"';
 
 const tile = (b) =>
-  `<figure class="block">` +
-  (b.load
-    ? `<div class="tile" data-mount="${b.name}"></div>`
-    : `<div class="tile ph" aria-hidden="true"><span>+</span></div>`) +
-  `<figcaption><span class="t-name">${b.name}</span>` +
-  `<span class="t-sub">${b.sub}</span></figcaption>` +
+  `<figure class="block" aria-label="${b.name}">` +
+  (b.coffee
+    ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
+      `<span class="c-line">interfaces run on caffeine</span>` +
+      `<span class="c-cta">sponsor me →</span></a>`
+    : `<div class="tile" data-mount="${b.name}"></div>`) +
   `</figure>`;
 
 document.getElementById("app").innerHTML =
@@ -76,17 +77,23 @@ document.getElementById("app").innerHTML =
   `</nav>` +
   `<section class="intro">` +
   `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="40" height="40" />` +
-  `<p class="ink">Dear visitor,</p>` +
+  `<p class="ink">Hi there,</p>` +
   `<p>I’m Tohir, a design engineer building interfaces where the ` +
   `details carry the feel.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
+  `<div class="bars" aria-hidden="true">` +
+  blocks.map(() => `<i></i>`).join("") +
+  `</div>` +
   `<section class="blocks" aria-label="work">` +
   blocks.map(tile).join("") +
-  `</section>` +
-  `<footer class="foot">` +
-  `<span>${TIME_ZONE_LABEL} <time id="clock"></time></span>` +
-  `</footer>`;
+  `</section>`;
+
+/* ---- avatar: pixel-scatter hover ---------------------------------------- */
+
+import("./avatar.js")
+  .then((mod) => mod.mount(document.querySelector(".avatar")))
+  .catch(() => {});
 
 /* ---- live tiles -------------------------------------------------------- */
 
@@ -100,91 +107,42 @@ for (const b of blocks) {
     });
 }
 
-/* ---- clock ------------------------------------------------------------- */
-
-const clockEl = document.getElementById("clock");
-const clockFmt = new Intl.DateTimeFormat("en-GB", {
-  timeZone: TIME_ZONE,
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-});
-
-function tickClock() {
-  clockEl.textContent = clockFmt.format(new Date());
-}
-tickClock();
-setInterval(tickClock, 1000);
-
 /* theme follows the system for now — no toggle */
 
-/* ---- scroll: nav fade + soft stage snap -------------------------------- */
+/* ---- scroll: nav fade (mobile page scroll only) ------------------------- */
 
 const topnav = document.querySelector(".topnav");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
-  .matches;
-const mobile = window.matchMedia("(max-width: 640px)");
-
 let lastY = window.scrollY;
-let settleTimer = 0;
-let settleEndTimer = 0;
-let touching = false;
-let settling = false; // our own smooth glide — not the visitor scrolling
-
-/* ease the nearest stage to the viewport center once scrolling rests.
-   smooth scrollBy is native and interruptible — a new flick cancels it */
-function settle() {
-  if (!mobile.matches || reduceMotion || touching) return;
-  const mid = window.innerHeight / 2;
-  let best = 0;
-  let bestDelta = Infinity;
-  for (const b of document.querySelectorAll(".block")) {
-    const r = b.getBoundingClientRect();
-    const delta = r.top + r.height / 2 - mid;
-    if (Math.abs(delta) < Math.abs(bestDelta)) bestDelta = delta;
-  }
-  best = bestDelta;
-  // pull radius covers the whole feed (stages are ~82svh apart) but leaves
-  // the intro and footer free — proximity, not force
-  if (Math.abs(best) > 2 && Math.abs(best) < window.innerHeight * 0.45) {
-    settling = true;
-    clearTimeout(settleEndTimer);
-    settleEndTimer = setTimeout(() => {
-      settling = false;
-    }, 800);
-    window.scrollBy({ top: best, behavior: "smooth" });
-  }
-}
-
-// real input immediately reclaims the scroll from a glide
-const reclaim = () => {
-  settling = false;
-};
-window.addEventListener("wheel", reclaim, { passive: true });
 
 window.addEventListener(
   "scroll",
   () => {
     const y = window.scrollY;
-    if (!settling) {
-      if (y > lastY + 4 && y > 60) topnav.classList.add("hide");
-      else if (y < lastY - 4 || y <= 60) topnav.classList.remove("hide");
-      clearTimeout(settleTimer);
-      settleTimer = setTimeout(settle, 150);
-    }
+    if (y > lastY + 4 && y > 60) topnav.classList.add("hide");
+    else if (y < lastY - 4 || y <= 60) topnav.classList.remove("hide");
     lastY = y;
   },
   { passive: true },
 );
 
-window.addEventListener("touchstart", () => {
-  touching = true;
-  settling = false;
-  clearTimeout(settleTimer);
-}, { passive: true });
+/* ---- indicator: one bar per stage, thick while its stage is in view ----- */
 
-window.addEventListener("touchend", () => {
-  touching = false;
-  clearTimeout(settleTimer);
-  settleTimer = setTimeout(settle, 150);
-}, { passive: true });
+const barsEl = document.querySelector(".bars");
+const barEls = [...barsEl.children];
+const blockEls = [...document.querySelectorAll(".block")];
+
+const io = new IntersectionObserver(
+  (entries) => {
+    for (const e of entries) {
+      const bar = barEls[blockEls.indexOf(e.target)];
+      if (bar) bar.classList.toggle("on", e.intersectionRatio >= 0.6);
+    }
+    // mobile: the fixed indicator only shows while the feed is on screen
+    barsEl.classList.toggle(
+      "idle",
+      !barEls.some((b) => b.classList.contains("on")),
+    );
+  },
+  { threshold: [0.6] },
+);
+blockEls.forEach((el) => io.observe(el));
