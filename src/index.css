@@ -207,10 +207,18 @@ a:hover {
   position: fixed;
   top: 16px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 0);
   display: flex;
   gap: 10px;
   z-index: 5;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* tucked away while scrolling down; back on the first scroll up */
+.topnav.hide {
+  opacity: 0;
+  transform: translate(-50%, -12px);
+  pointer-events: none;
 }
 
 .icon-btn {
@@ -233,7 +241,9 @@ a:hover {
 
 /* ---- small screens ------------------------------------------------------ */
 
-/* phones: the row becomes a vertical column of taller, full-width tiles */
+/* phones: a vertical feed of near-screen-height tiles. native scroll-snap
+   centers one stage at a time (proximity, so the intro and footer still
+   scroll like a normal page); the next tile peeks in as the affordance */
 @media (max-width: 640px) {
   .blocks {
     flex-direction: column;
@@ -243,13 +253,22 @@ a:hover {
     overflow-x: visible;
   }
 
+  /* one stage = tile + caption; main.js eases the nearest one to center
+     once the scroll comes to rest (soft snap, no css snap-jump) */
   .block {
     width: 100%;
   }
 
   .tile {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    aspect-ratio: auto;
+    height: 76vh; /* fallback */
+    height: 76svh;
+  }
+
+  /* give the card more of the taller stage */
+  .tile .fc-card {
+    width: 76%;
   }
 }
 
