@@ -207,10 +207,18 @@ a:hover {
   position: fixed;
   top: 16px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 0);
   display: flex;
   gap: 10px;
   z-index: 5;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* tucked away while scrolling down; back on the first scroll up */
+.topnav.hide {
+  opacity: 0;
+  transform: translate(-50%, -12px);
+  pointer-events: none;
 }
 
 .icon-btn {
@@ -237,10 +245,6 @@ a:hover {
    centers one stage at a time (proximity, so the intro and footer still
    scroll like a normal page); the next tile peeks in as the affordance */
 @media (max-width: 640px) {
-  html {
-    scroll-snap-type: y proximity;
-  }
-
   .blocks {
     flex-direction: column;
     gap: 24px;
@@ -249,10 +253,10 @@ a:hover {
     overflow-x: visible;
   }
 
-  /* the snap unit is tile + caption, centered as one stage */
+  /* one stage = tile + caption; main.js eases the nearest one to center
+     once the scroll comes to rest (soft snap, no css snap-jump) */
   .block {
     width: 100%;
-    scroll-snap-align: center;
   }
 
   .tile {

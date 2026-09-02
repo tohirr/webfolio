@@ -117,3 +117,74 @@ tickClock();
 setInterval(tickClock, 1000);
 
 /* theme follows the system for now — no toggle */
+
+/* ---- scroll: nav fade + soft stage snap -------------------------------- */
+
+const topnav = document.querySelector(".topnav");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+  .matches;
+const mobile = window.matchMedia("(max-width: 640px)");
+
+let lastY = window.scrollY;
+let settleTimer = 0;
+let settleEndTimer = 0;
+let touching = false;
+let settling = false; // our own smooth glide — not the visitor scrolling
+
+/* ease the nearest stage to the viewport center once scrolling rests.
+   smooth scrollBy is native and interruptible — a new flick cancels it */
+function settle() {
+  if (!mobile.matches || reduceMotion || touching) return;
+  const mid = window.innerHeight / 2;
+  let best = 0;
+  let bestDelta = Infinity;
+  for (const b of document.querySelectorAll(".block")) {
+    const r = b.getBoundingClientRect();
+    const delta = r.top + r.height / 2 - mid;
+    if (Math.abs(delta) < Math.abs(bestDelta)) bestDelta = delta;
+  }
+  best = bestDelta;
+  // pull radius covers the whole feed (stages are ~82svh apart) but leaves
+  // the intro and footer free — proximity, not force
+  if (Math.abs(best) > 2 && Math.abs(best) < window.innerHeight * 0.45) {
+    settling = true;
+    clearTimeout(settleEndTimer);
+    settleEndTimer = setTimeout(() => {
+      settling = false;
+    }, 800);
+    window.scrollBy({ top: best, behavior: "smooth" });
+  }
+}
+
+// real input immediately reclaims the scroll from a glide
+const reclaim = () => {
+  settling = false;
+};
+window.addEventListener("wheel", reclaim, { passive: true });
+
+window.addEventListener(
+  "scroll",
+  () => {
+    const y = window.scrollY;
+    if (!settling) {
+      if (y > lastY + 4 && y > 60) topnav.classList.add("hide");
+      else if (y < lastY - 4 || y <= 60) topnav.classList.remove("hide");
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(settle, 150);
+    }
+    lastY = y;
+  },
+  { passive: true },
+);
+
+window.addEventListener("touchstart", () => {
+  touching = true;
+  settling = false;
+  clearTimeout(settleTimer);
+}, { passive: true });
+
+window.addEventListener("touchend", () => {
+  touching = false;
+  clearTimeout(settleTimer);
+  settleTimer = setTimeout(settle, 150);
+}, { passive: true });

@@ -321,6 +321,7 @@ export function mount(el) {
   const AMBIENT = !reduceMotion;
   const RESUME_MS = 3000;
   let ambT = 0;
+  let ambActive = false;
   let lastUser = -1e9;
 
   const interact = (u, v) => {
@@ -442,12 +443,21 @@ export function mount(el) {
     }
 
     if (AMBIENT && t - lastUser > RESUME_MS) {
-      // slow incommensurate sweep — the glare never settles into a loop
+      // the drift always restarts from the neutral pose and swells outward —
+      // never a jump into the middle of the sweep
+      if (!ambActive) {
+        ambActive = true;
+        ambT = 0;
+      }
       ambT += dt;
+      const ramp = Math.min(1, ambT / 2.5);
+      // slow incommensurate sweep — the glare never settles into a loop
       interact(
-        0.5 + Math.sin(ambT * 0.6) * 0.38,
-        0.5 + Math.cos(ambT * 0.47) * 0.34
+        0.5 + Math.sin(ambT * 0.6) * 0.38 * ramp,
+        0.5 + Math.sin(ambT * 0.47) * 0.34 * ramp
       );
+    } else {
+      ambActive = false;
     }
 
     for (const s of springs) {
