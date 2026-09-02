@@ -233,8 +233,14 @@ a:hover {
 
 /* ---- small screens ------------------------------------------------------ */
 
-/* phones: the row becomes a vertical column of taller, full-width tiles */
+/* phones: a vertical feed of near-screen-height tiles. native scroll-snap
+   centers one stage at a time (proximity, so the intro and footer still
+   scroll like a normal page); the next tile peeks in as the affordance */
 @media (max-width: 640px) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+
   .blocks {
     flex-direction: column;
     gap: 24px;
@@ -243,13 +249,22 @@ a:hover {
     overflow-x: visible;
   }
 
+  /* the snap unit is tile + caption, centered as one stage */
   .block {
     width: 100%;
+    scroll-snap-align: center;
   }
 
   .tile {
     width: 100%;
-    aspect-ratio: 4 / 5;
+    aspect-ratio: auto;
+    height: 76vh; /* fallback */
+    height: 76svh;
+  }
+
+  /* give the card more of the taller stage */
+  .tile .fc-card {
+    width: 76%;
   }
 }
 
