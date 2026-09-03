@@ -76,7 +76,7 @@ document.getElementById("app").innerHTML =
     .join("") +
   `</nav>` +
   `<section class="intro">` +
-  `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="40" height="40" />` +
+  `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="52" height="52" />` +
   `<p class="ink">Hi there,</p>` +
   `<p>I’m Tohir, a design engineer building interfaces where the ` +
   `details carry the feel.</p>` +

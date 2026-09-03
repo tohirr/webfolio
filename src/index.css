@@ -114,27 +114,24 @@ a:hover {
 
 .avatar {
   display: block;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   image-rendering: pixelated;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 2rem;
 }
 
-/* the particle avatar: same 40px layout slot, but the canvas hangs
-   over it so scattered pixels have room to fly */
+/* the particle avatar: same layout slot, but the canvas hangs over it
+   (geometry set by avatar.js) so scattered pixels have room to fly */
 .avatar-wrap {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   margin-bottom: 2rem;
 }
 
 .avatar-wrap canvas {
   position: absolute;
-  inset: -56px;
-  width: 152px;
-  height: 152px;
   pointer-events: none;
 }
 
@@ -314,24 +311,46 @@ a:hover {
 }
 
 /* phones get the desktop composition as-is: one screen, the work row
-   full-bleed and scrolling sideways, cells half the screen tall. only the
-   intro's top margin shrinks so everything fits on shorter phones */
+   full-bleed and scrolling sideways, cells half the screen tall */
+@media (max-width: 640px) {
+  /* browser chrome (tab bar, home indicator) crowds the bottom edge —
+     lift the row well clear of it */
+  .blocks {
+    padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* the cell is smaller here, so the pieces fill more of it */
+  .tile {
+    --ps-scale: 0.42;
+  }
+
+  .tile .fc-card {
+    width: 78%;
+  }
+}
+
+/* shorter phones: tighten the intro so the row still fits */
 @media (max-width: 640px) and (max-height: 700px) {
   .intro {
-    margin-top: 68px; /* just clears the fixed nav */
+    margin-top: 64px; /* just clears the fixed nav */
+  }
+
+  .intro p {
+    margin-bottom: 0.4em;
   }
 
   .avatar,
   .avatar-wrap {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .bars {
-    padding-bottom: 8px;
+    padding-bottom: 4px;
   }
 
   .blocks {
-    margin-top: 4px;
+    margin-top: 0;
+    padding-top: 0;
   }
 }
 

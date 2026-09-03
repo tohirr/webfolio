@@ -143,7 +143,8 @@ function buildMusic() {
 export function mount(el) {
   el.innerHTML =
     `<style>
-.ps-stage{position:relative;width:100%;max-width:420px;aspect-ratio:1;margin:0 auto;touch-action:pan-y;cursor:pointer}
+.ps-stage{position:relative;width:100%;max-width:420px;aspect-ratio:1;margin:0 auto}
+.ps-stage.over{cursor:pointer}
 .ps-stage canvas{width:100%;height:100%;display:block}
 .ps-tag{position:absolute;left:14px;bottom:10px;color:var(--dim);pointer-events:none;user-select:none}
 .ps-row{display:flex;flex-wrap:wrap;gap:.5em 1.2em;align-items:center;justify-content:center;margin-top:1em}
@@ -295,13 +296,35 @@ export function mount(el) {
   const wake = () => music.ac.resume().catch(() => {});
   addEventListener("pointerdown", wake, { once: true });
 
+  /* only the sphere itself is the button — the rest of the stage stays
+     inert so a swipe across the tile scrolls the row. the hit circle is the
+     resting silhouette (S · FOC/√(D²−R0²)) plus room for a stretched skin */
+  /* how much of the stage the sphere takes: hosts can raise it with
+     --ps-scale (the tile does on phones, where the cell is smaller) */
+  let scale = 0.36;
+  const readScale = () => {
+    const v = parseFloat(getComputedStyle(stage).getPropertyValue("--ps-scale"));
+    scale = v > 0 ? v : 0.36;
+  };
+  readScale();
+
+  const onSphere = (e) => {
+    const r = stage.getBoundingClientRect();
+    const hit = Math.min(r.width, r.height) * scale * (FOC / Math.sqrt(D * D - R0 * R0)) * 1.25;
+    const x = e.clientX - (r.left + r.width / 2);
+    const y = e.clientY - (r.top + r.height / 2);
+    return x * x + y * y <= hit * hit;
+  };
+
   /* tap toggles the mute; a real drag (scroll on touch) doesn't */
-  let dx0 = 0, dy0 = 0;
+  let dx0 = 0, dy0 = 0, hit0 = false;
   stage.addEventListener("pointerdown", (e) => {
     dx0 = e.clientX;
     dy0 = e.clientY;
+    hit0 = onSphere(e);
   });
   stage.addEventListener("pointerup", (e) => {
+    if (!hit0 || !onSphere(e)) return;
     if (Math.abs(e.clientX - dx0) + Math.abs(e.clientY - dy0) > 6) return;
     unmuted = !unmuted;
     music.ac.resume().catch(() => {});
@@ -355,12 +378,14 @@ export function mount(el) {
 
   let yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
   stage.addEventListener("pointermove", (e) => {
+    stage.classList.toggle("over", onSphere(e));
     if (reduceMotion) return;
     const r = stage.getBoundingClientRect();
     yawT = ((e.clientX - r.left) / r.width - 0.5) * 0.7;
     pitchT = ((e.clientY - r.top) / r.height - 0.5) * 0.45;
   });
   stage.addEventListener("pointerleave", () => {
+    stage.classList.remove("over");
     yawT = 0;
     pitchT = 0;
   });
@@ -378,14 +403,14 @@ export function mount(el) {
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
+      readScale();
     }
     ctx.clearRect(0, 0, w, h);
 
-    const S = Math.min(w, h) * 0.36;
+    const S = Math.min(w, h) * scale;
     const cx = w * 0.5;
     const cy = h * 0.5;
     const n = params.dots;
-    const live = music.ac.state === "running";
     const gain = params.gain / 100;
     const cyw = Math.cos(spin + yaw), syw = Math.sin(spin + yaw);
     const cp = Math.cos(pitch), sp = Math.sin(pitch);

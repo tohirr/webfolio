@@ -5,7 +5,6 @@
 
 const SRC = "/favicon.svg";
 const GRID = 24; // the portrait is a 24×24 pixel grid
-const SIZE = 40; // css size, matches the <img>
 const PAD = 56; // room around the portrait for the pixels to fly into
 const RADIUS = 130; // css px — cursor influence around the avatar center
 
@@ -20,12 +19,13 @@ export function mount(img) {
     octx.drawImage(probe, 0, 0, GRID, GRID);
     const data = octx.getImageData(0, 0, GRID, GRID).data;
 
+    const SIZE = img.getBoundingClientRect().width || 52; // css size, from the <img>
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const px = (SIZE / GRID) * dpr; // one grid cell in device px
     const pad = PAD * dpr;
     const full = (SIZE + PAD * 2) * dpr;
 
-    /* the wrapper keeps the 40px layout slot; the canvas hangs over it
+    /* the wrapper keeps the <img>'s layout slot; the canvas hangs over it
        so displaced pixels aren't clipped */
     const wrap = document.createElement("div");
     wrap.className = "avatar-wrap";
@@ -33,6 +33,8 @@ export function mount(img) {
     wrap.setAttribute("aria-label", img.alt);
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = full;
+    canvas.style.inset = `${-PAD}px`;
+    canvas.style.width = canvas.style.height = `${SIZE + PAD * 2}px`;
     wrap.append(canvas);
     const ctx = canvas.getContext("2d");
 
