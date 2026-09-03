@@ -109,27 +109,11 @@ for (const b of blocks) {
 
 /* theme follows the system for now — no toggle */
 
-/* ---- scroll: nav fade (mobile page scroll only) ------------------------- */
-
-const topnav = document.querySelector(".topnav");
-let lastY = window.scrollY;
-
-window.addEventListener(
-  "scroll",
-  () => {
-    const y = window.scrollY;
-    if (y > lastY + 4 && y > 60) topnav.classList.add("hide");
-    else if (y < lastY - 4 || y <= 60) topnav.classList.remove("hide");
-    lastY = y;
-  },
-  { passive: true },
-);
-
 /* ---- indicator: one bar per stage, thick while its stage is in view ----- */
 
-const barsEl = document.querySelector(".bars");
-const barEls = [...barsEl.children];
+const barEls = [...document.querySelector(".bars").children];
 const blockEls = [...document.querySelectorAll(".block")];
+const scroller = document.querySelector(".blocks");
 
 const io = new IntersectionObserver(
   (entries) => {
@@ -137,12 +121,7 @@ const io = new IntersectionObserver(
       const bar = barEls[blockEls.indexOf(e.target)];
       if (bar) bar.classList.toggle("on", e.intersectionRatio >= 0.6);
     }
-    // mobile: the fixed indicator only shows while the feed is on screen
-    barsEl.classList.toggle(
-      "idle",
-      !barEls.some((b) => b.classList.contains("on")),
-    );
   },
-  { threshold: [0.6] },
+  { root: scroller, threshold: [0.6] },
 );
 blockEls.forEach((el) => io.observe(el));
