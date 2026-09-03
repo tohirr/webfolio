@@ -245,6 +245,20 @@ a:hover {
   aspect-ratio: auto;
 }
 
+/* the glass-block piece: controls hidden, the whole tile is the glass */
+.tile .gb-row,
+.tile .gb-cap {
+  display: none;
+}
+
+.tile .gb-stage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
 /* ---- scroll indicator ---------------------------------------------------
    one bar per stage; bars whose stage is in the viewport grow thicker.
    a row at the top-right of the work row, on every screen size */

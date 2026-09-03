@@ -6,6 +6,11 @@ import "./index.css";
 
 const blocks = [
   {
+    name: "glass-block",
+    sub: "camera through pattern glass · webgl",
+    load: () => import("./lab/glass-block.js"),
+  },
+  {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
     load: () => import("./lab/facet-card.js"),
