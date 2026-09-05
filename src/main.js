@@ -4,11 +4,14 @@ import "./index.css";
    the work row: live pieces mounted right in their tile, plus placeholders
    for what's coming. each live module exports mount(el) → optional cleanup */
 
+const BOOKMARX_URL = "https://bookmarx.space";
+
 const blocks = [
   {
-    name: "glass-block",
-    sub: "camera through pattern glass · webgl",
-    load: () => import("./lab/glass-block.js"),
+    name: "bookmarx",
+    sub: "a better search engine for your x bookmarks",
+    href: BOOKMARX_URL,
+    load: () => import("./lab/glass-mark.js"),
   },
   {
     name: "facet-card",
@@ -19,6 +22,11 @@ const blocks = [
     name: "pulse-sphere",
     sub: "surface-pulsing dot sphere · generative audio",
     load: () => import("./lab/pulse-sphere.js"),
+  },
+  {
+    name: "split-flap",
+    sub: "solari departure board · css 3d",
+    load: () => import("./lab/split-flap.js"),
   },
   { name: "coffee", coffee: true },
 ];
@@ -68,7 +76,9 @@ const tile = (b) =>
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
       `<span class="c-cta">sponsor me →</span></a>`
-    : `<div class="tile" data-mount="${b.name}"></div>`) +
+    : b.href
+      ? `<a class="tile mark" href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
+      : `<div class="tile" data-mount="${b.name}"></div>`) +
   `</figure>`;
 
 document.getElementById("app").innerHTML =
@@ -83,8 +93,8 @@ document.getElementById("app").innerHTML =
   `<section class="intro">` +
   `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="52" height="52" />` +
   `<p class="ink">Hi there,</p>` +
-  `<p>I’m Tohir, a design engineer building interfaces where the ` +
-  `details carry the feel.</p>` +
+  `<p>I’m Tohir, a design engineer building interfaces you click ` +
+  `just to feel them.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
   `<div class="bars" aria-hidden="true">` +

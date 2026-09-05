@@ -37,16 +37,18 @@ app.innerHTML =
   '<button type="button" data-m="video" aria-pressed="false">video</button>' +
   "</div>" +
   '<div class="shutter-row">' +
-  '<button class="thumb" type="button" aria-label="last capture" hidden><img alt=""></button>' +
+  '<button class="thumb empty" type="button" aria-label="captures"><img alt=""><b class="count" hidden></b></button>' +
   '<button class="shutter" type="button" aria-label="take photo"><i></i></button>' +
   `<button class="round flip" type="button" aria-label="flip camera">${FLIP_ICON}</button>` +
   "</div>" +
   "</footer>" +
   '<div class="state" hidden><p></p><button type="button">allow camera</button></div>' +
   '<div class="review" hidden><div class="media"></div>' +
-  '<div class="actions"><button type="button" class="primary" data-a="share" hidden>share</button>' +
-  '<a class="primary" data-a="save" download>save</a>' +
-  '<button type="button" data-a="close">close</button></div></div>';
+  '<div class="strip" hidden></div>' +
+  '<div class="actions"><button type="button" class="primary" data-a="save">save</button>' +
+  '<button type="button" data-a="delete">delete</button>' +
+  '<button type="button" data-a="close">close</button></div>' +
+  '<p class="hint"></p></div>';
 
 const $ = (s) => app.querySelector(s);
 const canvas = $(".view");
@@ -79,7 +81,22 @@ const recCtx = recCanvas.getContext("2d");
 let recChunks = [];
 let recStart = 0;
 let recTimer = 0;
-let last = null; // { blob, url, kind, ext, poster }
+/* the roll: everything captured in this tab, newest last. it lives in
+   memory only — nothing is uploaded, and it is gone when the tab goes —
+   so saving is the way out */
+const roll = []; // { blob, url, kind, ext, poster }
+let cur = -1;
+
+/* can we hand a file to the share sheet? that is the only road into a
+   phone's photo library from a web page */
+const canShareFiles = (() => {
+  try {
+    const f = new File([new Uint8Array(4)], "p.jpg", { type: "image/jpeg" });
+    return !!navigator.canShare?.({ files: [f] });
+  } catch {
+    return false;
+  }
+})();
 
 const toast = (msg) => {
   app.querySelector(".toast")?.remove();
@@ -195,14 +212,34 @@ canvas.addEventListener("pointerup", (e) => {
   else if (Math.abs(dy) > 48 && Math.abs(dy) > Math.abs(dx) * 1.5) setMode(mode === "photo" ? "video" : "photo");
 });
 
+/* ---- draw ------------------------------------------------------------------------ */
+
+/* one frame of the view. the loop calls this; so does a capture, right
+   before it reads the canvas, so a picture is always the present moment
+   and never whatever the last animation frame left behind */
+const renderFrame = (t = performance.now()) => {
+  if (!glass) return;
+  const mirror = facing === "user";
+  if (video.videoWidth) glass.draw(video, { mirror, wipe: wipe.edge(t) });
+  else glass.clear();
+  pushRecFrame();
+};
+
 /* ---- capture ------------------------------------------------------------------- */
 
-const setLast = (cap) => {
-  if (last?.url) URL.revokeObjectURL(last.url);
-  if (last?.poster) URL.revokeObjectURL(last.poster);
-  last = cap;
-  thumb.querySelector("img").src = cap.poster || cap.url;
-  thumb.hidden = false;
+const syncThumb = () => {
+  const latest = roll[roll.length - 1];
+  thumb.classList.toggle("empty", !latest);
+  const count = thumb.querySelector(".count");
+  count.hidden = roll.length < 2;
+  count.textContent = roll.length;
+  if (latest) thumb.querySelector("img").src = latest.poster || latest.url;
+};
+
+const addCapture = (cap) => {
+  roll.push(cap);
+  cur = roll.length - 1;
+  syncThumb();
   thumb.classList.remove("pop");
   void thumb.offsetWidth;
   thumb.classList.add("pop");
@@ -217,11 +254,12 @@ const takePhoto = () => {
   void flashEl.offsetWidth;
   flashEl.classList.add("on");
   navigator.vibrate?.(12);
-  // the buffer is preserved, so this is exactly the frame on screen
+  // draw now, read now — the buffer is preserved between the two
+  renderFrame();
   canvas.toBlob(
     (blob) => {
       if (!blob) return;
-      setLast({ blob, url: URL.createObjectURL(blob), kind: "image", ext: "jpg" });
+      addCapture({ blob, url: URL.createObjectURL(blob), kind: "image", ext: "jpg" });
     },
     "image/jpeg",
     0.92,
@@ -275,9 +313,10 @@ const startRec = () => {
   recorder.ondataavailable = (e) => e.data.size && recChunks.push(e.data);
   recorder.onstop = () => {
     const blob = new Blob(recChunks, { type: mime.split(";")[0] });
+    renderFrame();
     canvas.toBlob(
       (posterBlob) =>
-        setLast({
+        addCapture({
           blob,
           url: URL.createObjectURL(blob),
           kind: "video",
@@ -329,21 +368,48 @@ shutter.addEventListener("click", () => {
 
 /* ---- review --------------------------------------------------------------------- */
 
-const shareBtn = review.querySelector("[data-a=share]");
-const saveLink = review.querySelector("[data-a=save]");
+const saveBtn = review.querySelector("[data-a=save]");
+const strip = review.querySelector(".strip");
+const hint = review.querySelector(".hint");
 
-const openReview = () => {
-  if (!last) return;
+saveBtn.textContent = canShareFiles ? "save to photos" : "download";
+
+const fileFor = (cap) => new File([cap.blob], `glass-${stamp()}.${cap.ext}`, { type: cap.blob.type });
+
+/* phones: the share sheet, where "save image" / "save video" lands it in
+   the photo library. everywhere else: a plain download */
+const saveCapture = async (cap) => {
+  const file = fileFor(cap);
+  if (canShareFiles && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+    } catch {
+      /* dismissed — nothing to do */
+    }
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = cap.url;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast(`saved ${file.name}`);
+};
+
+const renderReview = () => {
+  const cap = roll[cur];
   const media = review.querySelector(".media");
   media.innerHTML = "";
-  if (last.kind === "image") {
+  if (!cap) return;
+  if (cap.kind === "image") {
     const img = new Image();
-    img.src = last.url;
+    img.src = cap.url;
     img.alt = "your capture";
     media.appendChild(img);
   } else {
     const v = document.createElement("video");
-    v.src = last.url;
+    v.src = cap.url;
     v.controls = true;
     v.playsInline = true;
     v.loop = true;
@@ -351,12 +417,24 @@ const openReview = () => {
     v.muted = true;
     media.appendChild(v);
   }
-  const name = `glass-${stamp()}.${last.ext}`;
-  saveLink.href = last.url;
-  saveLink.download = name;
-  const file = new File([last.blob], name, { type: last.blob.type });
-  shareBtn.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
-  shareBtn.onclick = () => navigator.share({ files: [file] }).catch(() => {});
+  strip.hidden = roll.length < 2;
+  strip.innerHTML = roll
+    .map(
+      (c, i) =>
+        `<button type="button" data-i="${i}" aria-current="${i === cur}" ` +
+        `aria-label="${c.kind} ${i + 1}"><img src="${c.poster || c.url}" alt=""></button>`,
+    )
+    .join("");
+  strip.querySelector("[aria-current=true]")?.scrollIntoView({ block: "nearest", inline: "center" });
+  hint.textContent = canShareFiles
+    ? `${cap.kind === "video" ? "video" : "photo"} kept in this tab only — save to photos opens the share sheet, pick “save ${cap.kind === "video" ? "video" : "image”"}.`
+    : `${cap.kind === "video" ? "video" : "photo"} kept in this tab only until you download it.`;
+};
+
+const openReview = (i = roll.length - 1) => {
+  if (!roll.length) return;
+  cur = Math.max(0, Math.min(i, roll.length - 1));
+  renderReview();
   review.hidden = false;
 };
 
@@ -365,8 +443,26 @@ const closeReview = () => {
   review.querySelector(".media").innerHTML = "";
 };
 
-thumb.addEventListener("click", openReview);
+const deleteCapture = () => {
+  const cap = roll[cur];
+  if (!cap) return;
+  URL.revokeObjectURL(cap.url);
+  if (cap.poster) URL.revokeObjectURL(cap.poster);
+  roll.splice(cur, 1);
+  cur = Math.min(cur, roll.length - 1);
+  syncThumb();
+  if (!roll.length) closeReview();
+  else renderReview();
+};
+
+thumb.addEventListener("click", () => openReview());
+saveBtn.addEventListener("click", () => roll[cur] && saveCapture(roll[cur]));
+review.querySelector("[data-a=delete]").addEventListener("click", deleteCapture);
 review.querySelector("[data-a=close]").addEventListener("click", closeReview);
+strip.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-i]");
+  if (b) openReview(+b.dataset.i);
+});
 
 /* ---- keys ------------------------------------------------------------------------- */
 
@@ -387,12 +483,7 @@ addEventListener("keydown", (e) => {
 /* ---- loop -------------------------------------------------------------------------- */
 
 const frame = (t) => {
-  if (glass) {
-    const mirror = facing === "user";
-    if (video.videoWidth) glass.draw(video, { mirror, wipe: wipe.edge(t) });
-    else glass.clear();
-    pushRecFrame();
-  }
+  renderFrame(t);
   requestAnimationFrame(frame);
 };
 requestAnimationFrame(frame);

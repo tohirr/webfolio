@@ -202,6 +202,12 @@ a:hover {
   color: var(--dim);
 }
 
+/* a mark tile: just the project's icon, the whole cell is the link */
+.tile.mark {
+  cursor: pointer;
+  touch-action: pan-x;
+}
+
 /* the facet-card piece, tamed into a preview: no sliders, no caption,
    card sized to sit inside the tile */
 .tile .fc-row,
@@ -243,20 +249,6 @@ a:hover {
   height: 100%;
   max-width: none;
   aspect-ratio: auto;
-}
-
-/* the glass-block piece: controls hidden, the whole tile is the glass */
-.tile .gb-row,
-.tile .gb-cap {
-  display: none;
-}
-
-.tile .gb-stage {
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  aspect-ratio: auto;
-  border-radius: 0;
 }
 
 /* ---- scroll indicator ---------------------------------------------------

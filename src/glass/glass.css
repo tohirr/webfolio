@@ -238,6 +238,7 @@ a {
 }
 
 .shutter {
+  grid-column: 2; /* pinned to the middle track — the thumb slot may be empty */
   position: relative;
   width: 74px;
   height: 74px;
@@ -272,6 +273,7 @@ a {
 }
 
 .thumb {
+  position: relative;
   width: 46px;
   height: 46px;
   border-radius: 10px;
@@ -283,6 +285,28 @@ a {
 
 .thumb:active {
   transform: scale(0.94);
+}
+
+/* the slot is always laid out; before the first capture it is just unseen */
+.thumb.empty {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.thumb .count {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #fff;
+  color: #000;
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .thumb img {
@@ -387,11 +411,50 @@ a {
   display: block;
 }
 
+.review .strip {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 10px 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.review .strip button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0.5;
+  box-shadow: 0 0 0 2px transparent;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.review .strip button[aria-current="true"] {
+  opacity: 1;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.review .strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .review .actions {
   display: flex;
   justify-content: center;
   gap: 10px;
-  padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 22px);
+  padding: 14px 16px 10px;
+}
+
+.review .hint {
+  margin: 0;
+  padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .review .actions > * {
