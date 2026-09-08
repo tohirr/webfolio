@@ -5,6 +5,7 @@ import "./index.css";
    for what's coming. each live module exports mount(el) → optional cleanup */
 
 const BOOKMARX_URL = "https://bookmarx.space";
+const FELDY_URL = "https://feldy.ai";
 
 const blocks = [
   {
@@ -94,7 +95,8 @@ document.getElementById("app").innerHTML =
   `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="52" height="52" />` +
   `<p class="ink">Hi there,</p>` +
   `<p>I’m Tohir, a design engineer building interfaces you click ` +
-  `just to feel them.</p>` +
+  `just to feel them. Right now I build ` +
+  `<a href="${FELDY_URL}" ${ext}>Feldy</a>’s app end to end, iOS and Android.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
   `<div class="bars" aria-hidden="true">` +

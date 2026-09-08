@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- source for public/og.png — render with `npm run og` (headless chrome, 1200×630) -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #0e0e0e;
+        color: #8f8f8f;
+        font-family:
+          ui-monospace, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono",
+          monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        display: flex;
+        align-items: center;
+        gap: 88px;
+        padding: 0 112px;
+        box-sizing: border-box;
+      }
+      /* the favicon portrait, scaled up with hard pixel edges */
+      .avatar {
+        width: 336px;
+        height: 336px;
+        flex: none;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      .text {
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+        min-width: 0;
+      }
+      .name {
+        display: flex;
+        align-items: center;
+        font-size: 58px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      /* terminal block cursor */
+      .cursor {
+        display: inline-block;
+        width: 0.58em;
+        height: 1.05em;
+        margin-left: 0.22em;
+        background: #ffffff;
+      }
+      .sub {
+        font-size: 27px;
+        line-height: 1.45;
+        color: #8f8f8f;
+        max-width: 560px;
+      }
+      .url {
+        font-size: 22px;
+        color: #6e6e6e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img class="avatar" src="../public/favicon.svg" alt="" />
+      <div class="text">
+        <div class="name">tohir<span class="cursor"></span></div>
+        <div class="sub">design engineer — interfaces, motion &amp; pixels for the web</div>
+        <div class="url">~ $ tohirr.dev</div>
+      </div>
+    </div>
+  </body>
+</html>
