@@ -2,11 +2,14 @@
    270° sweep; the dial sticks a little at each one and snaps in, so it
    reads as mechanical even with the sound off. every notch crossed is a
    tick: a synthesized click (a filtered noise burst, pitched by direction),
-   a short buzz where the browser has a motor (android), and a real taptic
-   tap on iphones via the switch trick, when it works. a ring of pixels
+   and a short buzz where the browser has a motor (android; iphones have
+   no vibration api for the web). a ring of pixels
    outside the dial lights up to the level, one per notch. drag round the
    dial, roll the wheel over it, or use the arrow keys. left alone, it
    turns itself a few notches now and then — silently. */
+
+import { wakeAudio as wakeShared } from "./audio.js";
+import { unlockAudio } from "./audio-unlock.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -35,7 +38,6 @@ export function mount(el) {
 .kn-dot.on{fill:var(--ink);opacity:1}
 .kn-tag{position:absolute;left:14px;bottom:12px;color:var(--dim);pointer-events:none}
 .kn-val{position:absolute;right:14px;bottom:12px;color:var(--dim);pointer-events:none;font-variant-numeric:tabular-nums}
-.kn-sw{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
 </style>` +
     '<div class="kn-stage">' +
     '<svg class="kn-svg" viewBox="0 0 100 100" role="slider" tabindex="0" aria-label="knob" ' +
@@ -47,7 +49,6 @@ export function mount(el) {
     "</svg>" +
     '<span class="kn-tag">drag · scroll · ←→</span>' +
     '<span class="kn-val"></span>' +
-    '<input class="kn-sw" type="checkbox" switch tabindex="-1" aria-hidden="true">' +
     "</div>";
 
   const stage = el.querySelector(".kn-stage");
@@ -55,19 +56,17 @@ export function mount(el) {
   const rot = el.querySelector(".kn-rot");
   const dots = [...el.querySelectorAll(".kn-dot")];
   const val = el.querySelector(".kn-val");
-  const sw = el.querySelector(".kn-sw");
 
   /* ---- the tick: click, buzz, tap ------------------------------------- */
   let ac = null, noise = null;
   const wakeAudio = () => {
-    if (ac) return;
-    try {
-      ac = new AudioContext();
-      const len = Math.floor(ac.sampleRate * 0.03);
-      noise = ac.createBuffer(1, len, ac.sampleRate);
-      const d = noise.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    } catch { ac = null; }
+    unlockAudio(); // iphone: get past the silent switch
+    ac = wakeShared(); // the page's shared context, resumed in this gesture
+    if (!ac || noise) return;
+    const len = Math.floor(ac.sampleRate * 0.03);
+    noise = ac.createBuffer(1, len, ac.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
   };
   const click = (dir) => {
     if (!ac || ac.state !== "running") return;
@@ -85,7 +84,6 @@ export function mount(el) {
     src.start(t);
     src.stop(t + 0.03);
   };
-  const canSwitch = "switch" in sw || sw.hasAttribute("switch");
   let lastTick = 0;
   const tick = (dir, silent) => {
     if (silent) return;
@@ -93,8 +91,7 @@ export function mount(el) {
     if (now - lastTick < 28) return; // a fast spin is one buzz, not a machine gun
     lastTick = now;
     click(dir);
-    navigator.vibrate?.(8);
-    if (canSwitch) sw.click(); // ios: a taptic tap, when safari allows it
+    navigator.vibrate?.(15); // shorter than this and most motors don't bother
   };
 
   /* ---- state ----------------------------------------------------------- */
@@ -141,7 +138,6 @@ export function mount(el) {
   svg.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     wakeAudio();
-    ac?.resume().catch(() => {});
     dragging = true;
     lastUser = performance.now();
     a0 = angleOf(e);
@@ -164,14 +160,17 @@ export function mount(el) {
     dragging = false;
     setRaw(Math.round(raw)); // let go: it settles into the notch
   };
-  svg.addEventListener("pointerup", release);
+  svg.addEventListener("pointerup", (e) => {
+    // ios trusts the end of a touch more than its start for audio
+    wakeAudio();
+    release(e);
+  });
   svg.addEventListener("pointercancel", release);
 
   let wheelAcc = 0;
   svg.addEventListener("wheel", (e) => {
     e.preventDefault();
     wakeAudio();
-    ac?.resume().catch(() => {});
     lastUser = performance.now();
     wheelAcc += e.deltaY;
     const steps = Math.trunc(wheelAcc / 40);
@@ -186,7 +185,6 @@ export function mount(el) {
     e.preventDefault();
     svg.classList.add("kb");
     wakeAudio();
-    ac?.resume().catch(() => {});
     lastUser = performance.now();
     setRaw(Math.round(raw) + d);
   });
@@ -241,6 +239,5 @@ export function mount(el) {
     alive = false;
     cancelAnimationFrame(raf);
     io.disconnect();
-    ac?.close().catch(() => {});
   };
 }

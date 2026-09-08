@@ -5,6 +5,8 @@
    springs use svelte-motion constants; click pulls a random card off the
    pokemontcg image cdn. */
 
+import { audio } from "./audio.js";
+
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const VS = `
@@ -215,7 +217,8 @@ let lastV = -1;
 
 function sweepSound() {
   try {
-    sac ??= new AudioContext();
+    sac ??= audio();
+    if (!sac) return;
     if (sac.state !== "running") sac.resume().catch(() => {});
     if (!noiseBuf) {
       noiseBuf = sac.createBuffer(1, sac.sampleRate * 0.8, sac.sampleRate);

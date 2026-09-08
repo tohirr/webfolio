@@ -32,10 +32,10 @@ const blocks = [
     load: () => import("./lab/pulse-sphere.js"),
   },
   {
-    name: "knob",
-    sub: "rotary knob with real detents · web audio + haptics",
+    name: "tape",
+    sub: "the photos adjust ruler · detents, momentum, haptics",
     kind: "touch",
-    load: () => import("./lab/knob.js"),
+    load: () => import("./lab/tape.js"),
   },
   { name: "coffee", coffee: true },
 ];
@@ -98,6 +98,9 @@ const KIND = {
     '<path d="M4.4 4.4a5.1 5.1 0 0 0 0 7.2M11.6 4.4a5.1 5.1 0 0 1 0 7.2"/></svg>',
 };
 
+/* on a phone nobody clicks — the intro says what the hand actually does */
+const VERB = matchMedia("(pointer: coarse)").matches ? "touch" : "click";
+
 /* ---- page -------------------------------------------------------------- */
 
 const ext = 'target="_blank" rel="noreferrer"';
@@ -128,7 +131,7 @@ document.getElementById("app").innerHTML =
   `<section class="intro">` +
   `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="52" height="52" />` +
   `<p class="ink">Hi there,</p>` +
-  `<p>I’m Tohir, a design engineer building interfaces you click ` +
+  `<p>I’m Tohir, a design engineer building interfaces you ${VERB} ` +
   `just to feel them. Currently @ <a class="feldy" href="${feldyHref()}" ${ext}>` +
   `<img class="app-icon" src="/media/feldy-app-icon.png" alt="" width="16" height="16" />Feldy</a>.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +

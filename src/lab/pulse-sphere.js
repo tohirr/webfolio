@@ -9,7 +9,10 @@
    lets audio run (first interaction), the sphere just breathes. dots are
    pre-rendered sprites — a thousand canvas arcs per frame would crawl. */
 
+import { audio } from "./audio.js";
+
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const coarse = matchMedia("(pointer: coarse)").matches;
 
 const R0 = 1.0; // resting radius
 const D = 3.4; // camera distance
@@ -51,7 +54,7 @@ const heat = (t) => {
 /* the band: everything routes through mix → analyser → master, so the
    analyser keeps hearing the track while the master sits muted at 0 */
 function buildMusic() {
-  const ac = new AudioContext();
+  const ac = audio();
   const mix = ac.createGain();
   const analyser = ac.createAnalyser();
   analyser.fftSize = FFT;
@@ -135,12 +138,15 @@ function buildMusic() {
     freq: new Uint8Array(analyser.frequencyBinCount),
     dispose() {
       clearInterval(timer);
-      ac.close();
+      master.disconnect(); // the context is shared — leave it running
     },
   };
 }
 
 export function mount(el) {
+  // phones get fewer dots: a thousand sprites a frame is where low-end
+  // devices start dropping frames
+  const params = { dots: coarse ? 720 : 1100, gain: 140 };
   el.innerHTML =
     `<style>
 .ps-stage{position:relative;width:100%;max-width:420px;aspect-ratio:1;margin:0 auto}
@@ -155,7 +161,7 @@ export function mount(el) {
 </style>` +
     '<div class="ps-stage"><canvas></canvas><span class="ps-tag">tap for sound</span></div>' +
     '<div class="ps-row">' +
-    '<label>dots <input type="range" min="400" max="2000" step="50" value="1100" data-p="dots"><output>1100</output></label>' +
+    `<label>dots <input type="range" min="400" max="2000" step="50" value="${params.dots}" data-p="dots"><output>${params.dots}</output></label>` +
     '<label>gain <input type="range" min="60" max="260" value="140" data-p="gain"><output>140</output></label>' +
     "</div>" +
     '<p class="ps-cap">the loop is always playing, just muted — tap for sound.</p>';
@@ -165,7 +171,6 @@ export function mount(el) {
   const tag = el.querySelector(".ps-tag");
   const ctx = canvas.getContext("2d");
 
-  const params = { dots: 1100, gain: 140 };
 
   /* fibonacci sphere + per-dot field coordinates and scratch buffers */
   let px, py, pz, du, dv, depth, order, gxA, gyA, szA, lvA, alA;
@@ -379,7 +384,9 @@ export function mount(el) {
   let yaw = 0, pitch = 0, yawT = 0, pitchT = 0;
   stage.addEventListener("pointermove", (e) => {
     stage.classList.toggle("over", onSphere(e));
-    if (reduceMotion) return;
+    // a finger crossing the tile is scrolling the row, not hovering — chasing
+    // it just makes the sphere lurch
+    if (reduceMotion || e.pointerType === "touch") return;
     const r = stage.getBoundingClientRect();
     yawT = ((e.clientX - r.left) / r.width - 0.5) * 0.7;
     pitchT = ((e.clientY - r.top) / r.height - 0.5) * 0.45;

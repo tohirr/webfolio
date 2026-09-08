@@ -263,7 +263,12 @@ a:hover {
 }
 
 /* the facet-card piece, tamed into a preview: no sliders, no caption,
-   card sized to sit inside the tile */
+   card sized to sit inside the tile. the cell itself is invisible so the
+   card floats on the page, its shadow the only thing placing it */
+.block:has([data-mount="facet-card"]) .tile {
+  background: transparent;
+}
+
 .tile .fc-row,
 .tile .fc-cap {
   display: none;
