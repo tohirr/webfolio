@@ -12,25 +12,45 @@ const blocks = [
     name: "bookmarx",
     sub: "a better search engine for your x bookmarks",
     href: BOOKMARX_URL,
+    detail: true,
+    kind: "more",
     load: () => import("./lab/glass-mark.js"),
   },
   {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
+    kind: "touch",
     load: () => import("./lab/facet-card.js"),
   },
   {
     name: "pulse-sphere",
     sub: "surface-pulsing dot sphere · generative audio",
+    kind: "touch",
     load: () => import("./lab/pulse-sphere.js"),
-  },
-  {
-    name: "split-flap",
-    sub: "solari departure board · css 3d",
-    load: () => import("./lab/split-flap.js"),
   },
   { name: "coffee", coffee: true },
 ];
+
+/* ---- details: what opens in the drawer when a tile is tapped ----------- */
+
+const details = {
+  bookmarx: {
+    title: "bookmarx",
+    sub: "a better search engine for your x bookmarks",
+    /* the clip lives in public/media — vp8 webm plays everywhere current */
+    media: {
+      src: ["/media/bookmarx.webm"],
+      poster: "/media/bookmarx.jpg",
+      ratio: "5 / 6",
+      alt: "typing a fuzzy query and the saved post appearing",
+    },
+    body:
+      `<p>You remember fragments, not wording — <em>that thread about ` +
+      `optimistic ui</em>. bookmarx turns the fragment into the post in one ` +
+      `step. I designed and built all of it, web and iOS.</p>`,
+    links: [{ label: "bookmarx.space", href: BOOKMARX_URL }],
+  },
+};
 
 const EMAIL = "tohirr.dev@gmail.com";
 
@@ -67,6 +87,24 @@ const nav = [
   { label: "Email", href: `mailto:${EMAIL}`, icon: MAIL_ICON },
 ];
 
+/* the mark in a cell's corner says what kind of cell it is: leaves the
+   site, opens a drawer, or is a live piece you can touch. a cell that is
+   only there to look at gets none */
+const KIND = {
+  link:
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M4 12 12 4M6 4h6v6"/></svg>',
+  more:
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>',
+  touch:
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" aria-hidden="true">' +
+    '<circle cx="8" cy="8" r="1.8" fill="currentColor" stroke="none"/>' +
+    '<path d="M4.4 4.4a5.1 5.1 0 0 0 0 7.2M11.6 4.4a5.1 5.1 0 0 1 0 7.2"/></svg>',
+};
+
 /* ---- page -------------------------------------------------------------- */
 
 const ext = 'target="_blank" rel="noreferrer"';
@@ -77,9 +115,12 @@ const tile = (b) =>
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
       `<span class="c-cta">sponsor me →</span></a>`
-    : b.href
-      ? `<a class="tile mark" href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
+    : b.detail
+      ? `<a class="tile mark" href="#${b.name}" aria-label="${b.name}" data-mount="${b.name}"></a>`
+      : b.href
+        ? `<a class="tile mark" href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
       : `<div class="tile" data-mount="${b.name}"></div>`) +
+  (KIND[b.kind] ? `<span class="kind" title="${b.kind}">${KIND[b.kind]}</span>` : "") +
   `</figure>`;
 
 document.getElementById("app").innerHTML =
@@ -105,6 +146,10 @@ document.getElementById("app").innerHTML =
   `<section class="blocks" aria-label="work">` +
   blocks.map(tile).join("") +
   `</section>`;
+
+/* ---- the drawer ---------------------------------------------------------- */
+
+import("./drawer.js").then((mod) => mod.mountDrawer(details));
 
 /* ---- avatar: pixel-scatter hover ---------------------------------------- */
 

@@ -4,7 +4,10 @@
     {
       "name": "webfolio",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173,
       "autoPort": true
     },
@@ -29,6 +32,15 @@
         "/Users/tohirr/Developer/webfolio-v2"
       ],
       "port": 3000
+    },
+    {
+      "name": "bookmarx-demo",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/tohirr/Developer/bookmarx && DATABASE_URL=postgres://localhost:5433/bookmarx_demo pnpm exec next dev -p 3100"
+      ],
+      "port": 3100
     }
   ]
 }

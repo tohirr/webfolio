@@ -398,7 +398,13 @@ export function mount(el) {
     im.onload = () => { if (useImage(im, slot) && ok) ok(); };
     im.src = url;
   };
-  fetchInto(FACE_A, "a");
+  /* the first face arrives the way every later one does: into the spare
+     slot, then the wave sweeps it across the plain card from the centre.
+     reduced motion skips the sweep and shows it at once */
+  fetchInto(FACE_A, "b", () => {
+    if (reduceMotion) { flip = 1; return; }
+    waveCX = 0.5; waveCY = 0.5; waveR = 0; waveActive = true;
+  });
 
   /* prefetch queue so a click flips instantly */
   const queue = [];
@@ -460,21 +466,28 @@ export function mount(el) {
 
   /* ---- click: elastic press + wave-flip to a random card ---------------- */
   let flip = 0, waveActive = false, waveR = 0, waveCX = 0.5, waveCY = 0.5;
+  /* pull the next card off the queue and sweep it in from (u, v) */
+  const flipTo = (u, v, sound) => {
+    if (waveActive) return false;
+    const ready = queue.shift();
+    fillQueue();
+    if (!ready || !useImage(ready, flip === 0 ? "b" : "a")) return false;
+    waveCX = u; waveCY = v; waveR = 0; waveActive = true;
+    if (sound) sweepSound();
+    return true;
+  };
   card.addEventListener("pointerdown", (e) => {
     lastUser = performance.now();
     sScale.s = INTERACT[0]; sScale.d = INTERACT[1];
     sScale.v -= 0.045;
-    if (waveActive) return;
     const r = card.getBoundingClientRect();
-    const u = (e.clientX - r.left) / r.width;
-    const v = 1 - (e.clientY - r.top) / r.height;
-    const ready = queue.shift();
-    fillQueue();
-    if (ready && useImage(ready, flip === 0 ? "b" : "a")) {
-      waveCX = u; waveCY = v; waveR = 0; waveActive = true;
-      sweepSound();
-    }
+    flipTo((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height, true);
   });
+
+  /* left alone, the card turns over on its own every so often, so a visitor
+     who never thinks to click still sees the flip. quiet — no chime */
+  const AUTO_MS = 10000;
+  let nextAuto = performance.now() + AUTO_MS;
 
   /* device tilt — works on a top-level https page; ios wants a tap first */
   let lastB = null;
@@ -543,6 +556,10 @@ export function mount(el) {
     const dt = Math.min((t - last) / 1000, 0.032);
     last = t;
 
+    if (AMBIENT && !waveActive && t > nextAuto && t - lastUser > AUTO_MS * 0.5) {
+      nextAuto = t + AUTO_MS;
+      flipTo(0.2 + Math.random() * 0.6, 0.2 + Math.random() * 0.6, false);
+    }
     if (waveActive) {
       waveR += dt * 1.7;
       const far = Math.hypot(Math.max(waveCX, 1 - waveCX),
