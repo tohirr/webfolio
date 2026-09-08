@@ -4,18 +4,21 @@ import "./index.css";
    the work row: live pieces mounted right in their tile, plus placeholders
    for what's coming. each live module exports mount(el) → optional cleanup */
 
-const BOOKMARX_URL = "https://bookmarx.space";
 const FELDY_URL = "https://feldy.ai";
+const FELDY_APP_STORE = "https://apps.apple.com/us/app/feldy-ai/id6780327228";
+const FELDY_PLAY_STORE = "https://play.google.com/store/apps/details?id=com.feldy.app";
+
+/* where "feldy" goes: the store on a phone, the site everywhere else.
+   ipad safari calls itself a mac, so touch points break the tie */
+const feldyHref = () => {
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 0);
+  if (ios) return FELDY_APP_STORE;
+  if (/Android/.test(ua)) return FELDY_PLAY_STORE;
+  return FELDY_URL;
+};
 
 const blocks = [
-  {
-    name: "bookmarx",
-    sub: "a better search engine for your x bookmarks",
-    href: BOOKMARX_URL,
-    detail: true,
-    kind: "more",
-    load: () => import("./lab/glass-mark.js"),
-  },
   {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
@@ -28,29 +31,19 @@ const blocks = [
     kind: "touch",
     load: () => import("./lab/pulse-sphere.js"),
   },
+  {
+    name: "knob",
+    sub: "rotary knob with real detents · web audio + haptics",
+    kind: "touch",
+    load: () => import("./lab/knob.js"),
+  },
   { name: "coffee", coffee: true },
 ];
 
-/* ---- details: what opens in the drawer when a tile is tapped ----------- */
+/* ---- details: what opens when a tile is tapped. a block with `detail: true`
+   looks up its name here — { title, sub, body, links, media? } ---------- */
 
-const details = {
-  bookmarx: {
-    title: "bookmarx",
-    sub: "a better search engine for your x bookmarks",
-    /* the clip lives in public/media — vp8 webm plays everywhere current */
-    media: {
-      src: ["/media/bookmarx.webm"],
-      poster: "/media/bookmarx.jpg",
-      ratio: "5 / 6",
-      alt: "typing a fuzzy query and the saved post appearing",
-    },
-    body:
-      `<p>You remember fragments, not wording — <em>that thread about ` +
-      `optimistic ui</em>. bookmarx turns the fragment into the post in one ` +
-      `step. I designed and built all of it, web and iOS.</p>`,
-    links: [{ label: "bookmarx.space", href: BOOKMARX_URL }],
-  },
-};
+const details = {};
 
 const EMAIL = "tohirr.dev@gmail.com";
 
@@ -136,8 +129,8 @@ document.getElementById("app").innerHTML =
   `<img class="avatar" src="/favicon.svg" alt="pixel portrait of tohir" width="52" height="52" />` +
   `<p class="ink">Hi there,</p>` +
   `<p>I’m Tohir, a design engineer building interfaces you click ` +
-  `just to feel them. Right now I build ` +
-  `<a href="${FELDY_URL}" ${ext}>Feldy</a>’s app end to end, iOS and Android.</p>` +
+  `just to feel them. Currently @ <a class="feldy" href="${feldyHref()}" ${ext}>` +
+  `<img class="app-icon" src="/media/feldy-app-icon.png" alt="" width="16" height="16" />Feldy</a>.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
   `<div class="bars" aria-hidden="true">` +
