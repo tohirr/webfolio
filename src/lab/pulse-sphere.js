@@ -1,5 +1,5 @@
 /* lab/pulse-sphere — a sphere of dots whose surface pulses with sound.
-   ~1100 dots sit on a fibonacci sphere; a generative music loop (soft
+   ~1000 dots sit on a fibonacci sphere; a generative music loop (soft
    kick, drone, pentatonic arpeggio — synthesized, nothing shipped) plays
    from load with its output muted, and its spectrum displaces the dots
    radially: bass bulges the equator, highs shimmer the poles, the whole
@@ -26,9 +26,9 @@ const NB = 24; // spectrum bands mapped over latitude
 const GW = 64; // field columns (longitude, wraps)
 const GH = 32; // field rows (latitude)
 const SIM_H = 1 / 240;
-const FC = 0.12; // wave speed — slow, heavy pulls
-const FDAMP = 0.988; // rings die fast; goo doesn't oscillate
-const FVISC = 0.55; // the neighbor drag — the "skin" in the skin-pull
+const FC = 0.14; // wave speed — heavy pulls, a skin firmer than goo
+const FDAMP = 0.991; // rings linger a little — the wobble is the jelly
+const FVISC = 0.72; // the neighbor drag — the "skin" in the skin-pull; high, so a stiff skin still moves as one
 
 // 72bpm, sixteenth-note grid; a-minor pentatonic
 const TICK_S = 60 / 72 / 4;
@@ -117,11 +117,13 @@ function buildMusic() {
     osc.stop(t + 0.5);
   };
 
-  // lookahead scheduler on the sixteenth grid
+  // lookahead scheduler on the sixteenth grid. `held` parks it while the
+  // tile is off screen, so a hidden sphere schedules nothing
   let step = 0;
   let nextT = 0;
+  let held = false;
   const timer = setInterval(() => {
-    if (ac.state !== "running") return;
+    if (held || ac.state !== "running") return;
     if (nextT < ac.currentTime) nextT = ac.currentTime + 0.05;
     while (nextT < ac.currentTime + 0.25) {
       if (step % 8 === 0) kick(nextT);
@@ -136,6 +138,7 @@ function buildMusic() {
     analyser,
     master,
     freq: new Uint8Array(analyser.frequencyBinCount),
+    hold(on) { held = on; },
     dispose() {
       clearInterval(timer);
       master.disconnect(); // the context is shared — leave it running
@@ -146,7 +149,7 @@ function buildMusic() {
 export function mount(el) {
   // phones get fewer dots: a thousand sprites a frame is where low-end
   // devices start dropping frames
-  const params = { dots: coarse ? 720 : 1100, gain: 140 };
+  const params = { dots: coarse ? 560 : 980, gain: 140 }; // fewer on a phone: every dot is a sprite draw a frame
   el.innerHTML =
     `<style>
 .ps-stage{position:relative;width:100%;max-width:420px;aspect-ratio:1;margin:0 auto}
@@ -236,7 +239,7 @@ export function mount(el) {
     // whole membrane forever (the global size lives in `pulse` instead)
     let mean = 0;
     for (let k = 0; k < fieldU.length; k++) {
-      fieldU[k] = (fieldU[k] + fieldV[k]) * 0.998;
+      fieldU[k] = (fieldU[k] + fieldV[k]) * 0.997; // and it settles back to rest, not snaps
       mean += fieldU[k];
     }
     mean /= fieldU.length;
@@ -247,14 +250,16 @@ export function mount(el) {
   // that the whole neighborhood follows
   const poke = (uF, vF, amp) => {
     const ci = uF * GW, cj = vF * GH;
-    for (let dj = -5; dj <= 5; dj++) {
+    // a wide, soft hand rather than a fingertip: the stiff skin turns a
+    // sharp impulse into a twitch, a broad one into a swell
+    for (let dj = -7; dj <= 7; dj++) {
       const j = Math.round(cj + dj);
       if (j < 0 || j >= GH) continue;
-      for (let di = -5; di <= 5; di++) {
+      for (let di = -7; di <= 7; di++) {
         const d2 = di * di + dj * dj;
-        if (d2 > 25) continue;
+        if (d2 > 49) continue;
         const i = ((Math.round(ci + di) % GW) + GW) % GW;
-        fieldV[j * GW + i] += amp * Math.exp(-d2 / 5);
+        fieldV[j * GW + i] += amp * 0.6 * Math.exp(-d2 / 11);
       }
     }
   };
@@ -365,15 +370,15 @@ export function mount(el) {
       // slow release, so it snaps out and eases back
       bandBase[b] += (v - bandBase[b]) * 0.015;
       const sig = Math.min(1.3, Math.max(0, v - bandBase[b] - 0.02) * 2.2);
-      bandE[b] = Math.max(sig, bandE[b] * 0.92);
+      bandE[b] = Math.max(sig, bandE[b] * 0.95); // a slower release: the fall is as gentle as the rise is quick
       // a band's onset strikes the membrane at its latitude — bass near
       // the equator, highs toward a pole — and the skin does the rest
       const jump = bandE[b] - bandLast[b];
       bandLast[b] = bandE[b];
-      if (jump > 0.1) {
+      if (jump > 0.16) { // only a real onset strikes — small flutter rides the swell
         const y = Math.pow(b / NB, 1 / 1.2) * (Math.random() < 0.5 ? 1 : -1);
         // small impulse — the field integrates it into a much larger swell
-        poke(Math.random(), Math.acos(y) / Math.PI, Math.min(1, jump * 1.5) * 0.42);
+        poke(Math.random(), Math.acos(y) / Math.PI, Math.min(1, jump * 1.5) * 0.2); // a push, not a punch
       }
     }
     return (bandE[0] + bandE[1] + bandE[2]) / 3; // bass, for the body thump
@@ -440,8 +445,8 @@ export function mount(el) {
         (fieldU[j1 * GW + i0] * (1 - tx) + fieldU[j1 * GW + i1] * tx) * ty;
       const breath = 0.022 * Math.sin(ts * 0.8);
       // outward pulls may stretch far past the body — inward stays modest
-      const disp = Math.max(-0.4, Math.min(1.15, s * 0.5 * gain)) + breath;
-      const r = R0 * (1 + 0.2 * pulse + disp);
+      const disp = Math.max(-0.35, Math.min(0.8, s * 0.5 * gain)) + breath; // the skin can stretch, not fly
+      const r = R0 * (1 + 0.11 * pulse + disp);
       const X = px[i] * r, Y = py[i] * r, Z = pz[i] * r;
       const x1 = X * cyw + Z * syw;
       const z1 = -X * syw + Z * cyw;
@@ -493,7 +498,7 @@ export function mount(el) {
       stepField();
       acc -= SIM_H;
     }
-    pulse += (bass * 1.15 - pulse) * Math.min(1, dt * 12);
+    pulse += (bass * 1.15 - pulse) * Math.min(1, dt * 8); // the body swells on the kick rather than jumping
     if (!reduceMotion) spin += dt * 0.16;
 
     const ease = Math.min(1, dt * 7);
@@ -505,17 +510,27 @@ export function mount(el) {
   };
   raf = requestAnimationFrame(frame);
 
-  /* only spin the loop while the tile is on screen: the field sim and a
-     thousand sprites a frame are real work for a small phone, and off
-     screen nobody sees them. the music keeps its own scheduler, so a
-     playing track carries on and the skin catches up when it scrolls back */
+  /* only spin the loop while half the tile is on screen: the field sim
+     and a thousand sprites a frame are real work for a small phone, and
+     off screen nobody sees them. the sound stops with it — a playing
+     track is muted and the scheduler parked, and it stays quiet when the
+     tile comes back until the next tap */
   const io = new IntersectionObserver(([e]) => {
     cancelAnimationFrame(raf);
-    if (!e.isIntersecting) return;
+    const shown = e.intersectionRatio >= 0.5;
+    music.hold(!shown);
+    if (!shown) {
+      if (unmuted) {
+        unmuted = false;
+        music.master.gain.setTargetAtTime(0, music.ac.currentTime, 0.08);
+        setTag();
+      }
+      return;
+    }
     last = performance.now();
     acc = 0;
     raf = requestAnimationFrame(frame);
-  });
+  }, { threshold: 0.5 });
   io.observe(stage);
 
   return () => {

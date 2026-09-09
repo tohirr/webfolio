@@ -9,7 +9,9 @@
    flick it and it coasts on momentum and settles onto a tick; roll the
    wheel over it; arrow keys step it. every tick crossed is a click (a
    filtered noise burst, pitched by direction) and a short buzz where the
-   browser has a motor. on a phone, a tap on the globe hands the dial to
+   browser has a motor. the clicks are on by default — a dial that ticks
+   is the point — and a small "sound" switch in the corner turns them off
+   and remembers that. on a phone, a tap on the globe hands the dial to
    the compass: the sensor's heading becomes the tape's goal and the settle
    spring glides it there tick by tick, so the phone's jitter is smoothed
    by the same detents your finger feels; touching the tape takes it
@@ -104,12 +106,16 @@ export function mount(el) {
 .tp-band.kb:focus + .tp-val{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .tp-tag{position:absolute;left:14px;bottom:12px;color:var(--dim);pointer-events:none;user-select:none}
 .tp-tag.on{color:var(--green)}
+.tp-snd{position:absolute;left:14px;top:12px;color:var(--dim);background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;cursor:pointer;touch-action:manipulation}
+.tp-snd.off{text-decoration:line-through;text-decoration-thickness:1px}
+.tp-snd:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
 </style>` +
     '<div class="tp-stage">' +
     '<div class="tp-frame"><canvas class="tp-pic" aria-hidden="true"></canvas></div>' +
     '<canvas class="tp-band" role="slider" tabindex="0" aria-label="heading" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°"></canvas>' +
     '<span class="tp-val"><b>N</b> 0°</span>' +
     '<span class="tp-tag"></span>' +
+    '<button class="tp-snd" type="button" aria-pressed="true">sound</button>' +
     "</div>";
 
   const stage = el.querySelector(".tp-stage");
@@ -118,6 +124,7 @@ export function mount(el) {
   const band = el.querySelector(".tp-band");
   const val = el.querySelector(".tp-val");
   const tag = el.querySelector(".tp-tag");
+  const snd = el.querySelector(".tp-snd");
   const canFollow = coarse && "DeviceOrientationEvent" in window;
   const ctx = band.getContext("2d");
   const pctx = pic.getContext("2d");
@@ -140,6 +147,23 @@ export function mount(el) {
   readTheme();
   mq.addEventListener("change", readTheme);
 
+  /* ---- sound: on unless the visitor said no ------------------------------ */
+  const KEY = "tp-sound";
+  let muted = false;
+  try { muted = localStorage.getItem(KEY) === "off"; } catch { /* private mode etc. */ }
+  const showSound = () => {
+    snd.classList.toggle("off", muted);
+    snd.setAttribute("aria-pressed", String(!muted));
+    snd.setAttribute("aria-label", muted ? "sound off" : "sound on");
+  };
+  showSound();
+  snd.addEventListener("click", () => {
+    muted = !muted;
+    try { muted ? localStorage.setItem(KEY, "off") : localStorage.removeItem(KEY); } catch { /* fine */ }
+    showSound();
+    if (!muted) { wakeAudio(); click(1); } // a click back, so you hear it's on
+  });
+
   /* ---- the tick: click + buzz ------------------------------------------- */
   let ac = null, noise = null;
   const wakeAudio = () => {
@@ -152,7 +176,7 @@ export function mount(el) {
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
   };
   const click = (dir) => {
-    if (!ac || ac.state !== "running" || !noise) return;
+    if (muted || !ac || ac.state !== "running" || !noise) return;
     const t = ac.currentTime;
     const src = ac.createBufferSource();
     src.buffer = noise;
@@ -179,7 +203,7 @@ export function mount(el) {
 
   /* landing on a cardinal: a lower, rounder thunk than the tick */
   const thunk = () => {
-    if (!ac || ac.state !== "running") return;
+    if (muted || !ac || ac.state !== "running") return;
     const t = ac.currentTime;
     const o = ac.createOscillator();
     o.type = "sine";
@@ -586,8 +610,8 @@ export function mount(el) {
   const io = new IntersectionObserver(([e]) => {
     cancelAnimationFrame(raf);
     last = 0;
-    if (e.isIntersecting) raf = requestAnimationFrame(frame);
-  });
+    if (e.intersectionRatio >= 0.5) raf = requestAnimationFrame(frame); // half the cell in view before it wakes
+  }, { threshold: 0.5 });
   io.observe(stage);
 
   return () => {

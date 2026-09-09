@@ -619,10 +619,10 @@ export function mount(el) {
      even when the card has scrolled away */
   const io = new IntersectionObserver(([e]) => {
     cancelAnimationFrame(raf);
-    if (!e.isIntersecting) return;
+    if (e.intersectionRatio < 0.5) return; // half the card in view before it wakes
     last = performance.now();
     raf = requestAnimationFrame(frame);
-  });
+  }, { threshold: 0.5 });
   io.observe(card);
 
   return () => {
