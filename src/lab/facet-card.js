@@ -614,9 +614,21 @@ export function mount(el) {
   };
   raf = requestAnimationFrame(frame);
 
+  /* only spin the loop while the card is on screen: the foil is a
+     full-canvas fragment shader every frame, which a small phone feels
+     even when the card has scrolled away */
+  const io = new IntersectionObserver(([e]) => {
+    cancelAnimationFrame(raf);
+    if (!e.isIntersecting) return;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  });
+  io.observe(card);
+
   return () => {
     alive = false;
     cancelAnimationFrame(raf);
+    io.disconnect();
     clearTimeout(endTimer);
     removeEventListener("deviceorientation", onOrient);
   };

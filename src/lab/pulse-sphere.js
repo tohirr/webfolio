@@ -505,9 +505,23 @@ export function mount(el) {
   };
   raf = requestAnimationFrame(frame);
 
+  /* only spin the loop while the tile is on screen: the field sim and a
+     thousand sprites a frame are real work for a small phone, and off
+     screen nobody sees them. the music keeps its own scheduler, so a
+     playing track carries on and the skin catches up when it scrolls back */
+  const io = new IntersectionObserver(([e]) => {
+    cancelAnimationFrame(raf);
+    if (!e.isIntersecting) return;
+    last = performance.now();
+    acc = 0;
+    raf = requestAnimationFrame(frame);
+  });
+  io.observe(stage);
+
   return () => {
     alive = false;
     cancelAnimationFrame(raf);
+    io.disconnect();
     music.dispose();
     removeEventListener("pointerdown", wake);
   };

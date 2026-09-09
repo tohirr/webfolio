@@ -9,8 +9,8 @@
    flick it and it coasts on momentum and settles onto a tick; roll the
    wheel over it; arrow keys step it. every tick crossed is a click (a
    filtered noise burst, pitched by direction) and a short buzz where the
-   browser has a motor. on a phone, "follow" hands the dial to the
-   compass: the sensor's heading becomes the tape's goal and the settle
+   browser has a motor. on a phone, a tap on the globe hands the dial to
+   the compass: the sensor's heading becomes the tape's goal and the settle
    spring glides it there tick by tick, so the phone's jitter is smoothed
    by the same detents your finger feels; touching the tape takes it
    back. left alone it flicks itself now and then, silently, drifting off
@@ -94,6 +94,7 @@ export function mount(el) {
 .tp-stage{position:relative;width:100%;height:100%;display:grid;grid-template-rows:minmax(0,1fr) 96px;gap:14px;padding:36px 0 46px;box-sizing:border-box;touch-action:pan-x;user-select:none;-webkit-user-select:none}
 .tp-frame{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .tp-pic{display:block}
+.tp-pic.tap{pointer-events:auto;cursor:pointer;touch-action:pan-x}
 .tp-band{width:100%;height:96px;cursor:grab;outline:none;display:block;touch-action:pan-y}
 .tp-band:active{cursor:grabbing}
 .tp-val{position:absolute;right:14px;bottom:12px;color:var(--dim);font-variant-numeric:tabular-nums;pointer-events:none;min-width:7ch;text-align:right}
@@ -101,18 +102,14 @@ export function mount(el) {
 .tp-val b{font-weight:700;color:var(--tp-amber)}
 .tp-val.on,.tp-val.on b{color:var(--green)}
 .tp-band.kb:focus + .tp-val{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
-.tp-tag{position:absolute;left:14px;bottom:12px;color:var(--dim);pointer-events:none}
-.tp-follow{position:absolute;left:14px;top:12px;display:none;color:var(--dim);background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;cursor:pointer;touch-action:manipulation}
-.tp-follow.show{display:block}
-.tp-follow.on{color:var(--green)}
-.tp-follow:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
+.tp-tag{position:absolute;left:14px;bottom:12px;color:var(--dim);pointer-events:none;user-select:none}
+.tp-tag.on{color:var(--green)}
 </style>` +
     '<div class="tp-stage">' +
     '<div class="tp-frame"><canvas class="tp-pic" aria-hidden="true"></canvas></div>' +
     '<canvas class="tp-band" role="slider" tabindex="0" aria-label="heading" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°"></canvas>' +
     '<span class="tp-val"><b>N</b> 0°</span>' +
-    '<span class="tp-tag">drag · flick · scroll · ←→</span>' +
-    '<button class="tp-follow" type="button" aria-pressed="false">follow phone</button>' +
+    '<span class="tp-tag"></span>' +
     "</div>";
 
   const stage = el.querySelector(".tp-stage");
@@ -120,7 +117,8 @@ export function mount(el) {
   const pic = el.querySelector(".tp-pic");
   const band = el.querySelector(".tp-band");
   const val = el.querySelector(".tp-val");
-  const followBtn = el.querySelector(".tp-follow");
+  const tag = el.querySelector(".tp-tag");
+  const canFollow = coarse && "DeviceOrientationEvent" in window;
   const ctx = band.getContext("2d");
   const pctx = pic.getContext("2d");
 
@@ -243,9 +241,8 @@ export function mount(el) {
     removeEventListener("deviceorientationabsolute", onOrient);
     removeEventListener("deviceorientation", onOrient);
     clearTimeout(sensorTimer);
-    followBtn.classList.remove("on");
-    followBtn.setAttribute("aria-pressed", "false");
-    followBtn.textContent = label || "follow phone";
+    tag.classList.remove("on");
+    if (canFollow) tag.textContent = label || "tap globe to follow";
   };
   const startFollow = async () => {
     wakeAudio();
@@ -260,17 +257,28 @@ export function mount(el) {
     }
     following = true;
     sensorSeen = false;
-    followBtn.classList.add("on");
-    followBtn.setAttribute("aria-pressed", "true");
-    followBtn.textContent = "following";
+    tag.classList.add("on");
+    tag.textContent = "following — tap to stop";
     // android's plain alpha is relative to wherever the page loaded; the
     // absolute event is the compass. ios only has the plain one, with a
     // heading on it
     addEventListener("ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation", onOrient);
     sensorTimer = setTimeout(() => { if (!sensorSeen) stopFollow("no compass"); }, 1500);
   };
-  if (coarse && "DeviceOrientationEvent" in window) followBtn.classList.add("show");
-  followBtn.addEventListener("click", () => (following ? stopFollow() : startFollow()));
+  /* on a phone the globe is the switch: a tap toggles the compass; a real
+     drag (the row scrolling) doesn't. no hint anywhere else — the tape
+     explains itself */
+  if (canFollow) {
+    tag.textContent = "tap globe to follow";
+    pic.classList.add("tap");
+    let tx0 = 0, ty0 = 0;
+    pic.addEventListener("pointerdown", (e) => { tx0 = e.clientX; ty0 = e.clientY; });
+    pic.addEventListener("pointerup", (e) => {
+      if (Math.abs(e.clientX - tx0) + Math.abs(e.clientY - ty0) > 6) return;
+      if (following) stopFollow();
+      else startFollow();
+    });
+  }
 
   /* ---- input ----------------------------------------------------------- */
   let x0 = 0, pos0 = 0;
@@ -556,7 +564,7 @@ export function mount(el) {
         ctx.fillStyle = c ? amber : fg;
         ctx.font = c ? `700 ${15 * dpr}px ${font}` : `${10.5 * dpr}px ${font}`;
         ctx.save();
-        ctx.translate(x, cy + (c ? 23 : 26) * dpr); // clear of the indicator
+        ctx.translate(x, cy + 28 * dpr); // clear of the indicator
         ctx.scale(k * (0.85 + 0.3 * k), 0.7 + 0.45 * k); // foreshortened round the drum, 1.15× in the middle
         ctx.fillText(c || String(w), 0, 0);
         ctx.restore();
@@ -567,7 +575,7 @@ export function mount(el) {
     ctx.lineWidth = 3 * dpr;
     ctx.beginPath();
     ctx.moveTo(cx, cy - 24 * dpr);
-    ctx.lineTo(cx, cy + 24 * dpr);
+    ctx.lineTo(cx, cy + 21 * dpr);
     ctx.stroke();
 
     raf = requestAnimationFrame(frame);

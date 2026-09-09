@@ -133,7 +133,7 @@ document.getElementById("app").innerHTML =
   `<p class="ink">Hi there,</p>` +
   `<p>I’m Tohir, a design engineer building interfaces you ${VERB} ` +
   `just to feel them. Currently @ <a class="feldy" href="${feldyHref()}" ${ext}>` +
-  `<img class="app-icon" src="/media/feldy-app-icon.png" alt="" width="16" height="16" />Feldy</a>.</p>` +
+  `<img class="app-icon" src="/media/feldy-app-icon.png" alt="F" width="16" height="16" />eldy</a>.</p>` +
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
   `<div class="bars" aria-hidden="true">` +

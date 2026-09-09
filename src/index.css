@@ -121,7 +121,8 @@ a:hover {
   height: 1em;
   border-radius: 0.28em;
   vertical-align: -0.15em;
-  margin-right: 0.35em;
+  /* the icon is the F in feldy — it sits tight against the rest of the word */
+  margin-right: 0.08em;
   filter: grayscale(1) opacity(0.75);
   transition: filter 0.2s ease;
 }
