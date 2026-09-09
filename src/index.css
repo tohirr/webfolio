@@ -552,9 +552,14 @@ a:hover {
     padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* the cell is smaller here, so the pieces fill more of it */
+  /* the cell is smaller here, so the pieces fill more of it. it is also
+     a taller shape: the ratio locks width to height, and the width is
+     already at the screen's edge, so extra height has to come from the
+     ratio — 5:7 here, and never wider than the screen less a gutter */
   .tile {
     --ps-scale: 0.42;
+    aspect-ratio: 5 / 7;
+    height: min(58svh, calc((100vw - 40px) * 7 / 5));
   }
 
   .tile .fc-card {

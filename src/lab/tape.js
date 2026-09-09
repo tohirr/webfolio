@@ -16,7 +16,17 @@
    back. left alone it flicks itself now and then, silently, drifting off
    north and back. the land mask is natural earth's 110m coastline
    rasterised to 2° cells and packed into a base64 string, ~2.7kb, so
-   nothing is fetched. only the tape band itself claims horizontal
+   nothing is fetched. three colours, all borrowed from the other pieces:
+   the sea is the heat ramp's blue, the fixed indicator is its red, and
+   you at the centre — and the follow button while it holds the dial —
+   are the page's green, and the cardinal points, on the tape and on the
+   rose round the globe, are its amber. everything else stays ink and
+   grey. when the dial rests on a cardinal point — dragged onto it, or
+   settled there — the indicator, the readout and the letter at the top
+   of the rose turn green, like the level app going green at zero, with
+   a lower thunk and a longer buzz on the moment it lands; a flick
+   sweeping through the cardinals doesn't count. only the tape band
+   itself claims horizontal
    touches — the rest of the cell still scrolls the row. canvas 2d, one
    page-wide AudioContext shared with the other pieces. */
 
@@ -31,6 +41,16 @@ const FRICTION = 3.4; // per second, on a flick
 const DEG = 1; // degrees of heading per tick
 const CELLS = 34; // dots across the picture
 const HOME = [6.45, 3.4]; // lagos: lat, lon — the globe is seen from above here
+const SEA = "rgb(37,99,235)"; // the heat ramp's blue
+const AMBERV = [[245, 158, 11], [217, 119, 6]]; // the ramp's amber; a shade deeper on white
+const WINDS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]; // the eight points, for the readout
+const ROSE = 21; // css px of ring round the globe for the rose
+const rgb = (hex, fb) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  return m ? [1, 3, 5].map((i) => parseInt(m[1].slice(i - 1, i + 1), 16)) : fb;
+};
+const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
+const REDV = [239, 68, 68];
 
 /* heading wraps: a tick's reading is its angle folded into [0, 360) */
 const wrap = (n) => (((n * DEG) % 360) + 360) % 360;
@@ -76,18 +96,21 @@ export function mount(el) {
 .tp-pic{display:block}
 .tp-band{width:100%;height:96px;cursor:grab;outline:none;display:block;touch-action:pan-y}
 .tp-band:active{cursor:grabbing}
-.tp-val{position:absolute;right:14px;bottom:12px;color:var(--dim);font-variant-numeric:tabular-nums;pointer-events:none;min-width:4ch;text-align:right}
+.tp-val{position:absolute;right:14px;bottom:12px;color:var(--dim);font-variant-numeric:tabular-nums;pointer-events:none;min-width:7ch;text-align:right}
+.tp-val,.tp-val b{transition:color .18s ease}
+.tp-val b{font-weight:700;color:var(--tp-amber)}
+.tp-val.on,.tp-val.on b{color:var(--green)}
 .tp-band.kb:focus + .tp-val{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
 .tp-tag{position:absolute;left:14px;bottom:12px;color:var(--dim);pointer-events:none}
 .tp-follow{position:absolute;left:14px;top:12px;display:none;color:var(--dim);background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;cursor:pointer;touch-action:manipulation}
 .tp-follow.show{display:block}
-.tp-follow.on{color:var(--ink)}
+.tp-follow.on{color:var(--green)}
 .tp-follow:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
 </style>` +
     '<div class="tp-stage">' +
     '<div class="tp-frame"><canvas class="tp-pic" aria-hidden="true"></canvas></div>' +
     '<canvas class="tp-band" role="slider" tabindex="0" aria-label="heading" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°"></canvas>' +
-    '<span class="tp-val">0°</span>' +
+    '<span class="tp-val"><b>N</b> 0°</span>' +
     '<span class="tp-tag">drag · flick · scroll · ←→</span>' +
     '<button class="tp-follow" type="button" aria-pressed="false">follow phone</button>' +
     "</div>";
@@ -102,16 +125,21 @@ export function mount(el) {
   const pctx = pic.getContext("2d");
 
   /* ---- colours follow the theme ---------------------------------------- */
-  let ink = "#fff", fg = "#8f8f8f", dim = "#6e6e6e", font = "monospace";
+  let ink = "#fff", fg = "#8f8f8f", dim = "#6e6e6e", green = "#4ade80", greenV = [74, 222, 128], amberV = AMBERV[0], amber = mix(amberV, amberV, 0), font = "monospace";
+  const mq = matchMedia("(prefers-color-scheme: light)");
   const readTheme = () => {
     const cs = getComputedStyle(el);
     font = cs.fontFamily || font;
+    green = cs.getPropertyValue("--green").trim() || green;
+    greenV = rgb(green, greenV);
+    amberV = AMBERV[mq.matches ? 1 : 0];
+    amber = mix(amberV, amberV, 0);
+    el.style.setProperty("--tp-amber", amber);
     ink = cs.getPropertyValue("--ink").trim() || ink;
     fg = cs.getPropertyValue("--fg").trim() || fg;
     dim = cs.getPropertyValue("--dim").trim() || dim;
   };
   readTheme();
-  const mq = matchMedia("(prefers-color-scheme: light)");
   mq.addEventListener("change", readTheme);
 
   /* ---- the tick: click + buzz ------------------------------------------- */
@@ -151,8 +179,25 @@ export function mount(el) {
     navigator.vibrate?.(15);
   };
 
+  /* landing on a cardinal: a lower, rounder thunk than the tick */
+  const thunk = () => {
+    if (!ac || ac.state !== "running") return;
+    const t = ac.currentTime;
+    const o = ac.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(360, t + 0.06);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+    o.connect(g).connect(ac.destination);
+    o.start(t);
+    o.stop(t + 0.1);
+  };
+
   /* ---- state ----------------------------------------------------------- */
   let pos = 0; // the tape position, continuous, in ticks
+  let locked = false, lockA = 0; // resting on a cardinal, and how green it is
   let notch = 0; // the tick under the indicator
   let vel = 0; // ticks per second, while coasting
   let goal = null; // where a wheel notch, a key or the compass is sending it — it glides there
@@ -166,7 +211,7 @@ export function mount(el) {
     const w = wrap(n);
     band.setAttribute("aria-valuenow", String(w));
     band.setAttribute("aria-valuetext", `${w}° ${CARDINAL[w] || ""}`.trim());
-    val.textContent = `${w}°`;
+    val.innerHTML = `<b>${WINDS[Math.round(w / 45) % 8]}</b> ${w}°`;
   };
   const setPos = (p) => {
     pos = p;
@@ -319,7 +364,7 @@ export function mount(el) {
     // the picture: a square, as tall as the row allows, no wider than
     // most of the cell
     const f = frame_.getBoundingClientRect();
-    const side = Math.max(1, Math.floor(Math.min(f.height, f.width * 0.7)));
+    const side = Math.max(1, Math.floor(Math.min(f.height, f.width * 0.76)));
     pic.style.width = pic.style.height = `${side}px`;
     S = Math.max(1, Math.round(side * dpr));
     pic.width = pic.height = S;
@@ -336,13 +381,13 @@ export function mount(el) {
   const drawPic = () => {
     const cell = S / CELLS;
     const cx = S / 2, cy = S / 2;
-    const R = S / 2 - 3 * dpr; // the globe's radius
+    const R = S / 2 - ROSE * dpr; // the globe's radius; the rose sits in the ring outside
     // heading-up: the map turns the other way from the heading
     const th = (-pos * DEG * Math.PI) / 180;
     const cs = Math.cos(th), sn = Math.sin(th);
     const base = new Path2D();
     const lit = new Path2D();
-    const baseR = cell * 0.09;
+    const baseR = cell * 0.11;
     for (let y = 0; y < CELLS; y++)
       for (let x = 0; x < CELLS; x++) {
         const px = (x + 0.5) * cell;
@@ -362,14 +407,16 @@ export function mount(el) {
         }
       }
     pctx.clearRect(0, 0, S, S);
-    pctx.globalAlpha = 0.45;
-    pctx.fillStyle = dim;
+    pctx.globalAlpha = 0.6;
+    pctx.fillStyle = SEA;
     pctx.fill(base);
     pctx.globalAlpha = 1;
     pctx.fillStyle = ink;
     pctx.fill(lit);
 
-    /* the rim, with the four cardinal points turning on it */
+    /* the rim, and the rose turning on it: a grey tick every ten
+       degrees, longer every thirty, and the four cardinal points in
+       amber with their letters set tangent to the ring, north biggest */
     pctx.globalAlpha = 0.35;
     pctx.strokeStyle = fg;
     pctx.lineWidth = 1 * dpr;
@@ -377,26 +424,52 @@ export function mount(el) {
     pctx.arc(cx, cy, R, 0, Math.PI * 2);
     pctx.stroke();
     pctx.lineCap = "round";
-    for (let k = 0; k < 4; k++) {
-      const a = th + (k * Math.PI) / 2; // 0 north, clockwise
+    for (let k = 0; k < 36; k++) {
+      if (k % 9 === 0) continue; // the cardinals, below
+      const a = th + (k * Math.PI) / 18; // 0 north, clockwise
       const dx = Math.sin(a), dy = -Math.cos(a);
-      const len = (k === 0 ? 9 : 5) * dpr;
-      pctx.globalAlpha = k === 0 ? 1 : 0.6;
-      pctx.strokeStyle = k === 0 ? ink : fg;
-      pctx.lineWidth = (k === 0 ? 2.2 : 1.4) * dpr;
+      const len = (k % 3 === 0 ? 5 : 3) * dpr;
+      pctx.globalAlpha = k % 3 === 0 ? 0.6 : 0.35;
+      pctx.strokeStyle = fg;
+      pctx.lineWidth = 1.2 * dpr;
       pctx.beginPath();
-      pctx.moveTo(cx + dx * R, cy + dy * R);
-      pctx.lineTo(cx + dx * (R - len), cy + dy * (R - len));
+      pctx.moveTo(cx + dx * (R + 2 * dpr), cy + dy * (R + 2 * dpr));
+      pctx.lineTo(cx + dx * (R + 2 * dpr + len), cy + dy * (R + 2 * dpr + len));
       pctx.stroke();
+    }
+    pctx.textAlign = "center";
+    pctx.textBaseline = "middle";
+    for (let k = 0; k < 4; k++) {
+      const a = th + (k * Math.PI) / 2;
+      const dx = Math.sin(a), dy = -Math.cos(a);
+      const len = (k === 0 ? 7 : 5) * dpr;
+      // the one under the indicator lights green when the dial rests on it
+      const hit = lockA > 0.01 && wrap(notch) === k * 90;
+      const col = hit ? mix(amberV, greenV, lockA) : amber;
+      pctx.globalAlpha = 1;
+      pctx.strokeStyle = col;
+      pctx.lineWidth = 2.2 * dpr;
+      pctx.beginPath();
+      pctx.moveTo(cx + dx * (R + 1 * dpr), cy + dy * (R + 1 * dpr));
+      pctx.lineTo(cx + dx * (R + 1 * dpr + len), cy + dy * (R + 1 * dpr + len));
+      pctx.stroke();
+      pctx.fillStyle = col;
+      pctx.font = `700 ${(k === 0 ? 15 : 13) * dpr}px ${font}`;
+      pctx.save();
+      pctx.translate(cx + dx * (R + 15 * dpr), cy + dy * (R + 15 * dpr));
+      pctx.rotate(a);
+      pctx.fillText(CARDINAL[k * 90], 0, 0);
+      pctx.restore();
     }
 
     /* you, fixed at the centre, always facing up */
     pctx.globalAlpha = 1;
-    pctx.strokeStyle = ink;
+    pctx.fillStyle = green;
+    pctx.strokeStyle = green;
     pctx.lineWidth = 1.6 * dpr;
     pctx.beginPath();
     pctx.arc(cx, cy, 4 * dpr, 0, Math.PI * 2);
-    pctx.stroke();
+    pctx.fill();
     pctx.beginPath();
     pctx.moveTo(cx, cy - 7 * dpr);
     pctx.lineTo(cx, cy - 13 * dpr);
@@ -436,41 +509,61 @@ export function mount(el) {
       }
     }
 
+    /* on a cardinal? only when the dial is resting there or being held
+       there — a coast through it doesn't count */
+    const resting = dragging || !coasting || (Math.abs(vel) <= 1.2 && Math.abs((goal ?? Math.round(pos)) - pos) < 0.25);
+    const on = resting && CARDINAL[wrap(notch)] != null;
+    if (on !== locked) {
+      locked = on;
+      val.classList.toggle("on", on);
+      if (on && !silentRun) { thunk(); navigator.vibrate?.(30); }
+    }
+    lockA += ((on ? 1 : 0) - lockA) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 16));
+
     drawPic();
 
-    /* draw: ticks fade toward the edges, every fifth stands taller, every
-       tenth carries its heading — cardinals as letters — north taller
-       still, and the fixed indicator sits over the centre */
+    /* draw: the tape is a drum seen from the front. a tick's place on the
+       tape becomes an angle round the cylinder and its screen x is the
+       sine of that, so the ticks crowd toward the edges and spread at the
+       centre; height, weight, label width and alpha all follow the cosine,
+       so the middle stands proud and the sides roll away. every fifth
+       stands taller, every tenth carries its heading, cardinals in amber
+       and bigger, and the fixed indicator sits over the centre */
     ctx.clearRect(0, 0, W, H);
     const cx = W / 2, cy = H / 2 - 8 * dpr, gap = GAP * dpr;
-    const first = Math.ceil(pos - cx / gap), lastI = Math.floor(pos + cx / gap);
+    const DR = cx * 1.02; // the drum's radius: the edges are ~80° round
+    const span = Math.asin(Math.min(1, cx / DR)) * DR / gap; // ticks each side
+    const first = Math.ceil(pos - span), lastI = Math.floor(pos + span);
     ctx.lineCap = "round";
-    ctx.font = `${10 * dpr}px ${font}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     for (let i = first; i <= lastI; i++) {
-      const x = cx + (i - pos) * gap;
-      const u = Math.abs(x - cx) / cx; // 0 centre → 1 edge
-      const fade = Math.pow(1 - u, 1.6);
+      const a = ((i - pos) * gap) / DR; // angle round the drum
+      const k = Math.cos(a); // 1 at the centre → 0 at the rim
+      if (k <= 0.05) continue;
+      const x = cx + DR * Math.sin(a);
       const w = wrap(i);
-      const north = w === 0;
-      const h = (north ? 32 : i % 5 === 0 ? 24 : 14) * dpr;
-      ctx.strokeStyle = fg;
-      ctx.globalAlpha = 0.3 + 0.7 * fade;
-      ctx.lineWidth = (i % 5 === 0 ? 2 : 1.6) * dpr;
+      const c = CARDINAL[w];
+      const h = (c ? 32 : i % 5 === 0 ? 24 : 14) * dpr * (0.4 + 0.75 * k); // 1.15× proud at the centre
+      ctx.strokeStyle = c ? amber : fg;
+      ctx.globalAlpha = 0.04 + 0.96 * Math.pow(k, 2.2); // all but gone at the rim
+      ctx.lineWidth = (c ? 2.4 : i % 5 === 0 ? 2 : 1.6) * dpr * (0.6 + 0.4 * k);
       ctx.beginPath();
       ctx.moveTo(x, cy - h / 2);
       ctx.lineTo(x, cy + h / 2);
       ctx.stroke();
       if (i % 10 === 0) {
-        const c = CARDINAL[w];
-        ctx.fillStyle = c ? ink : fg;
-        ctx.globalAlpha = 0.25 + 0.75 * fade;
-        ctx.fillText(c || String(w), x, cy + 26 * dpr); // clear of the indicator
+        ctx.fillStyle = c ? amber : fg;
+        ctx.font = c ? `700 ${15 * dpr}px ${font}` : `${10.5 * dpr}px ${font}`;
+        ctx.save();
+        ctx.translate(x, cy + (c ? 23 : 26) * dpr); // clear of the indicator
+        ctx.scale(k * (0.85 + 0.3 * k), 0.7 + 0.45 * k); // foreshortened round the drum, 1.15× in the middle
+        ctx.fillText(c || String(w), 0, 0);
+        ctx.restore();
       }
     }
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = ink;
+    ctx.strokeStyle = mix(REDV, greenV, lockA);
     ctx.lineWidth = 3 * dpr;
     ctx.beginPath();
     ctx.moveTo(cx, cy - 24 * dpr);
