@@ -79,7 +79,7 @@ function buildMusic() {
 
   // arpeggio bus: lowpass + feedback delay for the wash
   const lp = ac.createBiquadFilter();
-  lp.frequency.value = 1900;
+  lp.frequency.value = 1600; // a shade darker
   const delay = ac.createDelay(1);
   delay.delayTime.value = TICK_S * 3;
   const fb = ac.createGain();
@@ -90,17 +90,21 @@ function buildMusic() {
   lp.connect(delay);
   delay.connect(mix);
 
+  // the kick is a thump rather than a click: it swells in over a few
+  // hundredths of a second, the pitch falls slowly, and it takes half a
+  // second to leave, so it spreads under the bar instead of striking it
   const kick = (t) => {
     const osc = ac.createOscillator();
     const g = ac.createGain();
-    osc.frequency.setValueAtTime(110, t);
-    osc.frequency.exponentialRampToValueAtTime(42, t + 0.12);
-    g.gain.setValueAtTime(0.5, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    osc.frequency.setValueAtTime(100, t);
+    osc.frequency.exponentialRampToValueAtTime(42, t + 0.22);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.75, t + 0.035); // a low sine needs level to be felt
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
     osc.connect(g);
     g.connect(mix);
     osc.start(t);
-    osc.stop(t + 0.32);
+    osc.stop(t + 0.58);
   };
 
   const pluck = (t) => {
@@ -109,7 +113,7 @@ function buildMusic() {
     osc.frequency.value = SCALE[(Math.random() * SCALE.length) | 0];
     const g = ac.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.16, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.015); // and a softer pluck
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
     osc.connect(g);
     g.connect(lp);
