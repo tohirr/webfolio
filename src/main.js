@@ -33,7 +33,7 @@ const blocks = [
   },
   {
     name: "tape",
-    sub: "the photos adjust ruler · detents, momentum, haptics",
+    sub: "heading tape over a dot globe · detents, momentum, phone compass",
     kind: "touch",
     load: () => import("./lab/tape.js"),
   },
