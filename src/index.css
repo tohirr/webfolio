@@ -85,7 +85,8 @@ body {
    can shrink; whatever still doesn't fit overflows the column and the page
    scrolls to it — nothing is clipped, the row never shrinks, and the only
    inner scroller is the row's sideways one. the work row rides the bottom
-   edge (margin-top: auto on the indicator) whenever there is room */
+   edge (margin-top: auto on the indicator) whenever there is room. on a
+   phone the row is a column instead and the page simply scrolls */
 #app {
   height: 100vh;
   height: 100svh;
@@ -117,10 +118,10 @@ a:hover {
 
 .app-icon {
   display: inline-block;
-  width: 1em;
-  height: 1em;
-  border-radius: 0.28em;
-  vertical-align: -0.15em;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 0.32em;
+  vertical-align: -0.24em;
   /* the icon is the F in feldy — it sits tight against the rest of the word */
   margin-right: 0.08em;
   filter: grayscale(1) opacity(0.75);
@@ -313,7 +314,8 @@ a:hover {
 
 /* ---- scroll indicator ---------------------------------------------------
    one bar per stage; bars whose stage is in the viewport grow thicker.
-   a row at the top-right of the work row, on every screen size */
+   a row at the top-right of the work row — hidden on phones, where the
+   cells stack instead of scrolling sideways */
 
 .bars {
   display: flex;
@@ -338,7 +340,9 @@ a:hover {
   background: var(--ink);
 }
 
-/* ---- top nav: round social buttons ------------------------------------- */
+/* ---- top nav: app-style social icons ----------------------------------
+   each button is one svg — the ios squircle, drawn in the script — so there
+   is no tile behind it; the ring picks up the page colour via currentColor */
 
 .topnav {
   position: fixed;
@@ -346,26 +350,42 @@ a:hover {
   left: 50%;
   transform: translate(-50%, 0);
   display: flex;
-  gap: 10px;
+  gap: 9px;
   z-index: 5;
 }
 
 .icon-btn {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--tile);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 40px;
+  height: 40px;
   color: var(--fg);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.icon-btn svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .icon-btn:hover {
-  color: var(--ink);
-  text-decoration: none;
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.04);
+  filter: brightness(1.12);
+}
+
+/* an icon can carry a light and a dark drawing; the theme picks one */
+.icon-btn .dk {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .icon-btn .lt {
+    display: none;
+  }
+
+  .icon-btn .dk {
+    display: initial;
+  }
 }
 
 /* ---- story card: a tile's story ----------------------------------------
@@ -538,8 +558,9 @@ a:hover {
   }
 }
 
-/* phones get the desktop composition as-is: one screen, the work row
-   full-bleed and scrolling sideways, cells half the screen tall */
+/* phones: the work row turns into a column. every cell takes the full
+   width of the screen and the page scrolls down through them, so nothing
+   is capped to a share of the viewport any more */
 @media (max-width: 640px) {
   /* the screen can be pulled down to close here */
   .drawer-card {
@@ -547,24 +568,45 @@ a:hover {
     padding-right: 22px;
   }
 
-  /* browser chrome (tab bar, home indicator) crowds the bottom edge —
-     lift the row well clear of it */
   .blocks {
-    padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+    flex-direction: column;
+    gap: 12px;
+    overflow-x: visible;
+    /* a tighter gutter than the text column so the cells run wider —
+       and browser chrome (tab bar, home indicator) crowds the bottom edge,
+       so the last cell is lifted well clear of it */
+    padding: 4px 12px calc(36px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* the cell is smaller here, so the pieces fill more of it. it is also
-     a taller shape: the ratio locks width to height, and the width is
-     already at the screen's edge, so extra height has to come from the
-     ratio — 5:7 here, and never wider than the screen less a gutter */
+  .block {
+    width: 100%;
+  }
+
+  /* width is the screen's, so height comes from the ratio — a taller
+     shape than the desktop cell, and no viewport cap */
   .tile {
     --ps-scale: 0.42;
+    width: 100%;
+    height: auto;
     aspect-ratio: 5 / 7;
-    height: min(58svh, calc((100vw - 40px) * 7 / 5));
   }
 
   .tile .fc-card {
     width: 78%;
+  }
+
+  /* the page now scrolls vertically through the cells, so the pieces
+     must let a vertical pan through instead of a sideways one */
+  .tile.mark,
+  .tile .tp-stage,
+  .tile .tp-pic.tap {
+    touch-action: pan-y;
+  }
+
+  /* the indicator tracked the sideways scroller; the column has no use
+     for it and it would scroll away with the intro anyway */
+  .bars {
+    display: none;
   }
 }
 

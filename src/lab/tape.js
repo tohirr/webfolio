@@ -414,6 +414,7 @@ export function mount(el) {
     const cell = S / CELLS;
     const cx = S / 2, cy = S / 2;
     const R = S / 2 - ROSE * dpr; // the globe's radius; the rose sits in the ring outside
+    if (R <= 0) return; // not laid out yet: the frame had no size when resize() ran
     // heading-up: the map turns the other way from the heading
     const th = (-pos * DEG * Math.PI) / 180;
     const cs = Math.cos(th), sn = Math.sin(th);

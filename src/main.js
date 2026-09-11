@@ -52,27 +52,106 @@ const SPONSOR_URL = "https://github.com/sponsors/tohirr";
 /* google calendar appointment-schedule booking page */
 const CAL_URL = "https://calendar.app.google/6M3QwajrfAX85EaC8";
 
-/* round icon buttons up top — github + x for now */
-const GH_ICON =
-  '<svg viewBox="0 0 16 16" width="19" height="19" fill="currentColor" aria-hidden="true">' +
-  '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 ' +
-  "0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 " +
-  "1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 " +
-  "0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 " +
-  "2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 " +
-  "3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 " +
-  '8c0-4.42-3.58-8-8-8z"/></svg>';
+/* app-style icon buttons up top — each one is a single svg drawn twice:
+   the light drawing (the real app icon) and the dark one (the ios dark
+   treatment: a graphite sheen with the glyph on it). css shows one per
+   theme. gradients live in a hidden svg so the three icons share them */
+const SQUIRCLE =
+  "M12 0C2.54 0 0 2.54 0 12c0 9.46 2.54 12 12 12s12-2.54 12-12C24 2.54 21.46 0 12 0z";
 
-const X_ICON =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true">' +
-  '<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 ' +
-  '21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+const ICON_DEFS =
+  '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' +
+  '<linearGradient id="icon-dk" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#3c3c3e"/><stop offset="1" stop-color="#1c1c1e"/>' +
+  "</linearGradient>" +
+  '<linearGradient id="icon-sheen" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#fff" stop-opacity=".14"/>' +
+  '<stop offset=".55" stop-color="#fff" stop-opacity="0"/>' +
+  "</linearGradient>" +
+  '<linearGradient id="mail-bg" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#1d63f0"/><stop offset="1" stop-color="#1ad5fd"/>' +
+  "</linearGradient>" +
+  '<linearGradient id="mail-glyph" x1="30" y1="16.33" x2="30" y2="43.67" gradientUnits="userSpaceOnUse">' +
+  '<stop stop-color="#1a6ae7"/><stop offset="1" stop-color="#20c2f4"/>' +
+  "</linearGradient>" +
+  "</defs></svg>";
 
-const MAIL_ICON =
-  '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" ' +
-  'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-  '<rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/>' +
-  '<path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg>';
+const BLACK_BG = `<path d="${SQUIRCLE}" fill="#000"/>`;
+const DARK_BG =
+  `<path d="${SQUIRCLE}" fill="url(#icon-dk)"/>` +
+  `<path d="${SQUIRCLE}" fill="url(#icon-sheen)"/>`;
+
+const appIcon = (light, dark) =>
+  '<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true">' +
+  `<g class="lt">${light}</g><g class="dk">${dark}</g>` +
+  `<path d="${SQUIRCLE}" fill="none" stroke="currentColor" stroke-opacity=".28" stroke-width=".6"/>` +
+  "</svg>";
+
+/* official marks (github.com/logos, x.com/brand) — 24-unit paths, white,
+   scaled to sit on the ios icon grid */
+const GH_MARK =
+  "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 " +
+  "0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 " +
+  "17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 " +
+  "1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 " +
+  "0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 " +
+  "1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 " +
+  "2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 " +
+  "2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 " +
+  "12.297c0-6.627-5.373-12-12-12";
+
+const X_MARK =
+  "M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318" +
+  "L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z";
+
+const GH_GLYPH = `<path d="${GH_MARK}" fill="#fff" transform="translate(4.8 4.8) scale(.6)"/>`;
+const X_GLYPH = `<path d="${X_MARK}" fill="#fff" transform="translate(6.5 6.5) scale(.458)"/>`;
+
+const GH_ICON = appIcon(BLACK_BG + GH_GLYPH, DARK_BG + GH_GLYPH);
+const X_ICON = appIcon(BLACK_BG + X_GLYPH, DARK_BG + X_GLYPH);
+
+/* apple mail, light: the icon art from aroundsketch.com/Apple-App-Icons — the
+   blue-to-cyan gradient and the envelope, drawn on a 1024 grid, rounded by
+   the same clip the original masks it with */
+const MAIL_ENVELOPE =
+  "M726.43,480.76 C725.2,480.76 722.73,482 721.5,482 L18.5,482 C17.26,482 14.8,482 13.56,480.76 " +
+  "L233.1,261.02 L279.96,309.17 C330.53,361.01 410.7,361.01 461.26,309.17 L508.13,261.02 " +
+  "L726.43,480.76 Z M740,457.31 L740,21.53 C740,19.06 740,16.59 738.76,15.36 C737.53,17.83 " +
+  "520.46,242.50 520.46,242.50 L740,462.24 L740,457.31 Z M0,458.54 L0,24.00 C0,21.53 0,19.06 " +
+  "1.23,17.83 C2.46,20.30 219.53,244.97 219.53,244.97 L1.23,463.48 C0,462.24 0,459.77 0,458.54 Z " +
+  "M447.7,286.95 C404.53,330.15 335.46,330.15 293.53,286.95 L13.56,0.54 C12.33,-0.68 727.66,0.54 " +
+  "727.66,0.54 L447.7,286.95 Z";
+const MAIL_ENVELOPE_CLIP =
+  "M74.35,0 L665.64,0 C691.50,0 700.87,2.69 710.32,7.74 C719.78,12.80 727.19,20.21 732.25,29.67 " +
+  "C737.30,39.12 740,48.49 740,74.35 L740,407.64 C740,433.50 737.30,442.87 732.25,452.32 " +
+  "C727.19,461.78 719.78,469.19 710.32,474.25 C700.87,479.30 691.50,482 665.64,482 L74.35,482 " +
+  "C48.49,482 39.12,479.30 29.67,474.25 C20.21,469.19 12.80,461.78 7.74,452.32 C2.69,442.87 " +
+  "0,433.50 0,407.64 L0,74.35 C0,48.49 2.69,39.12 7.74,29.67 C12.80,20.21 20.21,12.80 29.67,7.74 " +
+  "C39.12,2.69 48.49,0 74.35,0 Z";
+
+/* apple mail, dark: the tinted envelope glyph (~/Downloads/Mail.svg, a 60 grid) */
+const MAIL_DARK_GLYPH =
+  "M25.05 33.65L22.37 30.98L10.12 43.23C10.18 43.27 10.24 43.30 10.30 43.33C10.94 43.66 11.78 43.66 " +
+  "13.46 43.66H46.53C48.21 43.66 49.05 43.66 49.69 43.33C49.75 43.30 49.81 43.27 49.87 43.23L37.62 " +
+  "30.98L34.94 33.65C34.10 34.50 33.09 35.08 32.03 35.41C31.36 35.61 30.68 35.71 29.99 35.71C28.20 " +
+  "35.71 26.41 35.02 25.05 33.65ZM50.90 42.21C50.94 42.15 50.97 42.09 51.00 42.02C51.33 41.38 51.33 " +
+  "40.54 51.33 38.86V21.13C51.33 19.45 51.33 18.61 51.00 17.97C50.96 17.89 50.92 17.81 50.87 " +
+  "17.73L38.65 29.95L50.90 42.21ZM49.93 16.79L34.00 32.71C33.17 33.54 32.15 34.06 31.08 34.27C30.34 " +
+  "34.41 29.59 34.41 28.86 34.26C27.81 34.04 26.80 33.53 25.99 32.71L10.06 16.79C10.14 16.74 10.22 " +
+  "16.70 10.30 16.66C10.94 16.33 11.78 16.33 13.46 16.33H46.53C48.21 16.33 49.05 16.33 49.69 " +
+  "16.66C49.77 16.70 49.85 16.74 49.93 16.79ZM9.12 17.73C9.07 17.81 9.03 17.89 8.99 17.97C8.66 " +
+  "18.61 8.66 19.45 8.66 21.13V38.86C8.66 40.54 8.66 41.38 8.99 42.02C9.02 42.09 9.05 42.15 9.09 " +
+  "42.21L21.34 29.95L9.12 17.73Z";
+
+const MAIL_ICON = appIcon(
+  `<clipPath id="mail-env"><path d="${MAIL_ENVELOPE_CLIP}"/></clipPath>` +
+    `<path d="${SQUIRCLE}" fill="url(#mail-bg)"/>` +
+    '<g transform="scale(.0234375) translate(142 271)">' +
+    `<path d="${MAIL_ENVELOPE}" fill="#fff" clip-path="url(#mail-env)"/></g>`,
+  DARK_BG +
+    '<g transform="scale(.4)">' +
+    `<path d="${MAIL_DARK_GLYPH}" fill="url(#mail-glyph)" fill-rule="evenodd"/></g>`,
+);
 
 const nav = [
   { label: "GitHub", href: "https://github.com/tohirr", icon: GH_ICON },
@@ -121,6 +200,7 @@ const tile = (b) =>
 
 document.getElementById("app").innerHTML =
   `<nav class="topnav" aria-label="social">` +
+  ICON_DEFS +
   nav
     .map(
       (n) =>
