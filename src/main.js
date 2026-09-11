@@ -53,9 +53,9 @@ const SPONSOR_URL = "https://github.com/sponsors/tohirr";
 const CAL_URL = "https://calendar.app.google/6M3QwajrfAX85EaC8";
 
 /* app-style icon buttons up top — each one is a single svg drawn twice:
-   the light drawing (the real app icon) and the dark one (the ios dark
-   treatment: a graphite sheen with the glyph on it). css shows one per
-   theme. gradients live in a hidden svg so the three icons share them */
+   the light drawing (the real app icon, or its white inverse for the
+   apps whose icon is black) and the dark one (the ios dark treatment: a
+   graphite sheen with the glyph on it). css shows one per theme. gradients live in a hidden svg so the three icons share them */
 const SQUIRCLE =
   "M12 0C2.54 0 0 2.54 0 12c0 9.46 2.54 12 12 12s12-2.54 12-12C24 2.54 21.46 0 12 0z";
 
@@ -63,6 +63,9 @@ const ICON_DEFS =
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' +
   '<linearGradient id="icon-dk" x1="0" y1="0" x2="0" y2="1">' +
   '<stop offset="0" stop-color="#3c3c3e"/><stop offset="1" stop-color="#1c1c1e"/>' +
+  "</linearGradient>" +
+  '<linearGradient id="icon-lt" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e9e9eb"/>' +
   "</linearGradient>" +
   '<linearGradient id="icon-sheen" x1="0" y1="0" x2="0" y2="1">' +
   '<stop offset="0" stop-color="#fff" stop-opacity=".14"/>' +
@@ -76,7 +79,10 @@ const ICON_DEFS =
   "</linearGradient>" +
   "</defs></svg>";
 
-const BLACK_BG = `<path d="${SQUIRCLE}" fill="#000"/>`;
+/* the light inverse of the dark treatment: white at the top falling to a
+   pale grey, so it is lit the same way — a white sheen would be invisible
+   on white, so the gradient carries the light on its own */
+const WHITE_BG = `<path d="${SQUIRCLE}" fill="url(#icon-lt)"/>`;
 const DARK_BG =
   `<path d="${SQUIRCLE}" fill="url(#icon-dk)"/>` +
   `<path d="${SQUIRCLE}" fill="url(#icon-sheen)"/>`;
@@ -104,11 +110,16 @@ const X_MARK =
   "M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318" +
   "L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z";
 
-const GH_GLYPH = `<path d="${GH_MARK}" fill="#fff" transform="translate(4.8 4.8) scale(.6)"/>`;
-const X_GLYPH = `<path d="${X_MARK}" fill="#fff" transform="translate(6.5 6.5) scale(.458)"/>`;
+const GH_GLYPH = (fill) =>
+  `<path d="${GH_MARK}" fill="${fill}" transform="translate(4.8 4.8) scale(.6)"/>`;
+const X_GLYPH = (fill) =>
+  `<path d="${X_MARK}" fill="${fill}" transform="translate(6.5 6.5) scale(.458)"/>`;
 
-const GH_ICON = appIcon(BLACK_BG + GH_GLYPH, DARK_BG + GH_GLYPH);
-const X_ICON = appIcon(BLACK_BG + X_GLYPH, DARK_BG + X_GLYPH);
+/* both apps ship a black icon, which reads as unchanged next to the dark
+   treatment — so in light mode they get the inverse: a white squircle with
+   the mark in black, the way ios tints icons in its light style */
+const GH_ICON = appIcon(WHITE_BG + GH_GLYPH("#000"), DARK_BG + GH_GLYPH("#fff"));
+const X_ICON = appIcon(WHITE_BG + X_GLYPH("#000"), DARK_BG + X_GLYPH("#fff"));
 
 /* apple mail, light: the icon art from aroundsketch.com/Apple-App-Icons — the
    blue-to-cyan gradient and the envelope, drawn on a 1024 grid, rounded by

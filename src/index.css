@@ -599,7 +599,8 @@ a:hover {
      must let a vertical pan through instead of a sideways one */
   .tile.mark,
   .tile .tp-stage,
-  .tile .tp-pic.tap {
+  .tile .tp-pic.tap,
+  .tile .fc-card {
     touch-action: pan-y;
   }
 

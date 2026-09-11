@@ -479,13 +479,32 @@ export function mount(el) {
     if (sound) sweepSound();
     return true;
   };
+  const flipAt = (e) => {
+    const r = card.getBoundingClientRect();
+    flipTo((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height, true);
+  };
+  /* a mouse flips on the press. a finger can't: it might be starting a
+     scroll, so the flip waits for the lift and only fires if the finger
+     barely moved — the browser cancels the pointer once it takes the
+     gesture as a scroll, and that's not a tap either */
+  let tx0 = 0, ty0 = 0, touching = false;
   card.addEventListener("pointerdown", (e) => {
     lastUser = performance.now();
     sScale.s = INTERACT[0]; sScale.d = INTERACT[1];
     sScale.v -= 0.045;
-    const r = card.getBoundingClientRect();
-    flipTo((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height, true);
+    if (e.pointerType === "touch") {
+      tx0 = e.clientX; ty0 = e.clientY; touching = true;
+      return;
+    }
+    flipAt(e);
   });
+  card.addEventListener("pointerup", (e) => {
+    if (!touching) return;
+    touching = false;
+    if (Math.abs(e.clientX - tx0) + Math.abs(e.clientY - ty0) > 6) return;
+    flipAt(e);
+  });
+  card.addEventListener("pointercancel", () => { touching = false; });
 
   /* left alone, the card turns over on its own every so often, so a visitor
      who never thinks to click still sees the flip. quiet — no chime */
