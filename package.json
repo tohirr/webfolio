@@ -16,5 +16,8 @@
     "eslint": "^8.55.0",
     "postcss": "^8.4.33",
     "vite": "^5.0.8"
+  },
+  "dependencies": {
+    "three": "^0.186.0"
   }
 }

@@ -1,0 +1,167 @@
+/* /cube/ — a puzzle on a soft studio sweep. the site's monospace, controls
+   float over the render the way the /glass/ camera lays out its own */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  --fg: rgba(20, 24, 32, 0.72);
+  --ink: #141820;
+  --pill: rgba(255, 255, 255, 0.55);
+  --pill-line: rgba(20, 24, 32, 0.12);
+  background: #e6edf7;
+  color: var(--fg);
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: -0.045em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    --fg: rgba(235, 238, 245, 0.72);
+    --ink: #f2f4f8;
+    --pill: rgba(30, 33, 40, 0.55);
+    --pill-line: rgba(255, 255, 255, 0.12);
+    background: #16181d;
+  }
+}
+
+#cube {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+.view.grabbing {
+  cursor: grabbing;
+}
+
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.top,
+.bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  pointer-events: none;
+}
+.top {
+  top: calc(14px + env(safe-area-inset-top));
+}
+.bottom {
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  justify-content: center;
+}
+.top > *,
+.bottom > * {
+  pointer-events: auto;
+}
+
+.title {
+  margin-left: auto;
+  color: var(--fg);
+}
+.title b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.pill {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--pill);
+  border: 1px solid var(--pill-line);
+  color: var(--ink);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+.pill:active {
+  transform: scale(0.96);
+}
+.pill[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.stat {
+  min-width: 9ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.stat.solved {
+  color: #1c9a58;
+}
+@media (prefers-color-scheme: dark) {
+  .stat.solved {
+    color: #4ade80;
+  }
+}
+
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  text-align: center;
+  color: var(--fg);
+  opacity: 1;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.hint.gone {
+  opacity: 0;
+}
+
+.state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}

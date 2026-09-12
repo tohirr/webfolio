@@ -118,18 +118,26 @@ a:hover {
 
 .app-icon {
   display: inline-block;
-  width: 1.2em;
-  height: 1.2em;
-  border-radius: 0.32em;
-  vertical-align: -0.24em;
-  /* the icon is the F in feldy — it sits tight against the rest of the word */
-  margin-right: 0.08em;
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 0.38em;
+  vertical-align: -0.34em;
+  /* the icon is the F in feldy — close to the rest of the word, with a
+     hair of air so the two don't collide */
+  margin-right: 0.18em;
   filter: grayscale(1) opacity(0.75);
   transition: filter 0.2s ease;
 }
 
 .feldy:hover .app-icon {
   filter: none;
+}
+
+/* no pointer to hover with: the icon keeps its colour all the time */
+@media (hover: none) {
+  .app-icon {
+    filter: none;
+  }
 }
 
 /* ---- intro ------------------------------------------------------------- */

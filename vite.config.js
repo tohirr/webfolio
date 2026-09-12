@@ -10,10 +10,11 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // two pages: the portfolio, and the glass camera at /glass/
+      // three pages: the portfolio, the glass camera at /glass/, the ice cube at /cube/
       input: {
         main: page("index.html"),
         glass: page("glass/index.html"),
+        cube: page("cube/index.html"),
       },
     },
   },
