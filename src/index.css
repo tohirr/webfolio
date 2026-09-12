@@ -671,7 +671,8 @@ a:hover {
   }
 
   .blocks {
-    margin-top: 0;
+    /* keep the first cell from crowding the intro copy on short phones */
+    margin-top: 12px;
     padding-top: 0;
   }
 }
