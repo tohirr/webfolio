@@ -612,6 +612,9 @@ a:hover {
     flex-direction: column;
     gap: 12px;
     overflow-x: visible;
+    /* preserve the desktop composition's negative space: on phones the
+       first cell lands around the middle of the viewport */
+    margin-top: clamp(96px, 18svh, 160px);
     /* a tighter gutter than the text column so the cells run wider —
        and browser chrome (tab bar, home indicator) crowds the bottom edge,
        so the last cell is lifted well clear of it */
@@ -671,8 +674,6 @@ a:hover {
   }
 
   .blocks {
-    /* keep the first cell from crowding the intro copy on short phones */
-    margin-top: 12px;
     padding-top: 0;
   }
 }
