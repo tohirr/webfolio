@@ -18,10 +18,11 @@
    64s once the cell is on screen, and the sharp rung (~12–18 kb each)
    streams in only for the works near the viewport. a tap opens the story
    card; a drag never does. behind the card the same field carries on:
-   the card asks for a second mount in scene mode — no chrome, no input,
-   no sharp rung (it sits under a blur), picked up at the tile's own camera
-   and zoom — and hands the camera back to the tile when it closes, so it
-   reads as one field the card was lifted off. webgl2, one context per
+   the card asks for a second mount in scene mode — no chrome, no input —
+   at the tile's own camera, zoomed
+   so the tile's picture covers the screen: the very works that were in
+   the cell, blown up, still drifting — and hands the camera back to the
+   tile when it closes, so it reads as one field the card was lifted off. webgl2, one context per
    mount, one program. */
 
 import WORKS from "./gallaria-works.json";
@@ -242,7 +243,7 @@ const rgb = (hex, fb) => {
 export const handles = new WeakMap();
 
 /* ---- the piece ------------------------------------------------------------ */
-/* opts.scene: a backdrop — no labels, no input, no sharp rung; opts.from:
+/* opts.scene: a backdrop — no labels, no input; opts.from:
    { x, y, zoom } to start from another cell's camera */
 export function mount(el, { scene = false, from = null } = {}) {
   el.innerHTML =
@@ -295,10 +296,18 @@ export function mount(el, { scene = false, from = null } = {}) {
   gl.useProgram(frost.p);
   gl.uniform1i(frost.u.uScene, 3);
 
-  /* the cell as a texture: the cards render here, then the frost pass puts
-     it on screen. it needs the full mip chain each frame for the wide blur */
+  /* the cell as a texture: the cards render into a multisampled buffer (the
+     context's own antialiasing only covers the screen, not a texture), which
+     resolves into this texture; the frost pass then puts it on screen. it
+     needs the full mip chain each frame for the wide blur */
   const sceneTex = gl.createTexture();
   const fbo = gl.createFramebuffer();
+  const msaa = gl.createRenderbuffer();
+  const msFbo = gl.createFramebuffer();
+  const samples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES));
+  gl.bindRenderbuffer(gl.RENDERBUFFER, msaa); // a renderbuffer must be bound once before it can be attached
+  gl.bindFramebuffer(gl.FRAMEBUFFER, msFbo);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, msaa);
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, sceneTex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -394,6 +403,11 @@ export function mount(el, { scene = false, from = null } = {}) {
       cam.y = mod(v.y, TILE);
       dirty = true;
     },
+    /* draw now, not at the next frame: for a copy taken right after a move */
+    render() {
+      dirty = false;
+      draw();
+    },
   });
   let dpr = 1;
   let hiTier = 192; // the rung that matches a work's size on this screen
@@ -413,13 +427,16 @@ export function mount(el, { scene = false, from = null } = {}) {
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, sceneTex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, msaa);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, canvas.width, canvas.height);
     gl.useProgram(frost.p);
     gl.uniform1f(frost.u.uDpr, dpr);
     gl.uniform2f(frost.u.uView, r.width, r.height);
     /* about six works across whatever the cell's width — or the zoom of
        the cell this one continues, so the works stay the same size */
     cam.zoom = from?.zoom || r.width / (6 * (COL_W + GAP));
-    hiTier = COL_W * cam.zoom * dpr <= 192 ? 192 : 256;
+    const px = COL_W * cam.zoom * dpr;
+    hiTier = px <= 192 ? 192 : px <= 256 ? 256 : 512; // 512 only when blown up behind the story card
     dirty = true;
   };
   const ro = new ResizeObserver(resize);
@@ -491,6 +508,52 @@ export function mount(el, { scene = false, from = null } = {}) {
   };
   el.addEventListener("click", onClick, true);
 
+  /* ---- draw: the cards into the scene, the scene through the frost ------- */
+  const draw = () => {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, msFbo);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(quad.p);
+    gl.uniform2f(quad.u.uCam, cam.x, cam.y);
+    gl.uniform1f(quad.u.uZoom, cam.zoom);
+    gl.uniform2f(quad.u.uView, cam.vw, cam.vh);
+    const hw = ((1 + BULGE) * cam.vw) / (2 * cam.zoom);
+    const hh = ((1 + BULGE) * cam.vh) / (2 * cam.zoom);
+    const x0 = cam.x - hw, x1 = cam.x + hw, y0 = cam.y - hh, y1 = cam.y + hh;
+    for (const item of items) {
+      const s = state.get(item);
+      if (!s.b) continue;
+      const { x, y, w, h } = item.rect;
+      const kx0 = Math.ceil((x0 - x - w) / TILE), kx1 = Math.floor((x1 - x) / TILE);
+      if (kx1 < kx0) continue;
+      const ky0 = Math.ceil((y0 - y - h) / TILE), ky1 = Math.floor((y1 - y) / TILE);
+      if (ky1 < ky0) continue;
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, s.a || s.b);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, s.b);
+      gl.uniform1f(quad.u.uT, s.t);
+      gl.uniform2f(quad.u.uBlocks, w / BLOCK, h / BLOCK);
+      for (let ky = ky0; ky <= ky1; ky++) {
+        for (let kx = kx0; kx <= kx1; kx++) {
+          gl.uniform4f(quad.u.uRect, x + kx * TILE, y + ky * TILE, w, h);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+      }
+    }
+    /* resolve the samples into the texture, then the frost */
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, msFbo);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
+    gl.blitFramebuffer(0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.useProgram(frost.p);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+
   /* ---- frame ------------------------------------------------------------- */
   let raf = 0;
   let last = 0;
@@ -515,7 +578,7 @@ export function mount(el, { scene = false, from = null } = {}) {
     }
 
     /* the sharp rung, for whatever is in or near view, on a slow tick */
-    if (wantBig && !scene && now - lastStream > STREAM_MS) {
+    if (wantBig && now - lastStream > STREAM_MS) {
       lastStream = now;
       const mx = (0.8 * cam.vw) / cam.zoom, my = (0.8 * cam.vh) / cam.zoom;
       for (const item of items) {
@@ -540,45 +603,7 @@ export function mount(el, { scene = false, from = null } = {}) {
 
     if (dirty) {
       dirty = false;
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.useProgram(quad.p);
-      gl.uniform2f(quad.u.uCam, cam.x, cam.y);
-      gl.uniform1f(quad.u.uZoom, cam.zoom);
-      gl.uniform2f(quad.u.uView, cam.vw, cam.vh);
-      const hw = ((1 + BULGE) * cam.vw) / (2 * cam.zoom);
-      const hh = ((1 + BULGE) * cam.vh) / (2 * cam.zoom);
-      const x0 = cam.x - hw, x1 = cam.x + hw, y0 = cam.y - hh, y1 = cam.y + hh;
-      for (const item of items) {
-        const s = state.get(item);
-        if (!s.b) continue;
-        const { x, y, w, h } = item.rect;
-        const kx0 = Math.ceil((x0 - x - w) / TILE), kx1 = Math.floor((x1 - x) / TILE);
-        if (kx1 < kx0) continue;
-        const ky0 = Math.ceil((y0 - y - h) / TILE), ky1 = Math.floor((y1 - y) / TILE);
-        if (ky1 < ky0) continue;
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, s.a || s.b);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, s.b);
-        gl.uniform1f(quad.u.uT, s.t);
-        gl.uniform2f(quad.u.uBlocks, w / BLOCK, h / BLOCK);
-        for (let ky = ky0; ky <= ky1; ky++) {
-          for (let kx = kx0; kx <= kx1; kx++) {
-            gl.uniform4f(quad.u.uRect, x + kx * TILE, y + ky * TILE, w, h);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-          }
-        }
-      }
-      /* then the frost */
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.activeTexture(gl.TEXTURE3);
-      gl.bindTexture(gl.TEXTURE_2D, sceneTex);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.useProgram(frost.p);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      draw();
     }
     raf = requestAnimationFrame(frame);
   };

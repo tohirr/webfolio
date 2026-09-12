@@ -476,28 +476,35 @@ a:hover {
   transition: opacity 0.12s ease;
 }
 
-/* a scenic card: the piece itself carries on behind the card, blurred and
-   drifting, and the card's surface goes translucent so it shows through.
-   the scene is oversized so the blur has no bright fringe at the edges */
+/* a scenic card: the piece itself carries on behind the card, sharp in the
+   middle and frosted at the rim as in the cell, still drifting, and the
+   card's surface is translucent so it shows through. the scene lives inside
+   the panel, so the clip that grows out of the tile reveals it as it goes.
+   on the way back it blurs and fades while the box folds into the cell */
 .drawer-scene {
   position: absolute;
-  inset: -32px;
+  inset: 0;
   pointer-events: none;
-  filter: blur(9px);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.drawer.open .drawer-scene {
-  opacity: 1;
 }
 
 .drawer.closing .drawer-scene {
   opacity: 0;
-  transition: opacity 0.3s ease;
+  filter: blur(16px);
+  transition:
+    opacity 0.42s ease 0.09s,
+    filter 0.42s ease 0.09s;
 }
 
-.drawer.scenic.landed .drawer-card {
+/* while a card's copy flies back into its cell, the cell holds nothing */
+.tile.vacant > * {
+  visibility: hidden;
+}
+
+.drawer.scenic .drawer-panel {
+  background: transparent;
+}
+
+.drawer.scenic .drawer-card {
   background: color-mix(in srgb, var(--tile) 48%, transparent);
 }
 

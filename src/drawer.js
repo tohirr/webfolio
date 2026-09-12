@@ -45,30 +45,44 @@ export function mountDrawer(details) {
   let scene = null; // { el, mod, opener, cleanup } — the live field behind a scenic card
 
   /* a detail with `scene` (a lazy module whose mount(el, opts) draws a
-     backdrop) gets the live piece behind its card, blurred by css, picked up
-     at the tile's own camera; on close the camera goes back to the tile */
+     backdrop) gets the live piece behind its card, blurred by css. it sits
+     inside the panel, so the growing clip reveals it, and it is the tile's
+     own picture: same camera, zoomed so the cell's view covers the screen.
+     on close the camera goes back to the tile */
   const openScene = (d) => {
     if (!d.scene) return;
     const el = document.createElement("div");
     el.className = "drawer-scene";
     el.setAttribute("aria-hidden", "true");
-    root.insertBefore(el, panel);
+    panel.insertBefore(el, panel.firstChild);
     const mine = (scene = { el, cleanup: null });
     d.scene().then((mod) => {
       if (scene !== mine) return; // closed before the module came
       mine.mod = mod;
-      const from = mod.handles?.get(opener)?.cam;
+      const cam = mod.handles?.get(opener)?.cam;
+      const r = opener?.getBoundingClientRect();
+      const from =
+        cam && r?.width
+          ? { ...cam, zoom: cam.zoom * Math.max(innerWidth / r.width, innerHeight / r.height) }
+          : cam;
       mine.cleanup = mod.mount(el, { scene: true, from });
     });
   };
+  /* the field goes back to the tile where the scene left it, drawn at once
+     so a copy of the cell taken right after shows what is about to land */
+  const handBack = () => {
+    if (!scene?.mod) return;
+    const back = scene.mod.handles?.get(scene.el)?.cam;
+    const tile = scene.mod.handles?.get(opener);
+    if (back && tile) {
+      tile.cam = back;
+      tile.render?.();
+    }
+  };
   const closeScene = () => {
     if (!scene) return;
-    const { el, mod, cleanup } = scene;
-    const back = mod?.handles?.get(el)?.cam;
-    const tile = mod?.handles?.get(opener);
-    if (back && tile) tile.cam = back;
-    cleanup?.();
-    el.remove();
+    scene.cleanup?.();
+    scene.el.remove();
     scene = null;
   };
 
@@ -144,6 +158,7 @@ export function mountDrawer(details) {
       d.height = c.height;
       try { d.getContext("2d").drawImage(c, 0, 0); } catch { /* tainted or lost — stays blank */ }
     });
+    el.classList.remove("vacant");
     el.classList.add("drawer-icon");
     el.style.cssText = `position:absolute;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0`;
     panel.appendChild(el);
@@ -212,6 +227,7 @@ export function mountDrawer(details) {
     current = null;
     root.querySelector("video")?.pause();
     document.body.style.overflow = "";
+    handBack();
     const target = reduceMotion ? "" : tileClip(); // measured while still pushed
     app.classList.remove("pushed");
     const done = () => {
@@ -219,6 +235,7 @@ export function mountDrawer(details) {
       root.classList.remove("open", "landed", "closing");
       panel.style.clipPath = "";
       closeScene();
+      opener?.classList.remove("vacant"); // the field snaps back into the cell
       opener?.focus({ preventScroll: true });
       opener = null;
     };
@@ -232,6 +249,8 @@ export function mountDrawer(details) {
       delay: 90,
     });
     const ic = makeIcon();
+    // the cell stays empty while its copy flies back, so nothing shows twice
+    opener?.classList.add("vacant");
     if (ic) {
       ic.animate([{ transform: iconFar(ic) }, { transform: "none" }], { ...SHRINK, delay: 90 });
       ic.animate([{ opacity: 0 }, { opacity: 1, offset: 0.8 }, { opacity: 1 }], {
@@ -272,6 +291,10 @@ export function mountDrawer(details) {
   back.addEventListener("click", dismiss);
   panel.addEventListener("click", (e) => {
     if (e.target === panel) dismiss(); // the panel's own margin is the backdrop too
+  });
+  /* the card fills the screen: anywhere outside the text column is the backdrop */
+  card.addEventListener("click", (e) => {
+    if (!body.contains(e.target) && !closeBtn.contains(e.target)) dismiss();
   });
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && current) dismiss();
