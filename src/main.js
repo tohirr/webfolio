@@ -18,7 +18,16 @@ const feldyHref = () => {
   return FELDY_URL;
 };
 
+const GALLARIA_URL = "https://gallaria.tohirr.dev";
+
 const blocks = [
+  {
+    name: "gallaria",
+    sub: "an infinite canvas of art by african artists · webgl2",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/gallaria.js"),
+  },
   {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
@@ -43,7 +52,25 @@ const blocks = [
 /* ---- details: what opens when a tile is tapped. a block with `detail: true`
    looks up its name here — { title, sub, body, links, media? } ---------- */
 
-const details = {};
+const details = {
+  gallaria: {
+    title: "gallaria",
+    sub: "an infinite canvas of art by african artists",
+    body:
+      `<p>A wrapping field of work I keep finding on the internet, with every ` +
+      `piece linked back to its artist and the post it came from. Drag to pan, ` +
+      `pinch to zoom, flick and it settles on a work.</p>` +
+      `<p>One WebGL2 context, no framework. Works are placed by seeded blue-noise ` +
+      `so the field is even and stable across visits, and every image climbs a ` +
+      `resolution ladder as you get close — 16 px, 64 px, 512 px, 1600 px — each ` +
+      `rung dissolving in through an 8×8 Bayer threshold, so the loading state ` +
+      `<em>is</em> the pixelation. The cell here is that machine in miniature, ` +
+      `on forty of the works.</p>`,
+    links: [{ label: "gallaria.tohirr.dev", href: GALLARIA_URL }],
+    /* the field carries on behind the card */
+    scene: () => import("./lab/gallaria.js"),
+  },
+};
 
 const EMAIL = "tohirr.dev@gmail.com";
 

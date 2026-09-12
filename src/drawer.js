@@ -42,6 +42,35 @@ export function mountDrawer(details) {
   let opener = null; // the tile that opened it, to grow from and hand focus back
   let pushed = false; // did opening add a history entry we can pop
   let anim = null; // the running clip animation, if any
+  let scene = null; // { el, mod, opener, cleanup } — the live field behind a scenic card
+
+  /* a detail with `scene` (a lazy module whose mount(el, opts) draws a
+     backdrop) gets the live piece behind its card, blurred by css, picked up
+     at the tile's own camera; on close the camera goes back to the tile */
+  const openScene = (d) => {
+    if (!d.scene) return;
+    const el = document.createElement("div");
+    el.className = "drawer-scene";
+    el.setAttribute("aria-hidden", "true");
+    root.insertBefore(el, panel);
+    const mine = (scene = { el, cleanup: null });
+    d.scene().then((mod) => {
+      if (scene !== mine) return; // closed before the module came
+      mine.mod = mod;
+      const from = mod.handles?.get(opener)?.cam;
+      mine.cleanup = mod.mount(el, { scene: true, from });
+    });
+  };
+  const closeScene = () => {
+    if (!scene) return;
+    const { el, mod, cleanup } = scene;
+    const back = mod?.handles?.get(el)?.cam;
+    const tile = mod?.handles?.get(opener);
+    if (back && tile) tile.cam = back;
+    cleanup?.();
+    el.remove();
+    scene = null;
+  };
 
   /* the clip: muted, looping, inline, no controls. reduced motion (and the
      wait for the first frame) shows the poster instead */
@@ -139,6 +168,9 @@ export function mountDrawer(details) {
     anim?.cancel();
     root.hidden = false;
     root.classList.remove("landed", "closing");
+    root.classList.toggle("scenic", !!d.scene);
+    closeScene();
+    openScene(d);
     document.body.style.overflow = "hidden";
     card.scrollTop = 0;
 
@@ -186,6 +218,7 @@ export function mountDrawer(details) {
       root.hidden = true;
       root.classList.remove("open", "landed", "closing");
       panel.style.clipPath = "";
+      closeScene();
       opener?.focus({ preventScroll: true });
       opener = null;
     };

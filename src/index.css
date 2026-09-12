@@ -476,6 +476,31 @@ a:hover {
   transition: opacity 0.12s ease;
 }
 
+/* a scenic card: the piece itself carries on behind the card, blurred and
+   drifting, and the card's surface goes translucent so it shows through.
+   the scene is oversized so the blur has no bright fringe at the edges */
+.drawer-scene {
+  position: absolute;
+  inset: -32px;
+  pointer-events: none;
+  filter: blur(9px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.drawer.open .drawer-scene {
+  opacity: 1;
+}
+
+.drawer.closing .drawer-scene {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drawer.scenic.landed .drawer-card {
+  background: color-mix(in srgb, var(--tile) 48%, transparent);
+}
+
 /* the page falls back behind the card */
 #app {
   transform-origin: 50% 50%;
