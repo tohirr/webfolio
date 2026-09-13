@@ -162,7 +162,7 @@ export function mount(el) {
 .ps-tag{position:absolute;left:14px;bottom:10px;color:var(--dim);pointer-events:none;user-select:none}
 .ps-row{display:flex;flex-wrap:wrap;gap:.5em 1.2em;align-items:center;justify-content:center;margin-top:1em}
 .ps-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
-.ps-row input[type=range]{width:90px;accent-color:var(--green)}
+.ps-row input[type=range]{width:90px}
 .ps-row output{color:var(--fg);min-width:4ch;font-variant-numeric:tabular-nums}
 .ps-cap{color:var(--dim);margin:1.2em 0 0;text-align:center}
 </style>` +
@@ -340,6 +340,7 @@ export function mount(el) {
   stage.addEventListener("pointerup", (e) => {
     if (!hit0 || !onSphere(e)) return;
     if (Math.abs(e.clientX - dx0) + Math.abs(e.clientY - dy0) > 6) return;
+    e.stopPropagation(); // the tap was the sphere's, not the cell's
     unmuted = !unmuted;
     music.ac.resume().catch(() => {});
     music.master.gain.setTargetAtTime(unmuted ? 0.8 : 0, music.ac.currentTime, 0.08);

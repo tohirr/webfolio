@@ -27,8 +27,10 @@ export function mountDrawer(details) {
     '<div class="drawer-panel">' +
     '<article class="drawer-card" role="dialog" aria-modal="true" aria-labelledby="drawer-title" tabindex="-1">' +
     `<button class="drawer-close" type="button" aria-label="close">${CLOSE_ICON}</button>` +
+    '<div class="drawer-spread">' +
+    '<div class="drawer-stage"></div>' +
     '<div class="drawer-body"></div>' +
-    "</article></div>";
+    "</div></article></div>";
   document.body.appendChild(root);
 
   const app = document.getElementById("app");
@@ -36,6 +38,7 @@ export function mountDrawer(details) {
   const panel = root.querySelector(".drawer-panel");
   const card = root.querySelector(".drawer-card");
   const body = root.querySelector(".drawer-body");
+  const stageEl = root.querySelector(".drawer-stage");
   const closeBtn = root.querySelector(".drawer-close");
 
   let current = null; // the open detail's name
@@ -43,6 +46,7 @@ export function mountDrawer(details) {
   let pushed = false; // did opening add a history entry we can pop
   let anim = null; // the running clip animation, if any
   let scene = null; // { el, mod, opener, cleanup } — the live field behind a scenic card
+  let piece = null; // { cleanup } — the live piece standing in a staged card
 
   /* a detail with `scene` (a lazy module whose mount(el, opts) draws a
      backdrop) gets the live piece behind its card, blurred by css. it sits
@@ -79,6 +83,30 @@ export function mountDrawer(details) {
       tile.render?.();
     }
   };
+  /* a detail with `stage` (a lazy module) gets the piece itself standing in
+     the card — beside the story on a wide screen, above it on a phone. it is
+     the same module the cell runs, mounted a second time with its controls
+     showing, so it is still yours to play with while you read. the cell's
+     copy flies into the stage's slot as the box grows and the live one comes
+     up underneath it, so the object travels to its new place rather than
+     going away and coming back */
+  const openStage = (d, name) => {
+    if (!d.stage) return;
+    stageEl.dataset.piece = name;
+    const mine = (piece = { cleanup: null });
+    d.stage().then((mod) => {
+      if (piece !== mine) return; // closed before the module came
+      mine.cleanup = mod.mount(stageEl);
+    });
+  };
+  const closeStage = () => {
+    if (!piece) return;
+    piece.cleanup?.();
+    piece = null;
+    stageEl.innerHTML = "";
+    delete stageEl.dataset.piece;
+  };
+
   const closeScene = () => {
     if (!scene) return;
     scene.cleanup?.();
@@ -99,12 +127,41 @@ export function mountDrawer(details) {
           (m.ratio ? ` style="aspect-ratio:${m.ratio}"` : "") +
           `>${m.src.map((u) => `<source src="${u}" type="video/${u.split(".").pop()}">`).join("")}</video>`;
 
+  /* the snippets are a few short blocks of my own, so they are coloured by a
+     tokenizer rather than a highlighting library — one regex of alternatives
+     in one pass, so a comment swallows whatever looks like code inside it and
+     nothing is ever re-scanned through markup it just wrote. anything the
+     pass doesn't name stays the body colour, which is most of it */
+  const CODE = new RegExp(
+    [
+      "(?<com>//[^\\n]*)",
+      "(?<str>\"[^\"\\n]*\"|'[^'\\n]*')",
+      "(?<key>\\b(?:const|let|var|if|else|return|new|void|function|in|of)\\b)",
+      "(?<typ>\\b(?:vec[234]|mat[234]|float|int|bool|sampler2D|uniform|attribute|varying)\\b)",
+      "(?<fn>\\b[A-Za-z_]\\w*(?=\\s*\\())",
+      "(?<num>\\b\\d+\\.?\\d*\\b|\\.\\d+\\b)",
+    ].join("|"),
+    "g",
+  );
+  const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
+  const esc = (t) => t.replace(/[&<>]/g, (c) => ESC[c]);
+  const colour = (src) => {
+    let out = "", at = 0;
+    for (const m of src.matchAll(CODE)) {
+      const kind = Object.keys(m.groups).find((k) => m.groups[k] !== undefined);
+      out += esc(src.slice(at, m.index)) + `<i class="t-${kind}">${esc(m[0])}</i>`;
+      at = m.index + m[0].length;
+    }
+    return out + esc(src.slice(at));
+  };
+
   const render = (d) =>
     media(d.media) +
     `<p class="drawer-head"><span class="ink" id="drawer-title">${d.title}</span>` +
     (d.sub ? `<br><span class="dim">${d.sub}</span>` : "") +
     "</p>" +
     d.body +
+    (d.code ? `<pre class="drawer-code"><code>${colour(d.code)}</code></pre>` : "") +
     (d.links?.length
       ? '<p class="drawer-links">' +
         d.links
@@ -169,6 +226,9 @@ export function mountDrawer(details) {
     el.removeAttribute("data-mount");
     el.removeAttribute("href");
     el.removeAttribute("aria-label");
+    el.removeAttribute("tabindex");
+    el.removeAttribute("role");
+    el.querySelectorAll("[tabindex]").forEach((n) => n.removeAttribute("tabindex"));
     el.setAttribute("aria-hidden", "true");
     el.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
     const src = opener.querySelectorAll("canvas"), dst = el.querySelectorAll("canvas");
@@ -186,12 +246,19 @@ export function mountDrawer(details) {
     icon = el;
     return el;
   };
-  /* where the icon goes when the screen is open: centred, and scaled to cover
-     the screen — the same cover the field behind it is mounted at, so the copy
-     and the scene are the same size all through the fade */
+  /* where the icon goes when the screen is open. a scenic card blows it up to
+     cover the screen — the same cover the field behind it is mounted at, so
+     the copy and the scene are the same size all through the fade. a staged
+     card sends it to the stage's slot instead, fitted inside it, which is
+     where the live piece is already standing: the cell doesn't vanish, it
+     walks over and sits down */
   const iconFar = (el) => {
-    const r = el.getBoundingClientRect(), c = cardRect();
-    const k = Math.max(c.width / r.width, c.height / r.height, 1.6);
+    const r = el.getBoundingClientRect();
+    const staged = !!piece;
+    const c = staged ? stageEl.getBoundingClientRect() : cardRect();
+    const k = staged
+      ? Math.min(c.width / r.width, c.height / r.height)
+      : Math.max(c.width / r.width, c.height / r.height, 1.6);
     const dx = c.left + c.width / 2 - (r.left + r.width / 2);
     const dy = c.top + c.height / 2 - (r.top + r.height / 2);
     return `translate(${dx}px, ${dy}px) scale(${k})`;
@@ -207,8 +274,11 @@ export function mountDrawer(details) {
     root.hidden = false;
     root.classList.remove("landed", "closing");
     root.classList.toggle("scenic", !!d.scene);
+    root.classList.toggle("staged", !!d.stage);
     closeScene();
+    closeStage();
     openScene(d);
+    openStage(d, name);
     document.body.style.overflow = "hidden";
     card.scrollTop = 0;
 
@@ -258,6 +328,7 @@ export function mountDrawer(details) {
       root.classList.remove("open", "landed", "closing");
       panel.style.clipPath = "";
       closeScene();
+      closeStage();
       opener?.classList.remove("vacant"); // the field snaps back into the cell
       opener?.focus({ preventScroll: true });
       opener = null;
@@ -315,9 +386,13 @@ export function mountDrawer(details) {
   panel.addEventListener("click", (e) => {
     if (e.target === panel) dismiss(); // the panel's own margin is the backdrop too
   });
-  /* the card fills the screen: anywhere outside the text column is the backdrop */
+  /* the card fills the screen: anywhere outside the story column — and outside
+     the piece standing next to it, which is there to be played with — is the
+     backdrop */
   card.addEventListener("click", (e) => {
-    if (!body.contains(e.target) && !closeBtn.contains(e.target)) dismiss();
+    if (body.contains(e.target) || stageEl.contains(e.target)) return;
+    if (closeBtn.contains(e.target)) return;
+    dismiss();
   });
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && current) dismiss();
@@ -327,7 +402,8 @@ export function mountDrawer(details) {
      the top. it follows the finger, and lets go past a threshold */
   let y0 = -1, dy = 0;
   card.addEventListener("touchstart", (e) => {
-    y0 = card.scrollTop <= 0 ? e.touches[0].clientY : -1;
+    const mine = card.scrollTop <= 0 && !stageEl.contains(e.target);
+    y0 = mine ? e.touches[0].clientY : -1;
     dy = 0;
   }, { passive: true });
   card.addEventListener("touchmove", (e) => {

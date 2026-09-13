@@ -48,7 +48,7 @@ export function mount(el) {
 .vt-tag{position:absolute;left:14px;bottom:10px;color:var(--dim);pointer-events:none;user-select:none}
 .vt-row{display:flex;flex-wrap:wrap;gap:.5em 1.2em;align-items:center;justify-content:center;margin-top:1em}
 .vt-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
-.vt-row input[type=range]{width:90px;accent-color:var(--green)}
+.vt-row input[type=range]{width:90px}
 .vt-row output{color:var(--fg);min-width:3ch;font-variant-numeric:tabular-nums}
 .vt-cap{color:var(--dim);margin:1.2em 0 0;text-align:center}
 </style>` +

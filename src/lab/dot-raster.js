@@ -141,7 +141,7 @@ export function mount(el) {
 .dr-row button:hover{color:var(--fg)}
 .dr-row button.on{color:var(--ink);border-color:var(--green)}
 .dr-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
-.dr-row input[type=range]{width:90px;accent-color:var(--green)}
+.dr-row input[type=range]{width:90px}
 .dr-row output{color:var(--fg);min-width:2.5ch;font-variant-numeric:tabular-nums}
 .dr-cap{color:var(--dim);margin:1.2em 0 0;text-align:center}
 </style>` +

@@ -19,7 +19,7 @@ export function mount(el) {
 .gb-link:hover{opacity:1;text-decoration:none}
 .gb-row{display:flex;flex-wrap:wrap;gap:.5em 1.2em;align-items:center;justify-content:center;margin-top:1em}
 .gb-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
-.gb-row input[type=range]{width:90px;accent-color:var(--green)}
+.gb-row input[type=range]{width:90px}
 .gb-row output{color:var(--fg);min-width:3ch;font-variant-numeric:tabular-nums}
 .gb-cap{color:var(--dim);margin:1.2em 0 0;text-align:center}
 </style>` +

@@ -306,30 +306,34 @@ function sweepSound() {
 export function mount(el) {
   el.innerHTML =
     `<style>
-.fc-scene{perspective:1000px;display:flex;justify-content:center;padding:.5em 0 1em}
+.fc-scene{perspective:1000px;display:flex;justify-content:center;padding:.5em 0 44px}
 .fc-card{position:relative;width:min(280px,72vw);aspect-ratio:3/4.2;border-radius:14px;transform-style:preserve-3d;will-change:transform;box-shadow:0 24px 48px -16px rgba(0,0,0,.6),0 8px 18px -8px rgba(0,0,0,.45);touch-action:none}
 .fc-card canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;display:block}
 .fc-rim{position:absolute;inset:0;border-radius:14px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .fc-row{display:flex;flex-wrap:wrap;gap:.5em 1.4em;align-items:center;justify-content:center}
 .fc-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
-.fc-row input[type=range]{width:90px;accent-color:var(--green)}
+.fc-row input[type=range]{width:90px}
 .fc-row output{color:var(--fg);min-width:2.5ch;font-variant-numeric:tabular-nums}
 .fc-cap{color:var(--dim);margin:1.2em 0 0;text-align:center}
-.fc-gyro{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--dim);padding:.3em .8em;cursor:pointer}
-.fc-gyro:hover{border-color:var(--green)}
+.fc-gyro{font:inherit;letter-spacing:inherit;color:var(--fg);background:transparent;border:1px solid var(--dim);border-radius:6px;padding:.3em .8em;cursor:pointer}
+.fc-gyro:hover{color:var(--ink);border-color:var(--ink)}
+.fc-gyro:focus-visible{outline:1.5px solid var(--ink);outline-offset:2px}
 </style>` +
-    '<div class="fc-scene"><div class="fc-card">' +
+    '<div class="fc-scene"><div class="fc-card" data-act>' +
     '<canvas></canvas><div class="fc-rim"></div></div></div>' +
     '<div class="fc-row">' +
     '<label>px <input type="range" min="2" max="24" value="9" data-p="px"><output>9</output></label>' +
     '<label>holo <input type="range" min="0" max="100" value="60" data-p="fire"><output>60</output></label>' +
-    '<label>rainbow <input type="range" min="0" max="100" value="45" data-p="rainbow"><output>45</output></label>' +
     "</div>" +
     '<p class="fc-cap">hover to catch the light · click for a random card</p>';
 
   const card = el.querySelector(".fc-card");
   const canvas = el.querySelector("canvas");
-  const gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+  const gl = canvas.getContext("webgl", {
+    antialias: false,
+    alpha: false,
+    preserveDrawingBuffer: true, // the story card clones the cell as it opens
+  });
   if (!gl) {
     el.innerHTML = '<p class="fc-cap">webgl unavailable</p>';
     return;
@@ -530,7 +534,11 @@ export function mount(el) {
       Math.max(0, Math.min(1, (e.beta - 45) / 60 + 0.5))
     );
   };
-  const needsPermission = typeof DeviceOrientationEvent !== "undefined" &&
+  /* ios wants a tap before it hands over the motion sensor, so the button
+     buys the permission. desktop safari carries requestPermission too and a
+     mac has nothing to tilt — touch points are what tell the two apart */
+  const needsPermission = navigator.maxTouchPoints > 0 &&
+    typeof DeviceOrientationEvent !== "undefined" &&
     typeof DeviceOrientationEvent.requestPermission === "function";
   if (needsPermission) {
     const btn = document.createElement("button");
@@ -550,6 +558,7 @@ export function mount(el) {
   }
 
   /* ---- controls --------------------------------------------------------- */
+  /* rainbow is not on a slider — 45 is the reading that looks like foil */
   const params = { px: 9, fire: 60, rainbow: 45 };
   for (const input of el.querySelectorAll("[data-p]")) {
     input.addEventListener("input", () => {

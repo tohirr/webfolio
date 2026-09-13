@@ -112,10 +112,10 @@ export function mount(el) {
 </style>` +
     '<div class="tp-stage">' +
     '<div class="tp-frame"><canvas class="tp-pic" aria-hidden="true"></canvas></div>' +
-    '<canvas class="tp-band" role="slider" tabindex="0" aria-label="heading" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°"></canvas>' +
+    '<canvas class="tp-band" data-act role="slider" tabindex="0" aria-label="heading" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0" aria-valuetext="0°"></canvas>' +
     '<span class="tp-val"><b>N</b> 0°</span>' +
     '<span class="tp-tag"></span>' +
-    '<button class="tp-snd" type="button" aria-pressed="true">sound</button>' +
+    '<button class="tp-snd" data-act type="button" aria-pressed="true">sound</button>' +
     "</div>";
 
   const stage = el.querySelector(".tp-stage");
@@ -295,6 +295,7 @@ export function mount(el) {
   if (canFollow) {
     tag.textContent = "tap globe to follow";
     pic.classList.add("tap");
+    pic.setAttribute("data-act", "");
     let tx0 = 0, ty0 = 0;
     pic.addEventListener("pointerdown", (e) => { tx0 = e.clientX; ty0 = e.clientY; });
     pic.addEventListener("pointerup", (e) => {

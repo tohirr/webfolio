@@ -31,18 +31,21 @@ const blocks = [
   {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
+    detail: true,
     kind: "touch",
     load: () => import("./lab/facet-card.js"),
   },
   {
     name: "pulse-sphere",
     sub: "surface-pulsing dot sphere · generative audio",
+    detail: true,
     kind: "touch",
     load: () => import("./lab/pulse-sphere.js"),
   },
   {
     name: "tape",
     sub: "heading tape over a dot globe · detents, momentum, phone compass",
+    detail: true,
     kind: "touch",
     load: () => import("./lab/tape.js"),
   },
@@ -69,6 +72,87 @@ const details = {
     links: [{ label: "gallaria.tohirr.dev", href: GALLARIA_URL }],
     /* the field carries on behind the card */
     scene: () => import("./lab/gallaria.js"),
+  },
+
+  "facet-card": {
+    title: "facet-card",
+    sub: "a trading card with a pixel holo foil",
+    body:
+      `<p>Tilt it with the pointer — on a phone, with the phone — and the foil ` +
+      `catches the light. Click and the card flips to a random one off the ` +
+      `Pok\u00e9mon TCG image CDN, the swap radiating out from where you clicked, ` +
+      `one facet at a time.</p>` +
+      `<p>The shine recipe is real trading-card CSS ` +
+      `(simeydotme's trainer-gallery-holo): rainbow gradient, contrast crush, ` +
+      `hard-light and overlay glare. Here it is rebuilt in a WebGL fragment ` +
+      `shader and lit <em>per facet</em> instead of per pixel — the surface is ` +
+      `quantised to a grid of cells first and each cell handed its own tilted ` +
+      `normal from a hash, so the foil reads as a field of tiny pixels rather ` +
+      `than a smear. Springs use svelte-motion's constants.</p>`,
+    code:
+      `// lit per facet, not per pixel — quantise first\n` +
+      `vec2 id = floor(gl_FragCoord.xy / uCellPx);\n` +
+      `float h1 = hash(id + .13), h2 = hash(id + 7.31);\n` +
+      `vec3 n = vec3(h1 - .5, h2 - .5, 0.) * .55;\n` +
+      `vec3 N = rotY(rotX(normalize(vec3(n.xy, 1.)),\n` +
+      `              uTilt.x), uTilt.y);`,
+    /* the card itself stands beside the story */
+    stage: () => import("./lab/facet-card.js"),
+  },
+
+  "pulse-sphere": {
+    title: "pulse-sphere",
+    sub: "a sphere of dots whose surface pulses with sound",
+    body:
+      `<p>A thousand dots on a Fibonacci sphere, pushed around from underneath ` +
+      `by a generative loop — soft kick, drone, a pentatonic arpeggio, all ` +
+      `synthesised, nothing shipped. Bass bulges the equator, highs shimmer the ` +
+      `poles, the kick thumps the whole body. Colour rides a heat ramp on how ` +
+      `far a dot has been thrown: blue at rest, red where the surface is ` +
+      `moving.</p>` +
+      `<p>The dots never read the spectrum directly. Under them is a damped wave ` +
+      `field on a 64\u00d732 lat-long wrap of the sphere: sound pokes it, ` +
+      `viscosity drags each poke's neighbourhood along, and every dot just ` +
+      `samples the membrane — so the skin moves as <em>one object</em> instead ` +
+      `of a thousand independent needles. Each dot is a pre-rendered sprite; a ` +
+      `thousand canvas arcs a frame would crawl.</p>`,
+    code:
+      `// the analyser sits before the muted master, so\n` +
+      `// the track drives the surface while your ears\n` +
+      `// hear nothing at all\n` +
+      `mix.connect(analyser);\n` +
+      `analyser.connect(master); // 0 gain until a tap\n` +
+      `master.connect(ac.destination);`,
+    stage: () => import("./lab/pulse-sphere.js"),
+  },
+
+  tape: {
+    title: "tape",
+    sub: "a heading tape over a dot globe",
+    body:
+      `<p>The strip out of a glass cockpit's display: ticks sliding under a fixed ` +
+      `centre indicator, one degree a tick, every tick a detent you can feel. ` +
+      `Drag it; flick it and it coasts and settles onto a tick; roll the wheel ` +
+      `over it; step it with the arrow keys. Every tick crossed is a click — a ` +
+      `filtered noise burst pitched by direction — and a short buzz where the ` +
+      `browser has a motor. Land on N, E, S or W and the readout goes green, ` +
+      `the way a level app goes green at zero.</p>` +
+      `<p>Underneath is the earth from straight above Lagos, drawn as a dot ` +
+      `display: a fixed 34-cell grid samples an orthographic hemisphere, land is ` +
+      `a lit dot shaded toward the limb, sea a faint one, and the tape turns the ` +
+      `globe so your heading is up. The coastline is Natural Earth's 110 m line ` +
+      `rasterised to 2\u00b0 cells and packed into a base64 string — about ` +
+      `2.7\u202fkB, so nothing is fetched. Canvas 2D. On a phone, a tap on the ` +
+      `globe hands the dial to the compass.</p>`,
+    code:
+      `// a flick coasts on friction, then the nearest\n` +
+      `// tick pulls it in — the detent is the feel\n` +
+      `vel *= Math.exp(-FRICTION * dt);\n` +
+      `if (Math.abs(vel) < 1.2) {\n` +
+      `  const k = 1 - Math.exp(-dt * 14); // fps-free\n` +
+      `  pos += (Math.round(pos) - pos) * k;\n` +
+      `}`,
+    stage: () => import("./lab/tape.js"),
   },
 };
 
@@ -215,6 +299,36 @@ const KIND = {
     '<path d="M4.4 4.4a5.1 5.1 0 0 0 0 7.2M11.6 4.4a5.1 5.1 0 0 1 0 7.2"/></svg>',
 };
 
+/* a live cell you can touch can't be one big link — a tap on it is a tap on
+   the piece. so the cell opens its story on a tap the piece didn't want: one
+   that missed the piece's own controls (anything marked [data-act]) and that
+   the piece didn't claim by stopping the pointer event on its way up. a drag
+   is never a tap, so the row still scrolls under the finger */
+const tapOpens = (b) => b.detail && b.kind === "touch";
+
+const openOnTap = (el, name) => {
+  let x0 = 0, y0 = 0, mine = false;
+  const act = (e) => e.target.closest?.("[data-act]");
+  el.addEventListener("pointerdown", (e) => {
+    mine = !act(e);
+    x0 = e.clientX;
+    y0 = e.clientY;
+  });
+  el.addEventListener("pointerup", (e) => {
+    const go = mine && !act(e) && Math.abs(e.clientX - x0) + Math.abs(e.clientY - y0) <= 6;
+    mine = false;
+    if (go) location.hash = name;
+  });
+  el.addEventListener("pointercancel", () => { mine = false; });
+  el.addEventListener("keydown", (e) => {
+    if (e.target !== el) return; // the piece's own controls keep their keys
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      location.hash = name;
+    }
+  });
+};
+
 /* on a phone nobody clicks — the intro says what the hand actually does */
 const VERB = matchMedia("(pointer: coarse)").matches ? "touch" : "click";
 
@@ -228,10 +342,12 @@ const tile = (b) =>
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
       `<span class="c-cta">sponsor me →</span></a>`
-    : b.detail
+    : b.detail && !tapOpens(b)
       ? `<a class="tile mark" href="#${b.name}" aria-label="${b.name}" data-mount="${b.name}"></a>`
       : b.href
         ? `<a class="tile mark" href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
+      : tapOpens(b)
+        ? `<div class="tile tappable" role="link" tabindex="0" aria-label="${b.name}" data-mount="${b.name}"></div>`
       : `<div class="tile" data-mount="${b.name}"></div>`) +
   (KIND[b.kind] ? `<span class="kind" title="${b.kind}">${KIND[b.kind]}</span>` : "") +
   `</figure>`;
@@ -276,6 +392,7 @@ import("./avatar.js")
 for (const b of blocks) {
   if (!b.load) continue;
   const el = document.querySelector(`[data-mount="${b.name}"]`);
+  if (tapOpens(b)) openOnTap(el, b.name);
   b.load()
     .then((mod) => mod.mount(el))
     .catch(() => {

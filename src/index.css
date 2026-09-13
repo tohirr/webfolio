@@ -267,18 +267,20 @@ a:hover {
   touch-action: pan-x;
 }
 
-.tile.mark:focus-visible {
+.tile.mark:focus-visible,
+.tile.tappable:focus-visible {
   outline: 1.5px solid var(--ink);
   outline-offset: 3px;
 }
 
-/* the facet-card piece, tamed into a preview: no sliders, no caption,
-   card sized to sit inside the tile. the cell itself is invisible so the
-   card floats on the page, its shadow the only thing placing it */
-.block:has([data-mount="facet-card"]) .tile {
-  background: transparent;
+/* the piece's own controls keep whatever cursor they set for themselves */
+.tile.tappable {
+  cursor: pointer;
 }
 
+/* the facet-card piece, tamed into a preview: no sliders, no caption,
+   card sized to sit inside the tile — on the cell's own surface, like the
+   rest of the row, with the card's shadow falling on it */
 .tile .fc-row,
 .tile .fc-cap {
   display: none;
@@ -318,6 +320,81 @@ a:hover {
   height: 100%;
   max-width: none;
   aspect-ratio: auto;
+}
+
+/* ---- sliders ------------------------------------------------------------
+   the controls the lab pieces carry. the browser's own slider is a fat pill
+   with a coloured fill; these are a hairline with an ink dot riding it, so a
+   row of them reads as quietly as the type around it. drawn on the element
+   itself — every piece's markup is plain `input type=range`, so they all get
+   the same hand without knowing about each other */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  margin: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--dim);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--dim);
+}
+
+/* the dot: centred on the hairline by half its own height less half the
+   track's, and it swells a little under the finger */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: currentColor;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: currentColor;
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.35);
+}
+
+input[type="range"]:hover::-moz-range-thumb,
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.35);
+}
+
+/* the ring is punched out of whatever surface the slider is sitting on */
+input[type="range"]:focus-visible {
+  outline: none;
+}
+
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--tile), 0 0 0 3.5px var(--ink);
+}
+
+input[type="range"]:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 2px var(--tile), 0 0 0 3.5px var(--ink);
 }
 
 /* ---- scroll indicator ---------------------------------------------------
@@ -541,10 +618,85 @@ a:hover {
   outline: none;
 }
 
+/* the card's contents: one column by default — the story, centred, the way
+   it has always been. a staged card is two on a wide screen: the story on
+   the left, the piece on the right, close enough that neither is decoration */
+.drawer-spread {
+  width: 100%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .drawer-body {
   width: 100%;
   max-width: 24rem;
   margin: auto;
+}
+
+/* the stage: the slot the piece stands in, and the far end of the cell's
+   flight. its size comes from the card, not from the piece, so the flight
+   can be measured before the module has finished loading */
+.drawer-stage {
+  display: none;
+}
+
+.drawer.staged .drawer-stage {
+  width: 100%;
+  max-width: 30rem;
+  min-height: min(54svh, 440px);
+  margin: 0 auto 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* the tape needs a height to draw into — the globe takes what is left over
+   the band, so an auto box would collapse it */
+.drawer-stage[data-piece="tape"] {
+  height: min(58svh, 470px);
+}
+
+/* it comes up ahead of the words, so the cell's copy has something live to
+   land on, and goes first on the way out with the rest of the content */
+.drawer-stage {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  min-width: 0;
+}
+
+.drawer.open .drawer-stage {
+  opacity: 1;
+  transition-delay: 0.14s;
+}
+
+.drawer.closing .drawer-stage {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+/* a staged card has no picture to lie behind it, so it keeps the plain
+   surface — and on a wide screen it lays the two columns out side by side,
+   the story set against the piece rather than under it */
+@media (min-width: 900px) {
+  .drawer.staged .drawer-spread {
+    max-width: 62rem;
+    display: grid;
+    grid-template-columns: 24rem minmax(0, 1fr);
+    gap: 0 clamp(40px, 6vw, 88px);
+    align-items: center;
+  }
+
+  .drawer.staged .drawer-body {
+    grid-area: 1 / 1;
+    margin: 0;
+  }
+
+  .drawer.staged .drawer-stage {
+    grid-area: 1 / 2;
+    margin: 0;
+    max-width: none;
+  }
 }
 
 /* the clip sits on top, in the tile's shape */
@@ -575,6 +727,8 @@ a:hover {
   margin-bottom: 1.6em !important;
 }
 
+/* the few lines that are the effect, under the story. a notch smaller than
+   the prose so a line of code clears the column without wrapping */
 .drawer-code {
   margin: 0 0 1em;
   padding: 14px 16px;
@@ -582,8 +736,11 @@ a:hover {
   background: var(--bg);
   color: var(--fg);
   font: inherit;
+  font-size: 12px;
+  line-height: 19px;
   white-space: pre;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .drawer-links a {
