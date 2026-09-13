@@ -5,8 +5,9 @@
   --dim: #6e6e6e;
   --tile: #171717;
   --sel: rgba(255, 255, 255, 0.18);
-  /* accent used by the lab pieces */
+  /* accents the lab pieces use — the heat ramp's green and amber */
   --green: #4ade80;
+  --amber: #f59e0b;
   --card-shadow:
     0 24px 48px -16px rgba(0, 0, 0, 0.6),
     0 8px 18px -8px rgba(0, 0, 0, 0.45);
@@ -22,6 +23,7 @@
     --tile: #f7f7f7;
     --sel: rgba(0, 0, 0, 0.1);
     --green: #15803d;
+    --amber: #d97706;
     --card-shadow:
       0 18px 36px -18px rgba(0, 0, 0, 0.22),
       0 6px 14px -8px rgba(0, 0, 0, 0.1);
@@ -741,6 +743,33 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   white-space: pre;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+}
+
+/* the snippet's colours, all of them borrowed from somewhere else on the
+   page: comments recede to the caption grey, the language's own words take
+   the pieces' green, what is called takes the ink the prose emphasises with,
+   and the literals take the heat ramp's amber. everything else is body text,
+   which is most of a line */
+.drawer-code i {
+  font-style: normal;
+}
+
+.t-com {
+  color: var(--dim);
+}
+
+.t-key,
+.t-typ {
+  color: var(--green);
+}
+
+.t-fn {
+  color: var(--ink);
+}
+
+.t-num,
+.t-str {
+  color: var(--amber);
 }
 
 .drawer-links a {
