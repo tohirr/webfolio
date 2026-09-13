@@ -60,9 +60,9 @@ export function mountDrawer(details) {
       if (scene !== mine) return; // closed before the module came
       mine.mod = mod;
       const cam = mod.handles?.get(opener)?.cam;
-      const r = opener?.getBoundingClientRect();
+      const r = tileRect();
       const from =
-        cam && r?.width
+        cam && r
           ? { ...cam, zoom: cam.zoom * Math.max(innerWidth / r.width, innerHeight / r.height) }
           : cam;
       mine.cleanup = mod.mount(el, { scene: true, from });
@@ -116,22 +116,43 @@ export function mountDrawer(details) {
   /* a rectangle as a clip on the full-viewport panel */
   const clipOf = (r, radius) =>
     `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px round ${radius})`;
+  /* the tile's slot with the page's push-back taken out of it — where the
+     cell sits when the page is at rest, which is where the box grows from and
+     where it folds back to. the push is a transition, so the class is no guide
+     to where the tile is drawn: on the frame the class flips, the box still
+     measures its old size. the scale comes off the matrix instead */
+  const tileRect = () => {
+    const r = opener?.getBoundingClientRect();
+    if (!r?.width) return null;
+    const t = getComputedStyle(app).transform;
+    const k = t === "none" ? 1 : new DOMMatrixReadOnly(t).a;
+    if (k === 1) return r;
+    const a = app.getBoundingClientRect(); // scaled about its centre, so the centre holds still
+    const cx = a.left + a.width / 2, cy = a.top + a.height / 2;
+    const left = cx + (r.left - cx) / k, right = cx + (r.right - cx) / k;
+    const top = cy + (r.top - cy) / k, bottom = cy + (r.bottom - cy) / k;
+    return { left, right, top, bottom, width: right - left, height: bottom - top };
+  };
   const tileClip = () => {
-    let r = opener?.getBoundingClientRect();
+    const r = tileRect();
     // no tile on screen (a deep link with the row scrolled away): grow from the middle
-    if (!r || !r.width) {
+    if (!r) {
       return clipOf({ top: innerHeight / 2, bottom: innerHeight / 2, left: innerWidth / 2, right: innerWidth / 2 }, "0px");
-    }
-    // while the page is pushed back the tile measures 4% small; undo that so
-    // the card folds into where the tile will be once the page comes forward
-    if (app.classList.contains("pushed")) {
-      const a = app.getBoundingClientRect();
-      const cx = a.left + a.width / 2, cy = a.top + a.height / 2, k = 1 / 0.96;
-      r = { left: cx + (r.left - cx) * k, right: cx + (r.right - cx) * k, top: cy + (r.top - cy) * k, bottom: cy + (r.bottom - cy) * k };
     }
     return clipOf(r, `${TILE_R}px`);
   };
-  const cardClip = () => clipOf(card.getBoundingClientRect(), getComputedStyle(card).borderRadius);
+  /* the card's rectangle with the pull-down taken out of it. letting go of a
+     drag starts the card's transition home, so for the frame close() measures
+     it the card still sits where the finger left it — while the field behind
+     it and the box around it never moved with the finger at all */
+  const cardRect = () => {
+    const r = card.getBoundingClientRect();
+    const t = getComputedStyle(card).transform;
+    if (t === "none") return r;
+    const m = new DOMMatrixReadOnly(t);
+    return new DOMRect(r.left - m.e, r.top - m.f, r.width, r.height);
+  };
+  const cardClip = () => clipOf(cardRect(), getComputedStyle(card).borderRadius);
 
   /* the icon: a copy of the cell, laid over the box at the tile's rectangle.
      opening, it scales up toward the screen and fades out as the content
@@ -142,8 +163,8 @@ export function mountDrawer(details) {
     icon?.remove();
     icon = null;
     if (!opener) return null;
-    const r = opener.getBoundingClientRect();
-    if (!r.width) return null;
+    const r = tileRect();
+    if (!r) return null;
     const el = opener.cloneNode(true);
     el.removeAttribute("data-mount");
     el.removeAttribute("href");
@@ -165,10 +186,12 @@ export function mountDrawer(details) {
     icon = el;
     return el;
   };
-  /* where the icon goes when the screen is open: centred, scaled to the width */
+  /* where the icon goes when the screen is open: centred, and scaled to cover
+     the screen — the same cover the field behind it is mounted at, so the copy
+     and the scene are the same size all through the fade */
   const iconFar = (el) => {
-    const r = el.getBoundingClientRect(), c = card.getBoundingClientRect();
-    const k = Math.max(c.width / r.width, 1.6);
+    const r = el.getBoundingClientRect(), c = cardRect();
+    const k = Math.max(c.width / r.width, c.height / r.height, 1.6);
     const dx = c.left + c.width / 2 - (r.left + r.width / 2);
     const dy = c.top + c.height / 2 - (r.top + r.height / 2);
     return `translate(${dx}px, ${dy}px) scale(${k})`;
