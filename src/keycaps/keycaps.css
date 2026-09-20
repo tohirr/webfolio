@@ -1,0 +1,105 @@
+/* /keycaps/ — a model editor's layout: the viewport takes the window, the
+   inspector sits down the right and scrolls on its own */
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#keycaps {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.kp-top {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--tile);
+}
+
+.kp-back,
+.kp-title {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.kp-back:hover {
+  color: var(--ink);
+}
+
+.kp-title b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* the piece: stage and panel side by side */
+.kp-piece {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.kp-piece .kc-stage {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  aspect-ratio: auto;
+  height: 100%;
+  margin: 0;
+  cursor: grab;
+}
+
+.kp-piece .kc-stage:active {
+  cursor: grabbing;
+}
+
+.kp-piece .kc-panel {
+  flex: none;
+  width: 360px;
+  max-width: none;
+  margin: 0;
+  padding: 18px 20px 40px;
+  overflow-y: auto;
+  border-left: 1px solid var(--tile);
+  align-content: start;
+}
+
+.kp-piece .kc-cap {
+  display: none;
+}
+
+/* narrow: the inspector goes under the viewport */
+@media (max-width: 760px) {
+  html,
+  body {
+    overflow: auto;
+  }
+
+  #keycaps {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .kp-piece {
+    flex-direction: column;
+  }
+
+  .kp-piece .kc-stage {
+    flex: none;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .kp-piece .kc-panel {
+    width: 100%;
+    border-left: 0;
+    border-top: 1px solid var(--tile);
+  }
+}

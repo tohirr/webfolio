@@ -10,11 +10,13 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // three pages: the portfolio, the glass camera at /glass/, the ice cube at /cube/
+      // the pages: the portfolio, the glass camera at /glass/, the ice cube
+      // at /cube/, the keycap configurator at /keycaps/
       input: {
         main: page("index.html"),
         glass: page("glass/index.html"),
         cube: page("cube/index.html"),
+        keycaps: page("keycaps/index.html"),
       },
     },
   },

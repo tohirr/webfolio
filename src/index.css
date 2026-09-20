@@ -298,13 +298,42 @@ a:hover {
   width: 62%;
 }
 
-/* the pulse-sphere piece: controls hidden, the whole tile becomes the display */
-.tile .ps-row,
-.tile .ps-cap {
+/* the keycaps piece: no panel, no caption, the plate fills the cell's
+   width with room above and below to tap the story open */
+.tile .kc-panel,
+.tile .kc-cap {
   display: none;
 }
 
-.tile .ps-stage {
+.tile .kc-stage {
+  max-width: none;
+  width: 100%;
+}
+
+/* the holo-button piece: no sliders, no caption, the button scaled up
+   to sit in the cell */
+.tile .hb-row,
+.tile .hb-cap {
+  display: none;
+}
+
+.tile .hb-stage {
+  padding: 0;
+}
+
+.tile .hb-btn {
+  /* the piece writes the cell's width into --hb-w, so the button grows
+     with the cell and a 1080px capture frame gets a button worth filming */
+  font-size: clamp(18px, calc(var(--hb-w, 300px) * 0.085), 84px);
+}
+
+/* the morph piece: controls hidden, the whole tile becomes the display */
+.tile .mo-row,
+.tile .mo-cap {
+  display: none;
+}
+
+.tile .mo-stage {
   width: 100%;
   height: 100%;
   max-width: none;
@@ -322,6 +351,17 @@ a:hover {
   height: 100%;
   max-width: none;
   aspect-ratio: auto;
+}
+
+/* the feldy screens, in the cell: the picture is the whole tile — no
+   arrows, dots or caption, the whole cell is the link to the story */
+.tile .fs-row,
+.tile .fs-cap {
+  display: none !important;
+}
+
+.tile .fs-pics {
+  border-radius: 0;
 }
 
 /* ---- sliders ------------------------------------------------------------
@@ -659,6 +699,23 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   height: min(58svh, 470px);
 }
 
+/* the phone screens are tall: the picture takes the stage's height and
+   its width follows, so the arrows and caption sit right under it */
+.drawer-stage[data-piece="feldy"] {
+  height: min(66svh, 600px);
+}
+
+.drawer-stage[data-piece="feldy"] .fs-pics {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: auto;
+  aspect-ratio: 900 / 1262;
+  max-width: 100%;
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
+}
+
 /* it comes up ahead of the words, so the cell's copy has something live to
    land on, and goes first on the way out with the rest of the content */
 .drawer-stage {
@@ -814,7 +871,7 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   /* width is the screen's, so height comes from the ratio — a taller
      shape than the desktop cell, and no viewport cap */
   .tile {
-    --ps-scale: 0.42;
+    --mo-scale: 0.42;
     width: 100%;
     height: auto;
     aspect-ratio: 5 / 7;

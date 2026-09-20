@@ -29,6 +29,13 @@ const blocks = [
     load: () => import("./lab/gallaria.js"),
   },
   {
+    name: "feldy",
+    sub: "the field app · react native, on the app store and google play",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/feldy-screens.js"),
+  },
+  {
     name: "facet-card",
     sub: "pixel holo foil · webgl",
     detail: true,
@@ -36,11 +43,25 @@ const blocks = [
     load: () => import("./lab/facet-card.js"),
   },
   {
-    name: "pulse-sphere",
-    sub: "surface-pulsing dot sphere · generative audio",
+    name: "keycaps",
+    sub: "text set as keycaps · three.js",
     detail: true,
     kind: "touch",
-    load: () => import("./lab/pulse-sphere.js"),
+    load: () => import("./lab/keycaps.js"),
+  },
+  {
+    name: "holo-button",
+    sub: "a button whose ripple is holo foil · webgl",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/holo-button.js"),
+  },
+  {
+    name: "morph",
+    sub: "dots that morph with music · bring your own tracks",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/morph.js"),
   },
   {
     name: "tape",
@@ -74,6 +95,41 @@ const details = {
     scene: () => import("./lab/gallaria.js"),
   },
 
+  feldy: {
+    title: "feldy",
+    sub: "the field app, on the app store and google play",
+    body:
+      `<p>The phone a roofing crew takes onto the job. Photos and videos ` +
+      `that file themselves under the right project, a walkthrough you ` +
+      `narrate while you shoot, a 3D model of the roof back from a scan, an ` +
+      `estimate built from what happened on site, a proposal to hand the ` +
+      `customer — and an AI receptionist that answers the office phone ` +
+      `while everyone is up a ladder.</p>` +
+      `<p>React Native and Expo, TypeScript end to end, one codebase for ` +
+      `iOS and Android. I started it in December 2025 and have been its main ` +
+      `engineer since: sign-in and onboarding, the photo editor, the maps, ` +
+      `the estimate flow, the receptionist, push notifications and deep ` +
+      `links, and every release — store builds and over-the-air updates. ` +
+      `These are the screens from its store listing; the app itself is a ` +
+      `download away.</p>`,
+    code:
+      `// the reset email links to the web app, since the same\n` +
+      `// mail goes to web users — a universal link rewrites\n` +
+      `// it onto the native screen instead of falling through\n` +
+      `const WEB_RESET = /^\\/auth\\/jwt\\/reset_password\\/([A-Za-z0-9]+)\\/?$/;\n` +
+      `export function redirectSystemPath({ path }) {\n` +
+      `  const m = WEB_RESET.exec(path);\n` +
+      `  return m ? "/reset-password/" + m[1] : path;\n` +
+      `}`,
+    links: [
+      { label: "app store", href: FELDY_APP_STORE },
+      { label: "google play", href: FELDY_PLAY_STORE },
+      { label: "feldy.ai", href: FELDY_URL },
+    ],
+    /* the screens stand beside the story, arrows out */
+    stage: () => import("./lab/feldy-screens.js"),
+  },
+
   "facet-card": {
     title: "facet-card",
     sub: "a trading card with a pixel holo foil",
@@ -100,30 +156,85 @@ const details = {
     stage: () => import("./lab/facet-card.js"),
   },
 
-  "pulse-sphere": {
-    title: "pulse-sphere",
-    sub: "a sphere of dots whose surface pulses with sound",
+  keycaps: {
+    title: "keycaps",
+    sub: "text set as keycaps",
     body:
-      `<p>A thousand dots on a Fibonacci sphere, pushed around from underneath ` +
-      `by a generative loop — soft kick, drone, a pentatonic arpeggio, all ` +
-      `synthesised, nothing shipped. Bass bulges the equator, highs shimmer the ` +
-      `poles, the kick thumps the whole body. Colour rides a heat ramp on how ` +
-      `far a dot has been thrown: blue at rest, red where the surface is ` +
-      `moving.</p>` +
-      `<p>The dots never read the spectrum directly. Under them is a damped wave ` +
-      `field on a 64\u00d732 lat-long wrap of the sphere: sound pokes it, ` +
-      `viscosity drags each poke's neighbourhood along, and every dot just ` +
-      `samples the membrane — so the skin moves as <em>one object</em> instead ` +
-      `of a thousand independent needles. Each dot is a pre-rendered sprite; a ` +
-      `thousand canvas arcs a frame would crawl.</p>`,
+      `<p>Type a line and every word becomes a cap — or every letter, in ` +
+      `letters mode — up to eight, in rows, shot straight from above so the ` +
+      `caps face you. Click a cap to pick it and it lifts; give it a colour, ` +
+      `a finish — matte, gloss, clear resin, metal — and a font: mono, sans, ` +
+      `serif, or pixel. Press a cap and it travels on a stiff spring with a ` +
+      `click and a thock under it. Download renders the caps to a square ` +
+      `PNG.</p>` +
+      `<p>Every cap is one rounded box, tapered toward the top, which from ` +
+      `above is what shows its sides on every edge. A word's legend shrinks ` +
+      `until it spans the cap. The resin caps carry their colour in the ` +
+      `attenuation rather than the surface, so light goes in white and comes ` +
+      `out tinted, and the pixel font is the legend rasterised nine cells ` +
+      `tall and blown up with smoothing off, so every stroke lands on a ` +
+      `coarse grid in the plastic.</p>`,
+    links: [{ label: "open the configurator", href: "/keycaps/" }],
     code:
-      `// the analyser sits before the muted master, so\n` +
-      `// the track drives the surface while your ears\n` +
-      `// hear nothing at all\n` +
+      `// a word a cap, or a letter a cap — eight at most\n` +
+      `const tokenize = (line, mode) =>\n` +
+      `  (mode === "letters"\n` +
+      `    ? [...line].map((ch) => ch.trim())\n` +
+      `    : line.split(/\\s+/).filter(Boolean)\n` +
+      `  ).slice(0, MAX);`,
+    stage: () => import("./lab/keycaps.js"),
+  },
+
+  "holo-button": {
+    title: "holo-button",
+    sub: "a button whose press ripple is holographic foil",
+    body:
+      `<p>Material's ripple: it starts where you press, grows to cover the ` +
+      `button, holds while you hold, and cools when you let go. Here the wave ` +
+      `is foil instead of a translucent disc. Hold it and the whole button ` +
+      `charges; move the pointer and the light rolls across the facets.</p>` +
+      `<p>The foil is the facet-card recipe on a canvas under the label: the ` +
+      `surface is quantised to a grid of cells, each cell hashed its own tilted ` +
+      `normal, and the light hangs off the pointer. The ripple is a hard, ` +
+      `cell-stepped disc with a jittered rainbow ring riding its edge, so the ` +
+      `wavefront is ragged by exactly one pixel. Screen-blended on dark, ` +
+      `multiplied on light. A spring squashes the press.</p>`,
+    code:
+      `// the wave: a facet-stepped disc, ragged by one\n` +
+      `// cell, with a rainbow ring riding the edge\n` +
+      `float d = distance(cp, R.xy * asp) + jit;\n` +
+      `mask  += (1. - step(R.z, d)) * R.w;   // charge\n` +
+      `front += 1. - smoothstep(0., .14, abs(d - R.z));`,
+    stage: () => import("./lab/holo-button.js"),
+  },
+
+  morph: {
+    title: "morph",
+    sub: "a cloud of dots that morphs with music",
+    body:
+      `<p>Fourteen hundred dots on a golden-ratio lattice, each with a seat on ` +
+      `four shapes — sphere, record, sheet, helix. Tap the cloud ` +
+      `and every dot leaves for its next seat in turn, so the change sweeps ` +
+      `through rather than snapping; a hard drop in the music turns the page ` +
+      `on its own. Each frame is drawn over a faded, slightly zoomed copy of ` +
+      `the last, the way the old media-player visualizers did it, so the ` +
+      `louder the passage the longer the trails.</p>` +
+      `<p>The dots never read the spectrum directly. Under them is a damped ` +
+      `wave field: sound pokes it, viscosity drags each poke's neighbourhood ` +
+      `along, and every dot samples the membrane along its surface normal — ` +
+      `so the skin moves as <em>one object</em> on whichever shape it is ` +
+      `wearing. A generative loop plays whenever the cloud is on screen; ` +
+      `add your own tracks and they play right here, in ` +
+      `the browser, never uploaded — or hand it the microphone and let the ` +
+      `room move it.</p>`,
+    code:
+      `// the analyser sits before the master, so the\n` +
+      `// track drives the surface whether or not the\n` +
+      `// master is letting it through\n` +
       `mix.connect(analyser);\n` +
-      `analyser.connect(master); // 0 gain until a tap\n` +
+      `analyser.connect(master); // 0 off screen, or muted\n` +
       `master.connect(ac.destination);`,
-    stage: () => import("./lab/pulse-sphere.js"),
+    stage: () => import("./lab/morph.js"),
   },
 
   tape: {

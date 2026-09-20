@@ -307,9 +307,9 @@ export function mount(el) {
   el.innerHTML =
     `<style>
 .fc-scene{perspective:1000px;display:flex;justify-content:center;padding:.5em 0 44px}
-.fc-card{position:relative;width:min(280px,72vw);aspect-ratio:3/4.2;border-radius:14px;transform-style:preserve-3d;will-change:transform;box-shadow:0 24px 48px -16px rgba(0,0,0,.6),0 8px 18px -8px rgba(0,0,0,.45);touch-action:none}
-.fc-card canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;display:block}
-.fc-rim{position:absolute;inset:0;border-radius:14px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.fc-card{position:relative;width:min(280px,72vw);aspect-ratio:3/4.2;border-radius:var(--fc-r,14px);transform-style:preserve-3d;will-change:transform;box-shadow:0 24px 48px -16px rgba(0,0,0,.6),0 8px 18px -8px rgba(0,0,0,.45);touch-action:none}
+.fc-card canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:var(--fc-r,14px);display:block}
+.fc-rim{position:absolute;inset:0;border-radius:var(--fc-r,14px);pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .fc-row{display:flex;flex-wrap:wrap;gap:.5em 1.4em;align-items:center;justify-content:center}
 .fc-row label{display:flex;align-items:center;gap:.5em;color:var(--dim)}
 .fc-row input[type=range]{width:90px}
@@ -583,6 +583,13 @@ export function mount(el) {
       canvas.width = w;
       canvas.height = h;
       gl.viewport(0, 0, w, h);
+      /* the corner has to scale with the card. some scans round their own
+         corners and the context is alpha:false, so what sits outside the
+         artwork is black — a clip that stays 14px while the card grows
+         stops covering it and the black shows as a crescent. 14px was
+         tuned against a 280px card (5%); it holds as the floor so the tile
+         is unchanged, and above that the corner grows with the artwork. */
+      card.style.setProperty("--fc-r", `${Math.max(14, Math.round(canvas.clientWidth * 0.05))}px`);
     }
     const dt = Math.min((t - last) / 1000, 0.032);
     last = t;
