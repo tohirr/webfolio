@@ -319,23 +319,26 @@ const details = {
 
   calendar: {
     title: "calendar",
-    sub: "a widget that shows a live event running",
+    sub: "a concept, drawn in figma",
     body:
-      `<p>The calendar widget is glanced at, not read. Mid-meeting there is ` +
-      `one question \u2014 how much longer \u2014 and the widget as it ships ` +
-      `answers it with two timestamps and leaves you the subtraction. So while ` +
-      `an event is running its block drains and says the number: ` +
-      `<em>30 min left</em>.</p>` +
-      `<p>The first pass ran the fill behind the text, which is the mistake: ` +
-      `over ninety minutes the edge sweeps straight across the title, so the ` +
-      `contrast under a word changes as time passes and you cannot flip the ` +
-      `text colour to fix it \u2014 the edge cuts through mid-glyph. The block ` +
-      `moved to a solid that carries its own text instead, with the pale ` +
-      `remainder as the track behind it.</p>` +
-      `<p>It is buildable, and cheaply: a widget gets a few dozen refreshes a ` +
-      `day and animating this by hand would spend all of them, but WidgetKit ` +
-      `will drive a progress view off a date range on its own. The fill is one ` +
-      `of the rare things a widget can move for free.</p>`,
+      `<p>A mockup, not a build \u2014 no Xcode was opened for it. On the left, ` +
+      `the widget as it ships today. It is glanced at, not read, and the glance ` +
+      `mid-meeting asks one question \u2014 how much longer \u2014 which two ` +
+      `timestamps answer only once you have done the subtraction yourself. On ` +
+      `the right, the concept: a running event's block drains and says the ` +
+      `number, <em>30 min left</em>.</p>` +
+      `<p>An earlier pass, not pictured, ran the fill behind the text, which is ` +
+      `the mistake: over ninety minutes the edge sweeps straight across the ` +
+      `title, so the contrast under a word changes as time passes and you ` +
+      `cannot flip the text colour to fix it \u2014 the edge cuts through ` +
+      `mid-glyph. This one moves the fill into a solid carrying its own text, ` +
+      `with the pale remainder as the track behind it. The title still runs ` +
+      `past that block's edge, which is the next pass's problem.</p>` +
+      `<p>Nothing here is built, though it would not be costly to. A widget gets ` +
+      `a few dozen refreshes a day and animating a fill by hand would spend ` +
+      `all of them \u2014 except that WidgetKit will drive a progress view off ` +
+      `a date range on its own, which makes this one of the rare things a ` +
+      `widget can move for free. Roughly what would carry it:</p>`,
     code:
       `// the system redraws this one \u2014 no timeline entry\n` +
       `// per minute, no refresh budget spent on it\n` +
