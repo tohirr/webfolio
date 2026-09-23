@@ -15,6 +15,15 @@
 
 import { audio } from "./audio.js";
 import { unlockAudio } from "./audio-unlock.js";
+
+/* the cell and the story card run this module at the same time — the card
+   mounts a second copy and the cell deliberately stays put underneath it. both
+   are on screen, so both used to open their master and the loop played twice
+   over the one shared context. only one copy gets the speakers: the staged one
+   while it is up, the cell's when it closes. the quiet one keeps drawing */
+const mounted = new Set();
+const speaker = () => [...mounted].find((m) => m.staged) || [...mounted][0];
+const rebalance = () => mounted.forEach((m) => m.apply());
 import { SHAPES, seats } from "./morph-shapes.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -349,6 +358,7 @@ export function mount(el) {
   const band = buildAudio();
   let unmuted = true; // the listener's choice: on until they mute it
   let shown = false; // half the piece on screen — sound is gated on it too
+  const me = { staged, apply: () => applySound() }; // this copy, to the rest
   const tracks = []; // { name, url } — the listener's files, in order
   let ti = -1;
   let micOn = false;
@@ -371,11 +381,14 @@ export function mount(el) {
   /* what the ears get: the listener's choice, and only while the piece is
      on screen and the mic is closed */
   const applySound = () => {
-    const on = unmuted && shown && !micOn;
+    const on = unmuted && shown && !micOn && speaker() === me;
     band.master.gain.setTargetAtTime(on ? 0.8 : 0, band.ac.currentTime, 0.08);
     const a = band.el;
     if (a && tracks[ti]) on ? a.play().catch(() => {}) : a.pause();
   };
+  mounted.add(me);
+  rebalance(); // the newcomer may have just taken the speakers
+
   const setSound = (on) => {
     unmuted = on;
     applySound();
@@ -707,6 +720,8 @@ export function mount(el) {
 
   return () => {
     alive = false;
+    mounted.delete(me);
+    rebalance(); // hand the speakers back to whoever is left
     cancelAnimationFrame(raf);
     io.disconnect();
     clearTimeout(noteTimer);
