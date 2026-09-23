@@ -83,7 +83,7 @@ const blocks = [
   {
     name: "calendar",
     sub: "a calendar widget that shows a live event running \u00b7 concept",
-    ratio: "1846 / 1092",
+    ratio: "2000 / 1150",
     detail: true,
     kind: "more",
     load: () => import("./lab/calendar.js"),

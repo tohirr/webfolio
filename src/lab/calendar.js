@@ -5,8 +5,8 @@
    the piece is the comparison — the widget as it ships next to the concept —
    so the cell is a landscape one and the picture is the whole of it. */
 
-const FRAME = { w: 1846, h: 1092 };
-const LIGHT = "/media/calendar/full.png";
+const FRAME = { w: 2000, h: 1150 };
+const LIGHT = "/media/calendar/full.webp";
 const DARK = null; // a dark render goes here and the picture starts switching
 const PAPER = "#e5e5e5"; // the figma frame's own ground, under it while it loads
 

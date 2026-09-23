@@ -753,7 +753,7 @@ input[type="range"]:focus-visible::-moz-range-thumb {
    measure before the picture has loaded */
 .drawer-stage[data-piece="calendar"] {
   min-height: 0;
-  aspect-ratio: 1846 / 1092;
+  aspect-ratio: 2000 / 1150;
 }
 
 .drawer-stage[data-piece="calendar"] .cw-whole {
