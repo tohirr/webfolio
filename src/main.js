@@ -30,10 +30,19 @@ const blocks = [
   },
   {
     name: "feldy",
+    hidden: true,
     sub: "the field app · react native, on the app store and google play",
     detail: true,
     kind: "more",
     load: () => import("./lab/feldy-screens.js"),
+  },
+  {
+    name: "eyes",
+    hidden: true,
+    sub: "a face that notices you, and gets bored · canvas",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/eyes.js"),
   },
   {
     name: "facet-card",
@@ -51,6 +60,7 @@ const blocks = [
   },
   {
     name: "holo-button",
+    hidden: true,
     sub: "a button whose ripple is holo foil · webgl",
     detail: true,
     kind: "touch",
@@ -70,8 +80,21 @@ const blocks = [
     kind: "touch",
     load: () => import("./lab/tape.js"),
   },
+  {
+    name: "calendar",
+    sub: "a calendar widget that shows a live event running \u00b7 concept",
+    ratio: "1846 / 1092",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/calendar.js"),
+  },
   { name: "coffee", coffee: true },
 ];
+
+/* pieces parked for now keep their entry and their story — they just
+   take no cell, and answer no deep link, until the flag comes off */
+const shown = blocks.filter((b) => !b.hidden);
+const parked = new Set(blocks.filter((b) => b.hidden).map((b) => b.name));
 
 /* ---- details: what opens when a tile is tapped. a block with `detail: true`
    looks up its name here — { title, sub, body, links, media? } ---------- */
@@ -128,6 +151,34 @@ const details = {
     ],
     /* the screens stand beside the story, arrows out */
     stage: () => import("./lab/feldy-screens.js"),
+  },
+
+  eyes: {
+    title: "eyes",
+    sub: "a face that notices you, and gets bored",
+    body:
+      `<p>Two eyes and two brows on a grid, and nothing else. Move the ` +
+      `pointer anywhere on the page and they follow it — after a beat, ` +
+      `because reacting the instant you arrive is the tell that nothing is ` +
+      `home. Stop moving and they lose interest and start glancing about on ` +
+      `their own. Leave them alone long enough and they doze off.</p>` +
+      `<p>None of what makes it read as alive is in the drawing. It is the ` +
+      `delay before it notices, the spring that snaps on a long look and ` +
+      `drifts on a short one, the blink that fires on a hard turn as well as ` +
+      `on its own clock, the breath built from two sines that never line up, ` +
+      `and the attention that decays. Underneath, every value is continuous; ` +
+      `at draw, every one is snapped to a cell — so it moves in steps and ` +
+      `never jitters.</p>`,
+    code:
+      `// noticing takes a beat, and interest decays\n` +
+      `const active = ptr && t - lastMove < BORED;\n` +
+      `if (ptr && !noticed && t - firstSeen > NOTICE) noticed = true;\n` +
+      `if (noticed && !active) { noticed = false; glance(); }\n` +
+      `\n` +
+      `// a long look lands like a saccade, a short one drifts\n` +
+      `const far = Math.abs(s.t - s.v) > 1.1;\n` +
+      `s.k = far ? 420 : 150;`,
+    stage: () => import("./lab/eyes.js"),
   },
 
   "facet-card": {
@@ -264,6 +315,38 @@ const details = {
       `  pos += (Math.round(pos) - pos) * k;\n` +
       `}`,
     stage: () => import("./lab/tape.js"),
+  },
+
+  calendar: {
+    title: "calendar",
+    sub: "a widget that shows a live event running",
+    body:
+      `<p>The calendar widget is glanced at, not read. Mid-meeting there is ` +
+      `one question \u2014 how much longer \u2014 and the widget as it ships ` +
+      `answers it with two timestamps and leaves you the subtraction. So while ` +
+      `an event is running its block drains and says the number: ` +
+      `<em>30 min left</em>.</p>` +
+      `<p>The first pass ran the fill behind the text, which is the mistake: ` +
+      `over ninety minutes the edge sweeps straight across the title, so the ` +
+      `contrast under a word changes as time passes and you cannot flip the ` +
+      `text colour to fix it \u2014 the edge cuts through mid-glyph. The block ` +
+      `moved to a solid that carries its own text instead, with the pale ` +
+      `remainder as the track behind it.</p>` +
+      `<p>It is buildable, and cheaply: a widget gets a few dozen refreshes a ` +
+      `day and animating this by hand would spend all of them, but WidgetKit ` +
+      `will drive a progress view off a date range on its own. The fill is one ` +
+      `of the rare things a widget can move for free.</p>`,
+    code:
+      `// the system redraws this one \u2014 no timeline entry\n` +
+      `// per minute, no refresh budget spent on it\n` +
+      `ProgressView(timerInterval: event.start...event.end,\n` +
+      `             countsDown: false) {\n` +
+      `  Text(event.title)\n` +
+      `}\n` +
+      `.progressViewStyle(.linear)`,
+    /* the concept stands next to the shipping widget \u2014 the comparison is
+       the piece, so the stage shows the whole frame */
+    stage: () => import("./lab/calendar.js"),
   },
 };
 
@@ -447,6 +530,10 @@ const VERB = matchMedia("(pointer: coarse)").matches ? "touch" : "click";
 
 const ext = 'target="_blank" rel="noreferrer"';
 
+/* a landscape piece sets its own ratio on the cell \u2014 everything else
+   takes the row's portrait shape from the stylesheet */
+const shape = (b) => (b.ratio ? ` style="--ratio: ${b.ratio}"` : "");
+
 const tile = (b) =>
   `<figure class="block" aria-label="${b.name}">` +
   (b.coffee
@@ -454,12 +541,12 @@ const tile = (b) =>
       `<span class="c-line">interfaces run on caffeine</span>` +
       `<span class="c-cta">sponsor me →</span></a>`
     : b.detail && !tapOpens(b)
-      ? `<a class="tile mark" href="#${b.name}" aria-label="${b.name}" data-mount="${b.name}"></a>`
+      ? `<a class="tile mark"${shape(b)} href="#${b.name}" aria-label="${b.name}" data-mount="${b.name}"></a>`
       : b.href
-        ? `<a class="tile mark" href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
+        ? `<a class="tile mark"${shape(b)} href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
       : tapOpens(b)
-        ? `<div class="tile tappable" role="link" tabindex="0" aria-label="${b.name}" data-mount="${b.name}"></div>`
-      : `<div class="tile" data-mount="${b.name}"></div>`) +
+        ? `<div class="tile tappable"${shape(b)} role="link" tabindex="0" aria-label="${b.name}" data-mount="${b.name}"></div>`
+      : `<div class="tile"${shape(b)} data-mount="${b.name}"></div>`) +
   (KIND[b.kind] ? `<span class="kind" title="${b.kind}">${KIND[b.kind]}</span>` : "") +
   `</figure>`;
 
@@ -482,15 +569,19 @@ document.getElementById("app").innerHTML =
   `<p>Open to design engineer roles — <a href="${CAL_URL}" ${ext}>let’s talk</a>.</p>` +
   `</section>` +
   `<div class="bars" aria-hidden="true">` +
-  blocks.map(() => `<i></i>`).join("") +
+  shown.map(() => `<i></i>`).join("") +
   `</div>` +
   `<section class="blocks" aria-label="work">` +
-  blocks.map(tile).join("") +
+  shown.map(tile).join("") +
   `</section>`;
 
 /* ---- the drawer ---------------------------------------------------------- */
 
-import("./drawer.js").then((mod) => mod.mountDrawer(details));
+import("./drawer.js").then((mod) =>
+  mod.mountDrawer(
+    Object.fromEntries(Object.entries(details).filter(([name]) => !parked.has(name))),
+  ),
+);
 
 /* ---- avatar: pixel-scatter hover ---------------------------------------- */
 
@@ -500,7 +591,7 @@ import("./avatar.js")
 
 /* ---- live tiles -------------------------------------------------------- */
 
-for (const b of blocks) {
+for (const b of shown) {
   if (!b.load) continue;
   const el = document.querySelector(`[data-mount="${b.name}"]`);
   if (tapOpens(b)) openOnTap(el, b.name);

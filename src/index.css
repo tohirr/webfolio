@@ -5,9 +5,11 @@
   --dim: #6e6e6e;
   --tile: #171717;
   --sel: rgba(255, 255, 255, 0.18);
-  /* accents the lab pieces use — the heat ramp's green and amber */
+  /* accents the lab pieces use — the heat ramp's green and amber, and the
+     blue the eyes look out of */
   --green: #4ade80;
   --amber: #f59e0b;
+  --blue: #60a5fa;
   --card-shadow:
     0 24px 48px -16px rgba(0, 0, 0, 0.6),
     0 8px 18px -8px rgba(0, 0, 0, 0.45);
@@ -24,6 +26,7 @@
     --sel: rgba(0, 0, 0, 0.1);
     --green: #15803d;
     --amber: #d97706;
+    --blue: #2563eb;
     --card-shadow:
       0 18px 36px -18px rgba(0, 0, 0, 0.22),
       0 6px 14px -8px rgba(0, 0, 0, 0.1);
@@ -220,11 +223,25 @@ a:hover {
   color: var(--ink);
 }
 
+/* the calendar frame brings its own light ground to the page, so its kind
+   mark takes contrast from the picture rather than from the theme. drop
+   this once the frame has a dark render to switch to */
+.block[aria-label="calendar"] .kind {
+  color: #a3a3a3;
+}
+
+.block[aria-label="calendar"]:hover .kind {
+  color: #3d3d3d;
+}
+
 .tile {
-  /* the cell: always half the screen tall, width locked to the ratio */
+  /* the cell: always half the screen tall, width locked to the ratio. a
+     piece whose content is landscape sets --ratio on itself and the cell
+     widens to it — the row is a scroller, so a wide cell just takes
+     more of the scroll */
   height: 50vh;
   height: 50svh;
-  aspect-ratio: 5 / 6;
+  aspect-ratio: var(--ratio, 5 / 6);
   border-radius: 26px;
   background: var(--tile);
   display: flex;
@@ -334,6 +351,20 @@ a:hover {
 }
 
 .tile .mo-stage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+}
+
+/* the eyes: no sliders, no caption — the cell is the display, and the face
+   centres itself in whatever grid the cell's shape makes */
+.tile .ey-row,
+.tile .ey-cap {
+  display: none;
+}
+
+.tile .ey-stage {
   width: 100%;
   height: 100%;
   max-width: none;
@@ -716,6 +747,20 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   box-shadow: var(--card-shadow);
 }
 
+/* the calendar frame is wide and flat, and the whole point is the two
+   widgets side by side — it takes the stage's width and the height
+   follows. the ratio is on the stage itself so the flight has a height to
+   measure before the picture has loaded */
+.drawer-stage[data-piece="calendar"] {
+  min-height: 0;
+  aspect-ratio: 1846 / 1092;
+}
+
+.drawer-stage[data-piece="calendar"] .cw-whole {
+  width: 100%;
+  box-shadow: var(--card-shadow);
+}
+
 /* it comes up ahead of the words, so the cell's copy has something live to
    land on, and goes first on the way out with the rest of the content */
 .drawer-stage {
@@ -869,12 +914,14 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   }
 
   /* width is the screen's, so height comes from the ratio — a taller
-     shape than the desktop cell, and no viewport cap */
+     shape than the desktop cell, and no viewport cap. a piece carrying its
+     own --ratio keeps it: a landscape frame stays landscape here, it just
+     runs the full width */
   .tile {
     --mo-scale: 0.42;
     width: 100%;
     height: auto;
-    aspect-ratio: 5 / 7;
+    aspect-ratio: var(--ratio, 5 / 7);
   }
 
   .tile .fc-card {
