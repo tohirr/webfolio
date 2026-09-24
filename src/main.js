@@ -20,7 +20,16 @@ const feldyHref = () => {
 
 const GALLARIA_URL = "https://gallaria.tohirr.dev";
 
+const BOOKMARX_URL = "https://bookmarx.space";
+
 const blocks = [
+  {
+    name: "bookmarx",
+    sub: "a better search engine for your x bookmarks",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/bookmarx-mark.js"),
+  },
   {
     name: "gallaria",
     sub: "an infinite canvas of art by african artists · webgl2",
@@ -100,6 +109,23 @@ const parked = new Set(blocks.filter((b) => b.hidden).map((b) => b.name));
    looks up its name here — { title, sub, body, links, media? } ---------- */
 
 const details = {
+  bookmarx: {
+    title: "bookmarx",
+    sub: "a better search engine for your x bookmarks",
+    body:
+      `<p>You remember fragments, not wording \u2014 <em>that thread about ` +
+      `optimistic ui</em>, <em>the astronaut looking out the window</em>. ` +
+      `bookmarx turns the fragment into the saved post in one step, then ` +
+      `shows its working: which half of the search found it, and where.</p>` +
+      `<p>Keyword and vector scans over Postgres and pgvector, fused by ` +
+      `reciprocal rank, with no model in the read path. The models run once ` +
+      `per post in background jobs \u2014 captions, embeddings \u2014 and the ` +
+      `library sorts itself into collections, so there is a front page ` +
+      `before you have asked it anything. I designed and built all of it.</p>`,
+    links: [{ label: "bookmarx.space", href: BOOKMARX_URL }],
+    stage: () => import("./lab/bookmarx-mark.js"),
+  },
+
   gallaria: {
     title: "gallaria",
     sub: "an infinite canvas of art by african artists",
