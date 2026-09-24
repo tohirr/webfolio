@@ -1,22 +1,24 @@
-/* lab/bookmarx-mark — the bookmarx icon, as the app ships it (bookmarx's
-   src/app/icon.svg): the bookmark lit from the top-left shoulder in the
-   brand's three blues. the cell is only the mark; the story is a tap away. */
+/* lab/bookmarx-mark — in the cell, the bookmarx icon as the app ships it
+   (bookmarx's src/app/icon.svg): the bookmark lit from the top-left shoulder
+   in the brand's three blues. in the drawer, the space itself — the top of
+   the demo library's front page, captured from bookmarx.space. */
 
 const BM =
   "M24 26 Q24 14 36 14 L64 14 Q76 14 76 26 L76 82 Q76 88.5 70.5 85.2 " +
   "L53 71.5 Q50 69 47 71.5 L29.5 85.2 Q24 88.5 24 82 Z";
 
+const SPACE = { src: "/media/bookmarx/space.jpg", w: 1200, h: 1500 };
+const ALT =
+  "the bookmarx space: the next date in your saves as a hero, a strip of " +
+  "old saves to rediscover, and collections the library sorted itself into";
+
 /* the cell and the drawer's stage can both be up at once, so each mount
    names its own gradient */
 let seq = 0;
 
-export function mount(el) {
+const icon = () => {
   const id = `bmx-sheen-${++seq}`;
-  el.innerHTML =
-    `<style>
-      .bmx { width: 46%; aspect-ratio: 1; display: grid; place-items: center; margin: auto; }
-      .bmx svg { width: 100%; height: 100%; display: block; }
-    </style>` +
+  return (
     '<div class="bmx"><svg viewBox="0 0 100 100" role="img" aria-label="bookmarx">' +
     `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0.85" y2="1">` +
     '<stop offset="0" stop-color="#7cc8fd"/>' +
@@ -24,7 +26,24 @@ export function mount(el) {
     '<stop offset="1" stop-color="#0f6ba8"/>' +
     "</linearGradient></defs>" +
     `<path d="${BM}" fill="url(#${id})"/>` +
-    "</svg></div>";
+    "</svg></div>"
+  );
+};
+
+export function mount(el) {
+  const inCell = !!el.closest(".tile");
+
+  el.innerHTML =
+    `<style>
+      .bmx { width: 46%; aspect-ratio: 1; display: grid; place-items: center; margin: auto; }
+      .bmx svg { width: 100%; height: 100%; display: block; }
+      .bmx-space { display: block; background: #0a0a0a; overflow: hidden; }
+      .bmx-space img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+    </style>` +
+    (inCell
+      ? icon()
+      : `<picture class="bmx-space"><img src="${SPACE.src}" alt="${ALT}" ` +
+        `width="${SPACE.w}" height="${SPACE.h}" decoding="async" draggable="false" /></picture>`);
 
   return () => {
     el.innerHTML = "";

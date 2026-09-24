@@ -25,33 +25,10 @@ const BOOKMARX_URL = "https://bookmarx.space";
 const blocks = [
   {
     name: "bookmarx",
-    sub: "a better search engine for your x bookmarks",
+    sub: "a library for saved posts that searches, and sorts itself",
     detail: true,
     kind: "more",
     load: () => import("./lab/bookmarx-mark.js"),
-  },
-  {
-    name: "gallaria",
-    sub: "an infinite canvas of art by african artists · webgl2",
-    detail: true,
-    kind: "more",
-    load: () => import("./lab/gallaria.js"),
-  },
-  {
-    name: "feldy",
-    hidden: true,
-    sub: "the field app · react native, on the app store and google play",
-    detail: true,
-    kind: "more",
-    load: () => import("./lab/feldy-screens.js"),
-  },
-  {
-    name: "eyes",
-    hidden: true,
-    sub: "a face that notices you, and gets bored · canvas",
-    detail: true,
-    kind: "touch",
-    load: () => import("./lab/eyes.js"),
   },
   {
     name: "facet-card",
@@ -61,19 +38,11 @@ const blocks = [
     load: () => import("./lab/facet-card.js"),
   },
   {
-    name: "keycaps",
-    sub: "text set as keycaps · three.js",
+    name: "gallaria",
+    sub: "an infinite canvas of art by african artists · webgl2",
     detail: true,
-    kind: "touch",
-    load: () => import("./lab/keycaps.js"),
-  },
-  {
-    name: "holo-button",
-    hidden: true,
-    sub: "a button whose ripple is holo foil · webgl",
-    detail: true,
-    kind: "touch",
-    load: () => import("./lab/holo-button.js"),
+    kind: "more",
+    load: () => import("./lab/gallaria.js"),
   },
   {
     name: "morph",
@@ -97,6 +66,37 @@ const blocks = [
     kind: "more",
     load: () => import("./lab/calendar.js"),
   },
+  {
+    name: "keycaps",
+    sub: "text set as keycaps · three.js",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/keycaps.js"),
+  },
+  {
+    name: "feldy",
+    hidden: true,
+    sub: "the field app · react native, on the app store and google play",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/feldy-screens.js"),
+  },
+  {
+    name: "eyes",
+    hidden: true,
+    sub: "a face that notices you, and gets bored · canvas",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/eyes.js"),
+  },
+  {
+    name: "holo-button",
+    hidden: true,
+    sub: "a button whose ripple is holo foil · webgl",
+    detail: true,
+    kind: "touch",
+    load: () => import("./lab/holo-button.js"),
+  },
   { name: "coffee", coffee: true },
 ];
 
@@ -111,18 +111,35 @@ const parked = new Set(blocks.filter((b) => b.hidden).map((b) => b.name));
 const details = {
   bookmarx: {
     title: "bookmarx",
-    sub: "a better search engine for your x bookmarks",
+    sub: "a library for saved posts that searches, and sorts itself",
     body:
       `<p>You remember fragments, not wording \u2014 <em>that thread about ` +
       `optimistic ui</em>, <em>the astronaut looking out the window</em>. ` +
-      `bookmarx turns the fragment into the saved post in one step, then ` +
-      `shows its working: which half of the search found it, and where.</p>` +
-      `<p>Keyword and vector scans over Postgres and pgvector, fused by ` +
-      `reciprocal rank, with no model in the read path. The models run once ` +
-      `per post in background jobs \u2014 captions, embeddings \u2014 and the ` +
-      `library sorts itself into collections, so there is a front page ` +
-      `before you have asked it anything. I designed and built all of it.</p>`,
+      `bookmarx turns the fragment into the saved post, and every result ` +
+      `says why it is there: a reason in a sentence, and under it the ` +
+      `ranker's own numbers \u2014 which half of the search found it, at what ` +
+      `rank, and the fused vote that placed it.</p>` +
+      `<p>Nobody opens three thousand saves knowing what to ask, so the front ` +
+      `page is rooms, not a feed. The next date in your saves leads it; old ` +
+      `finds you have not been back to run across the top; collections are ` +
+      `found by clustering the embeddings the search already has; reminders ` +
+      `are read off the posts, and you tick them off. Every post opens onto ` +
+      `its own page, with the saves nearest it in meaning. There is nothing ` +
+      `to file.</p>` +
+      `<p>Built alone, on free tiers, from X, Bluesky and Mastodon. No model ` +
+      `runs while you search \u2014 keyword and vector scans over Postgres, ` +
+      `merged by position. The models run once per post in background jobs, ` +
+      `under a spend cap.</p>`,
+    code:
+      `// each half votes by position, never by score \u2014\n` +
+      `// and a half that never found the post votes nothing\n` +
+      `const RRF_K = 60;\n` +
+      `function vote(rank, weight) {\n` +
+      `  if (rank === undefined) return 0;\n` +
+      `  return weight / (RRF_K + rank);\n` +
+      `}`,
     links: [{ label: "bookmarx.space", href: BOOKMARX_URL }],
+    /* the space stands beside the story \u2014 the cell is only the icon */
     stage: () => import("./lab/bookmarx-mark.js"),
   },
 
