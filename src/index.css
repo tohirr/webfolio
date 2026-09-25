@@ -13,6 +13,11 @@
   --card-shadow:
     0 24px 48px -16px rgba(0, 0, 0, 0.6),
     0 8px 18px -8px rgba(0, 0, 0, 0.45);
+  /* the cells' rim light: highlight from the top left, a fainter one from
+     the bottom right, and the hairline that holds the edge */
+  --rim-hi: rgba(255, 255, 255, 0.32);
+  --rim-lo: rgba(255, 255, 255, 0.12);
+  --rim-line: rgba(255, 255, 255, 0.05);
 }
 
 /* theme follows the system — the toggle is gone for now */
@@ -30,6 +35,9 @@
     --card-shadow:
       0 18px 36px -18px rgba(0, 0, 0, 0.22),
       0 6px 14px -8px rgba(0, 0, 0, 0.1);
+    --rim-hi: rgba(255, 255, 255, 1);
+    --rim-lo: rgba(255, 255, 255, 0.7);
+    --rim-line: rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -200,16 +208,41 @@ a:hover {
   margin: 0;
 }
 
-/* the kind mark: quiet in the corner, ink when the cell is under the pointer */
-.kind {
+/* the caption: what the cell is, top left — the type mark, the title, and
+   a dash and a line after it when the line fits (main.js drops it when it
+   doesn't). it floats over the piece, which runs on underneath it, and
+   lets the pointer through. inset far enough that the squircle corner
+   never nears it */
+.cap {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+  /* a halo in the cell's own colour keeps the words legible when something
+     bright drifts under them, without a panel behind them */
+  text-shadow:
+    0 0 4px var(--tile),
+    0 0 10px var(--tile);
+}
+
+.cap-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* the type mark: quiet beside the title, ink when the cell is under the
+   pointer */
+.kind {
+  flex: none;
   width: 14px;
   height: 14px;
   color: var(--dim);
-  pointer-events: none;
-  z-index: 1;
   transition: color 0.15s ease;
 }
 
@@ -223,15 +256,60 @@ a:hover {
   color: var(--ink);
 }
 
-/* the calendar frame brings its own light ground to the page, so its kind
-   mark takes contrast from the picture rather than from the theme. drop
-   this once the frame has a dark render to switch to */
-.block[aria-label="calendar"] .kind {
+.cap-title {
+  color: var(--ink);
+}
+
+/* the line runs on after the title, set off by a dash */
+.cap-blurb {
+  min-width: 0;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cap-blurb::before {
+  content: "\00a0\2013\00a0";
+}
+
+.cap.bare .cap-blurb {
+  display: none;
+}
+
+/* a cell on a light ground in either theme — the calendar frame brings its
+   own — takes its caption's contrast from that ground rather than from the
+   theme, and drops the halo, which in the dark theme's colour would smudge */
+.on-light .kind,
+.on-light .cap-blurb {
   color: #a3a3a3;
 }
 
-.block[aria-label="calendar"]:hover .kind {
+.on-light:hover .kind,
+.on-light .cap-title {
   color: #3d3d3d;
+}
+
+.on-light .cap {
+  text-shadow: none;
+}
+
+/* the globe fills whatever the stage leaves above the dial, so more room
+   on top makes it smaller and clears the caption's line */
+.tile .tp-stage {
+  padding-top: 76px;
+}
+
+/* bookmarx sits on a muted blue: a slate in the dark theme, a pale wash in
+   the light one. it is the cell's own --tile, so the caption's halo takes
+   the same colour */
+.block[aria-label="bookmarx"] {
+  --tile: #1a2230;
+}
+
+@media (prefers-color-scheme: light) {
+  .block[aria-label="bookmarx"] {
+    --tile: #e3eaf3;
+  }
 }
 
 .tile {
@@ -241,14 +319,52 @@ a:hover {
      more of the scroll */
   height: 50vh;
   height: 50svh;
-  aspect-ratio: var(--ratio, 5 / 6);
-  border-radius: 26px;
+  aspect-ratio: var(--ratio, 9 / 10);
+  border-radius: 52px;
+  corner-shape: squircle;
   background: var(--tile);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   transition: background 0.2s ease;
+  position: relative;
+  isolation: isolate;
+}
+
+/* the rim: light catching the cell's edge the way it catches an ios icon.
+   a one pixel ring just inside the border, lit brightest at the top left
+   corner where the light comes from and fading out along the edges, with
+   a fainter catch at the bottom right, and a hairline under it all so the
+   edge holds on any ground. the ring is a gradient cut down to the border
+   by a mask, which follows the squircle; it lies over the piece, so a
+   canvas that fills the cell still gets its edge lit */
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  corner-shape: inherit;
+  pointer-events: none;
+  z-index: 10;
+  /* main.js turns --rim-angle so the light holds still while the cell
+     moves; without it the light sits at the top left */
+  background: linear-gradient(
+    var(--rim-angle, 135deg),
+    var(--rim-hi),
+    transparent 32%,
+    transparent 68%,
+    var(--rim-lo)
+  );
+  box-shadow: inset 0 0 0 0.5px var(--rim-line);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
 }
 
 /* the coffee tile: the whole cell is the link */
@@ -311,8 +427,13 @@ a:hover {
 }
 
 .tile .fc-card {
-  /* scales with the tile */
-  width: 62%;
+  /* scales with the tile, short enough to clear the caption */
+  width: 56%;
+}
+
+/* the caption names gallaria, so its own tag goes */
+.tile .ga-tag {
+  display: none;
 }
 
 /* the keycaps piece: no panel, no caption, the plate fills the cell's
@@ -837,7 +958,7 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 .drawer-media {
   display: block;
   width: 100%;
-  aspect-ratio: 5 / 6;
+  aspect-ratio: 9 / 10;
   object-fit: cover;
   border-radius: 18px;
   background: var(--bg);
@@ -951,11 +1072,17 @@ input[type="range"]:focus-visible::-moz-range-thumb {
     --mo-scale: 0.42;
     width: 100%;
     height: auto;
-    aspect-ratio: var(--ratio, 5 / 7);
+    aspect-ratio: var(--ratio, 4 / 5);
   }
 
   .tile .fc-card {
-    width: 78%;
+    width: 64%;
+  }
+
+  /* the calendar is short and landscape here, its widgets come up to
+     meet the caption — only the title fits above them */
+  .block[aria-label="calendar"] .cap-blurb {
+    display: none;
   }
 
   /* the page now scrolls vertically through the cells, so the pieces

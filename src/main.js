@@ -25,6 +25,8 @@ const BOOKMARX_URL = "https://bookmarx.space";
 const blocks = [
   {
     name: "bookmarx",
+    type: "site",
+    blurb: "a library for saved posts",
     sub: "a library for saved posts that searches, and sorts itself",
     detail: true,
     kind: "more",
@@ -32,6 +34,8 @@ const blocks = [
   },
   {
     name: "facet-card",
+    type: "component",
+    blurb: "pixel holo foil",
     sub: "pixel holo foil · webgl",
     detail: true,
     kind: "touch",
@@ -39,6 +43,8 @@ const blocks = [
   },
   {
     name: "gallaria",
+    type: "site",
+    blurb: "a canvas of african art",
     sub: "an infinite canvas of art by african artists · webgl2",
     detail: true,
     kind: "more",
@@ -46,6 +52,8 @@ const blocks = [
   },
   {
     name: "morph",
+    type: "component",
+    blurb: "dots that morph with music",
     sub: "dots that morph with music · bring your own tracks",
     detail: true,
     kind: "touch",
@@ -53,6 +61,8 @@ const blocks = [
   },
   {
     name: "tape",
+    type: "component",
+    blurb: "heading tape over a dot globe",
     sub: "heading tape over a dot globe · detents, momentum, phone compass",
     detail: true,
     kind: "touch",
@@ -60,6 +70,9 @@ const blocks = [
   },
   {
     name: "calendar",
+    light: true,
+    type: "design",
+    blurb: "a live event, concept",
     sub: "a calendar widget that shows a live event running \u00b7 concept",
     ratio: "2000 / 1150",
     detail: true,
@@ -68,6 +81,8 @@ const blocks = [
   },
   {
     name: "keycaps",
+    type: "component",
+    blurb: "text set as keycaps",
     sub: "text set as keycaps · three.js",
     detail: true,
     kind: "touch",
@@ -75,6 +90,8 @@ const blocks = [
   },
   {
     name: "feldy",
+    type: "app",
+    blurb: "the field app",
     hidden: true,
     sub: "the field app · react native, on the app store and google play",
     detail: true,
@@ -83,6 +100,8 @@ const blocks = [
   },
   {
     name: "eyes",
+    type: "component",
+    blurb: "a face that notices you",
     hidden: true,
     sub: "a face that notices you, and gets bored · canvas",
     detail: true,
@@ -91,6 +110,8 @@ const blocks = [
   },
   {
     name: "holo-button",
+    type: "component",
+    blurb: "a ripple of holo foil",
     hidden: true,
     sub: "a button whose ripple is holo foil · webgl",
     detail: true,
@@ -521,22 +542,30 @@ const nav = [
   { label: "Email", href: `mailto:${EMAIL}`, icon: MAIL_ICON },
 ];
 
-/* the mark in a cell's corner says what kind of cell it is: leaves the
-   site, opens a drawer, or is a live piece you can touch. a cell that is
-   only there to look at gets none */
-const KIND = {
-  link:
-    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M4 12 12 4M6 4h6v6"/></svg>',
-  more:
-    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-    'stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>',
-  touch:
-    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" ' +
-    'stroke-linecap="round" aria-hidden="true">' +
-    '<circle cx="8" cy="8" r="1.8" fill="currentColor" stroke="none"/>' +
-    '<path d="M4.4 4.4a5.1 5.1 0 0 0 0 7.2M11.6 4.4a5.1 5.1 0 0 1 0 7.2"/></svg>',
+/* the mark in a cell's corner says what the piece is: a site that lives
+   on the web, an app for a phone, a component you can drop into an
+   interface, or a design that is still a picture. a cell without a type
+   gets none. (how the cell behaves under a tap is `kind`, not this) */
+const SVG =
+  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const TYPE = {
+  // a globe
+  site:
+    SVG +
+    '<circle cx="8" cy="8" r="6.25"/><path d="M1.75 8h12.5"/>' +
+    '<path d="M8 1.75c1.8 1.7 2.6 3.8 2.6 6.25S9.8 12.55 8 14.25C6.2 12.55 5.4 10.45 5.4 8S6.2 3.45 8 1.75Z"/></svg>',
+  // a phone, with its home bar
+  app: SVG + '<rect x="4.5" y="1.75" width="7" height="12.5" rx="2"/><path d="M7 11.75h2"/></svg>',
+  // four diamonds, the way a design tool marks a component
+  component:
+    SVG +
+    '<path d="M8 1.75 10.25 4 8 6.25 5.75 4ZM12 5.75 14.25 8 12 10.25 9.75 8ZM8 9.75 10.25 12 8 14.25 5.75 12ZM4 5.75 6.25 8 4 10.25 1.75 8Z"/></svg>',
+  // a pen nib
+  design:
+    SVG +
+    '<path d="M8 1.75 12.5 7.5 10 14.25H6L3.5 7.5Z"/><path d="M8 1.75v5"/>' +
+    '<circle cx="8" cy="8.5" r="1.1"/></svg>',
 };
 
 /* a live cell you can touch can't be one big link — a tap on it is a tap on
@@ -581,7 +610,7 @@ const ext = 'target="_blank" rel="noreferrer"';
 const shape = (b) => (b.ratio ? ` style="--ratio: ${b.ratio}"` : "");
 
 const tile = (b) =>
-  `<figure class="block" aria-label="${b.name}">` +
+  `<figure class="block${b.light ? " on-light" : ""}" aria-label="${b.name}">` +
   (b.coffee
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
@@ -593,7 +622,13 @@ const tile = (b) =>
       : tapOpens(b)
         ? `<div class="tile tappable"${shape(b)} role="link" tabindex="0" aria-label="${b.name}" data-mount="${b.name}"></div>`
       : `<div class="tile"${shape(b)} data-mount="${b.name}"></div>`) +
-  (KIND[b.kind] ? `<span class="kind" title="${b.kind}">${KIND[b.kind]}</span>` : "") +
+  (b.coffee
+    ? ""
+    : `<figcaption class="cap"><span class="cap-head">` +
+      (TYPE[b.type] ? `<span class="kind" title="${b.type}">${TYPE[b.type]}</span>` : "") +
+      `<span class="cap-title">${b.title ?? b.name}</span></span>` +
+      (b.blurb ? `<span class="cap-blurb">${b.blurb}</span>` : "") +
+      `</figcaption>`) +
   `</figure>`;
 
 document.getElementById("app").innerHTML =
@@ -648,6 +683,18 @@ for (const b of shown) {
     });
 }
 
+/* a caption whose blurb won't fit on one line at this width drops the blurb
+   and keeps just the title — checked again whenever the cell changes size */
+const fit = new ResizeObserver((entries) => {
+  for (const { target: cap } of entries) {
+    const blurb = cap.querySelector(".cap-blurb");
+    if (!blurb) continue;
+    cap.classList.remove("bare");
+    cap.classList.toggle("bare", blurb.scrollWidth > blurb.clientWidth);
+  }
+});
+document.querySelectorAll(".cap").forEach((cap) => fit.observe(cap));
+
 /* theme follows the system for now — no toggle */
 
 /* ---- indicator: one bar per stage, thick while its stage is in view ----- */
@@ -666,3 +713,38 @@ const io = new IntersectionObserver(
   { root: scroller, threshold: [0.6] },
 );
 blockEls.forEach((el) => io.observe(el));
+
+/* ---- rim light: the source stays put while the cells move under it ------
+   each cell's highlight turns to face one fixed point on the screen. on a
+   wide screen it hangs over the start of the row, just above the cells: a
+   cell resting there is lit from the top, the ones queued to its right from
+   the left, and one sliding in swings round through the whole range as it
+   arrives. on a phone the column runs straight up, so the light sits off to
+   the left instead and the rims turn as the cells climb. reads first, then
+   writes, once a frame at most */
+
+const tileEls = [...document.querySelectorAll(".tile")];
+const phone = matchMedia("(max-width: 640px)");
+let lighting = 0;
+const light = () => {
+  lighting = 0;
+  const lx = phone.matches ? -0.3 * innerWidth : parseFloat(getComputedStyle(scroller).paddingLeft);
+  const ly = phone.matches ? 0.4 * innerHeight : 0.45 * innerHeight;
+  const angles = tileEls.map((t) => {
+    const r = t.getBoundingClientRect();
+    if (r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight) return null;
+    // css angles run clockwise from "to top"; the gradient points away from the light
+    const dx = r.left + r.width / 2 - lx, dy = r.top + r.height / 2 - ly;
+    return (Math.atan2(dx, -dy) * 180) / Math.PI;
+  });
+  angles.forEach((a, i) => {
+    if (a !== null) tileEls[i].style.setProperty("--rim-angle", `${a.toFixed(1)}deg`);
+  });
+};
+const relight = () => {
+  if (!lighting) lighting = requestAnimationFrame(light);
+};
+light();
+scroller.addEventListener("scroll", relight, { passive: true });
+addEventListener("scroll", relight, { passive: true });
+addEventListener("resize", relight);

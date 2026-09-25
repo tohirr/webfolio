@@ -11,7 +11,12 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const GROW = { duration: 560, easing: "cubic-bezier(0.32, 0.72, 0, 1)", fill: "both" };
 const SHRINK = { duration: 440, easing: "cubic-bezier(0.32, 0.72, 0, 1)", fill: "both" };
-const TILE_R = 26; // the tile's corner radius
+/* how far along the corner a cubic's handles reach, as a share of the
+   radius. 0.5523 draws a quarter circle; 0.909 draws the quarter of
+   superellipse(2) that corner-shape: squircle makes, matched at 45° */
+const ROUND_K = 0.5523;
+const SQUIRCLE_K = 0.909;
+const squircles = CSS.supports?.("corner-shape", "squircle") ?? false;
 
 const CLOSE_ICON =
   '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" ' +
@@ -170,9 +175,23 @@ export function mountDrawer(details) {
         "</p>"
       : "");
 
-  /* a rectangle as a clip on the full-viewport panel */
-  const clipOf = (r, radius) =>
-    `inset(${r.top}px ${innerWidth - r.right}px ${innerHeight - r.bottom}px ${r.left}px round ${radius})`;
+  /* a rectangle as a clip on the full-viewport panel. inset(round) only
+     draws circular corners, so the box is a path: four cubics with the
+     same commands at every size, so the clip interpolates between the
+     tile's squircle and the card's square corners */
+  const clipOf = (r, radius, k = ROUND_K) => {
+    const R = Math.min(radius, (r.right - r.left) / 2, (r.bottom - r.top) / 2);
+    const c = R * (1 - k);
+    const { left: l, top: t, right: rt, bottom: b } = r;
+    return (
+      `path("M ${l + R} ${t} H ${rt - R} C ${rt - c} ${t} ${rt} ${t + c} ${rt} ${t + R} ` +
+      `V ${b - R} C ${rt} ${b - c} ${rt - c} ${b} ${rt - R} ${b} ` +
+      `H ${l + R} C ${l + c} ${b} ${l} ${b - c} ${l} ${b - R} ` +
+      `V ${t + R} C ${l} ${t + c} ${l + c} ${t} ${l + R} ${t} Z")`
+    );
+  };
+  // the curve an element's corners are drawn with
+  const kOf = (el) => (squircles && getComputedStyle(el).cornerShape !== "round" ? SQUIRCLE_K : ROUND_K);
   /* the tile's slot with the page's push-back taken out of it — where the
      cell sits when the page is at rest, which is where the box grows from and
      where it folds back to. the push is a transition, so the class is no guide
@@ -194,9 +213,9 @@ export function mountDrawer(details) {
     const r = tileRect();
     // no tile on screen (a deep link with the row scrolled away): grow from the middle
     if (!r) {
-      return clipOf({ top: innerHeight / 2, bottom: innerHeight / 2, left: innerWidth / 2, right: innerWidth / 2 }, "0px");
+      return clipOf({ top: innerHeight / 2, bottom: innerHeight / 2, left: innerWidth / 2, right: innerWidth / 2 }, 0);
     }
-    return clipOf(r, `${TILE_R}px`);
+    return clipOf(r, parseFloat(getComputedStyle(opener).borderTopLeftRadius) || 0, kOf(opener));
   };
   /* the card's rectangle with the pull-down taken out of it. letting go of a
      drag starts the card's transition home, so for the frame close() measures
@@ -209,7 +228,7 @@ export function mountDrawer(details) {
     const m = new DOMMatrixReadOnly(t);
     return new DOMRect(r.left - m.e, r.top - m.f, r.width, r.height);
   };
-  const cardClip = () => clipOf(cardRect(), getComputedStyle(card).borderRadius);
+  const cardClip = () => clipOf(cardRect(), parseFloat(getComputedStyle(card).borderTopLeftRadius) || 0, kOf(card));
 
   /* the icon: a copy of the cell, laid over the box at the tile's rectangle.
      opening, it scales up toward the screen and fades out as the content
