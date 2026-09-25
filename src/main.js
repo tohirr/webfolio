@@ -472,6 +472,15 @@ const GH_ICON = mark("0 0 24 24", GH_MARK, 22);
 const X_ICON = mark("0 0 24 24", X_MARK, 18);
 const MAIL_ICON = mark("0 0 24 24", GMAIL_MARK, 22);
 
+/* the page's sound: a speaker, with its waves when on and a cross when off */
+const SPEAKER =
+  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" ' +
+  'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" fill="currentColor" stroke-width="1.5"/>';
+const SOUND_ON_ICON =
+  SPEAKER + '<path class="snd-on" d="M15.5 9.2a4 4 0 0 1 0 5.6M18.3 6.6a7.8 7.8 0 0 1 0 10.8"/>' +
+  '<path class="snd-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+
 const nav = [
   { label: "GitHub", href: "https://github.com/tohirr", icon: GH_ICON },
   { label: "X (Twitter)", href: "https://x.com/_tohirr", icon: X_ICON },
@@ -575,6 +584,7 @@ document.getElementById("app").innerHTML =
         `<a class="icon-btn" href="${n.href}" ${ext} aria-label="${n.label}">${n.icon}</a>`,
     )
     .join("") +
+  `<button class="icon-btn snd" type="button">${SOUND_ON_ICON}</button>` +
   `</nav>` +
   `<section class="intro">` +
   // the avatar swaps its <img> for a canvas once it loads; the wrapper is
@@ -612,6 +622,20 @@ document.getElementById("app").innerHTML =
     el.classList.remove("enter");
     el.removeEventListener("animationend", done);
   });
+});
+
+/* ---- sound: one button for the whole page -------------------------------- */
+
+import("./lab/audio.js").then(({ soundOn, setSound, onSound }) => {
+  const btn = document.querySelector(".snd");
+  const show = (on) => {
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.setAttribute("aria-label", on ? "sound on" : "sound off");
+  };
+  show(soundOn());
+  onSound(show);
+  btn.addEventListener("click", () => setSound(!soundOn()));
 });
 
 /* ---- the drawer ---------------------------------------------------------- */

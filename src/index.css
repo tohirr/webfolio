@@ -341,7 +341,8 @@ a:hover {
      calendar  the event's magenta, as a plum
      gallaria  terracotta, warm under the art
      compass   the globe's moss green
-     keycaps   the caps' sand */
+     keycaps   the caps' sand
+     coffee    coffee, a darker brown than gallaria's clay */
 .block[aria-label="bookmarx"] { --tile: #1a2230; }
 .block[aria-label="foil"] { --tile: #1f1b27; }
 .block[aria-label="morph"] { --tile: #15211f; }
@@ -349,6 +350,7 @@ a:hover {
 .block[aria-label="gallaria"] { --tile: #251b17; }
 .block[aria-label="compass"] { --tile: #1b2019; }
 .block[aria-label="keycaps"] { --tile: #23201a; }
+.block[aria-label="coffee"] { --tile: #1f1915; }
 
 @media (prefers-color-scheme: light) {
   .block[aria-label="bookmarx"] { --tile: #e3eaf3; }
@@ -358,6 +360,7 @@ a:hover {
   .block[aria-label="gallaria"] { --tile: #f3e9e3; }
   .block[aria-label="compass"] { --tile: #e7ede3; }
   .block[aria-label="keycaps"] { --tile: #f1ece1; }
+  .block[aria-label="coffee"] { --tile: #ede5dd; }
 }
 
 .tile {
@@ -733,6 +736,24 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 
 .icon-btn svg {
   display: block;
+}
+
+/* the sound button: a button dressed as the links beside it, its speaker
+   drawn with waves when the page's sound is on and a cross when it's off */
+button.icon-btn {
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.snd .snd-on,
+.snd.on .snd-off {
+  display: none;
+}
+
+.snd.on .snd-on {
+  display: inline;
 }
 
 .icon-btn:hover {

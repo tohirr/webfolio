@@ -13,7 +13,7 @@
    the same module beside the words with everything showing, and there a
    tap morphs it. */
 
-import { audio } from "./audio.js";
+import { audio, output } from "./audio.js";
 import { unlockAudio } from "./audio-unlock.js";
 
 /* the cell and the story card run this module at the same time — the card
@@ -78,7 +78,7 @@ function buildAudio() {
   master.gain.value = 0;
   mix.connect(analyser);
   analyser.connect(master);
-  master.connect(ac.destination);
+  master.connect(output());
 
   const bus = ac.createGain();
   bus.connect(mix);

@@ -31,7 +31,7 @@
    touches — the rest of the cell still scrolls the row. canvas 2d, one
    page-wide AudioContext shared with the other pieces. */
 
-import { wakeAudio as wakeShared } from "./audio.js";
+import { output, wakeAudio as wakeShared } from "./audio.js";
 import { unlockAudio } from "./audio-unlock.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -164,7 +164,7 @@ export function mount(el) {
     const g = ac.createGain();
     g.gain.setValueAtTime(0.3, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.011);
-    src.connect(bp).connect(g).connect(ac.destination);
+    src.connect(bp).connect(g).connect(output());
     src.start(t);
     src.stop(t + 0.03);
   };
@@ -189,7 +189,7 @@ export function mount(el) {
     const g = ac.createGain();
     g.gain.setValueAtTime(0.22, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-    o.connect(g).connect(ac.destination);
+    o.connect(g).connect(output());
     o.start(t);
     o.stop(t + 0.1);
   };

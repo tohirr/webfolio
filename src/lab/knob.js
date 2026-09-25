@@ -8,7 +8,7 @@
    dial, roll the wheel over it, or use the arrow keys. left alone, it
    turns itself a few notches now and then — silently. */
 
-import { wakeAudio as wakeShared } from "./audio.js";
+import { output, wakeAudio as wakeShared } from "./audio.js";
 import { unlockAudio } from "./audio-unlock.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -80,7 +80,7 @@ export function mount(el) {
     const g = ac.createGain();
     g.gain.setValueAtTime(0.35, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
-    src.connect(bp).connect(g).connect(ac.destination);
+    src.connect(bp).connect(g).connect(output());
     src.start(t);
     src.stop(t + 0.03);
   };

@@ -10,7 +10,7 @@
 
 import * as THREE from "three";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
-import { audio } from "./audio.js";
+import { audio, output } from "./audio.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -326,7 +326,7 @@ function click(down) {
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + (down ? 0.045 : 0.03));
     src.connect(bp);
     bp.connect(g);
-    g.connect(ac.destination);
+    g.connect(output());
     src.start(t0);
     src.stop(t0 + 0.06);
     if (down) {
@@ -338,7 +338,7 @@ function click(down) {
       og.gain.setValueAtTime(0.16, t0);
       og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
       o.connect(og);
-      og.connect(ac.destination);
+      og.connect(output());
       o.start(t0);
       o.stop(t0 + 0.08);
     }
