@@ -1,7 +1,7 @@
 /* lab/gallaria — a window onto gallaria (gallaria.vercel.app), the infinite
-   canvas of art by african artists. forty of the works are scattered over
-   one tile of world space with the same seeded blue-noise placement the
-   site uses, and the tile repeats in both axes so the field has no edges:
+   canvas of art by african artists. forty of the works are laid out as a
+   masonry wall over one tile of world space, the same on every visit, and
+   the tile repeats in both axes so the field has no edges:
    drag it and it keeps going. every work climbs the site's resolution
    ladder in miniature — a 16 px rung first, nearest-filtered so the pixels
    are honest, then 64 px, then a rung at the screen's own resolution (192
@@ -36,12 +36,9 @@ const rungUrl = (w, width) =>
   `${CLOUD}/c_limit,w_${width},${width <= 64 ? "f_jpg" : "f_auto"},q_auto/${w.id}.${w.format}`;
 
 /* ---- world: units are css px at zoom 1 ------------------------------------ */
-const COL_W = 96; // every work is this wide
-const GAP = 56; // typical breathing room round a work
-const MIN_GAP = GAP / 2;
-const FILL = 0.62;
-const CANDIDATES = 40;
-const MAX_TRIES = 400;
+const COL_W = 96; // every work is this wide: one masonry column
+const GAP = 12; // between the columns, and about that between works in one
+const PITCH = COL_W + GAP;
 const BLOCK = 4; // world units per dissolve block
 const BULGE = 0.05;
 const CENTER_SCALE = 1 / (1 - BULGE);
@@ -50,6 +47,8 @@ const FRICTION = 0.92; // velocity kept per 16 ms after a flick
 const TAP_SLOP = 5;
 const DISSOLVE_MS = 520;
 const BLUR_PX = 9; // css px of blur at the rim: frosted glass at the edge, clear in the middle
+const LENS = 0.2; // the fisheye: how much bigger the middle is drawn than the corners
+const FRINGE_PX = 3.5; // css px red and blue split apart at the rim
 const STREAM_MS = 320; // how often the sharp rung is offered to the works in view
 const DRIFT = 0.16; // css px per 16 ms, on its own
 const IDLE_MS = 2600; // the rest before the drift resumes
@@ -75,48 +74,80 @@ const rng = (seed) => {
   };
 };
 const mod = (a, n) => ((a % n) + n) % n;
-const wrapDist = (a, b, n) => {
-  const d = Math.abs(a - b) % n;
-  return Math.min(d, n - d);
-};
 
-/* best-candidate scatter across one wrapping tile, seeded per work so the
-   arrangement is the same on every visit */
+/* masonry across one wrapping tile: every work is a column wide, stacked
+   down its column with a gap under it. the tile is square and repeats both
+   ways, so each column has to fill exactly the tile's height for the wrap
+   to be seamless: the column count is picked so the columns come out about
+   as tall as the tile is wide, the works go in tallest first, each into
+   the column with the most room left, and then works are moved and swapped
+   between columns while that evens the gaps out — with forty works they
+   end up within a pixel of each other. every column starts at its own
+   seeded offset and is shuffled by a seed, so the rows never line up and
+   nothing stacks tallest first. all of it seeded: the same on every visit */
 function layout(items) {
-  const sized = items.map((item) => ({ item, w: COL_W, h: Math.round(COL_W / item.ratio) }));
-  sized.sort((a, b) => b.w * b.h - a.w * a.h || a.item.id.localeCompare(b.item.id));
-  const padded = sized.reduce((s, e) => s + (e.w + GAP) * (e.h + GAP), 0);
-  let tile = Math.ceil(Math.sqrt(padded / FILL));
-  for (;;) {
-    const placed = [];
-    let ok = true;
-    for (const e of sized) {
-      const next = rng(hash(e.item.id));
-      let best = null, bestClear = -Infinity;
-      for (let i = 0; i < MAX_TRIES; i++) {
-        const cx = next() * tile, cy = next() * tile;
-        let clear = Infinity;
-        for (const o of placed) {
-          const gx = wrapDist(cx, o.cx, tile) - (e.w + o.w) / 2;
-          const gy = wrapDist(cy, o.cy, tile) - (e.h + o.h) / 2;
-          clear = Math.min(clear, Math.max(gx, gy));
-          if (clear < MIN_GAP) break;
-        }
-        if (clear >= MIN_GAP && clear > bestClear) {
-          best = { cx, cy };
-          bestClear = clear;
-        }
-        if (best && i >= CANDIDATES - 1) break;
-      }
-      if (!best) { ok = false; break; }
-      placed.push({ ...best, w: e.w, h: e.h, e });
-    }
-    if (ok) {
-      for (const p of placed) p.e.item.rect = { x: Math.round(p.cx - p.w / 2), y: Math.round(p.cy - p.h / 2), w: p.w, h: p.h };
-      return tile;
-    }
-    tile = Math.ceil(tile * 1.08);
+  const sized = items.map((item) => ({ item, h: Math.round(COL_W / item.ratio) }));
+  sized.sort((a, b) => b.h - a.h || a.item.id.localeCompare(b.item.id));
+  const area = sized.reduce((s, e) => s + e.h + GAP, 0);
+  const cols = Math.max(2, Math.round(Math.sqrt(area / PITCH)));
+  const tile = cols * PITCH;
+
+  const stacks = Array.from({ length: cols }, () => []);
+  const height = (st) => st.reduce((s, e) => s + e.h, 0);
+  const room = (st) => tile - height(st) - st.length * GAP;
+  for (const e of sized) {
+    const c = stacks.reduce((best, st, i) => (room(st) > room(stacks[best]) ? i : best), 0);
+    stacks[c].push(e);
   }
+
+  // how far every column's gaps are from GAP; the moves and swaps below
+  // only ever lower it, so this ends
+  const gapOf = (st) => (tile - height(st)) / st.length;
+  const cost = () => stacks.reduce((s, st) => s + (gapOf(st) - GAP) ** 2, 0);
+  let best = cost();
+  for (let better = true; better; ) {
+    better = false;
+    for (let a = 0; a < cols; a++) {
+      for (let b = 0; b < cols; b++) {
+        if (a === b) continue;
+        for (let i = 0; i < stacks[a].length; i++) {
+          if (stacks[a].length > 1) {
+            const [e] = stacks[a].splice(i, 1);
+            stacks[b].push(e);
+            const c = cost();
+            if (c < best - 1e-9) {
+              best = c;
+              better = true;
+              continue;
+            }
+            stacks[b].pop();
+            stacks[a].splice(i, 0, e);
+          }
+          for (let j = 0; j < stacks[b].length; j++) {
+            [stacks[a][i], stacks[b][j]] = [stacks[b][j], stacks[a][i]];
+            const c = cost();
+            if (c < best - 1e-9) {
+              best = c;
+              better = true;
+            } else {
+              [stacks[a][i], stacks[b][j]] = [stacks[b][j], stacks[a][i]];
+            }
+          }
+        }
+      }
+    }
+  }
+
+  stacks.forEach((st, c) => {
+    st.sort((p, q) => hash(p.item.id) - hash(q.item.id));
+    const gap = gapOf(st);
+    let y = rng(hash(`col${c}`))() * tile;
+    for (const e of st) {
+      e.item.rect = { x: Math.round(c * PITCH + GAP / 2), y: Math.round(mod(y, tile)), w: COL_W, h: e.h };
+      y += e.h + gap;
+    }
+  });
+  return tile;
 }
 
 /* ---- gl ------------------------------------------------------------------ */
@@ -174,7 +205,11 @@ void main() {
    puts it on screen through a blur whose radius grows from nothing at the
    centre to BLUR_PX at the edge midpoints — the whole picture, silhouettes
    included, the way glass does it. a ring of taps over a mip-biased sample
-   keeps a wide radius smooth */
+   keeps a wide radius smooth. it is seen through a fisheye too, so the
+   cell bulges: the middle is drawn biggest and the picture squeezes as it
+   runs out to the edge, the corners staying where they are, so the columns
+   bow round the middle — and at the rim red and blue part a little, the
+   fringe a real lens leaves */
 const FROST_VS = `#version 300 es
 out vec2 vUv;
 void main() {
@@ -198,19 +233,29 @@ void main() {
   // r² is 1 at the edge midpoints and 2 in the corners: full frost from the
   // edge outward, tapering in toward a clear centre
   float amt = smoothstep(0.45, 1.15, dot(n, n));
+  // the fisheye: every point samples from nearer the middle, most at the
+  // middle itself and not at all in the corners, so the middle swells and
+  // the rest is squeezed out toward the edge
+  float q = dot(n, n) * 0.5; // 0 in the middle, 1 in the corners
+  vec2 uv = 0.5 + n * 0.5 * (1.0 - ${LENS.toFixed(3)} * (1.0 - q));
+  float bend = smoothstep(0.25, 1.6, dot(n, n)); // for the fringe
   float radPx = amt * ${BLUR_PX.toFixed(1)};
   bias = log2(max(1.0, radPx * uDpr * 0.6));
   vec2 r = radPx / uView;
-  vec3 col = tap(vUv) * 2.0;
+  vec3 col = tap(uv) * 2.0;
   float wsum = 2.0;
   for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.7853982;
     vec2 d = vec2(cos(a), sin(a));
-    col += tap(vUv + d * r) * 0.85;
-    col += tap(vUv + d * r * 0.5 + vec2(-d.y, d.x) * r * 0.2) * 1.0;
+    col += tap(uv + d * r) * 0.85;
+    col += tap(uv + d * r * 0.5 + vec2(-d.y, d.x) * r * 0.2) * 1.0;
     wsum += 1.85;
   }
   col /= wsum;
+  // the fringe: red a touch further in, blue a touch further out
+  vec2 split = n * bend * ${FRINGE_PX.toFixed(1)} / uView;
+  col.r = mix(col.r, tap(uv - split).r, bend);
+  col.b = mix(col.b, tap(uv + split).b, bend);
   // the frosted rim goes milky: sinks a little toward the cell's own colour
   o = vec4(mix(col, uBg, 0.22 * amt), 1.0);
 }`;
@@ -432,10 +477,10 @@ export function mount(el, { scene = false, from = null } = {}) {
     gl.useProgram(frost.p);
     gl.uniform1f(frost.u.uDpr, dpr);
     gl.uniform2f(frost.u.uView, r.width, r.height);
-    /* about four works across whatever the cell's width, close enough to
-       see them — or the zoom of the cell this one continues, so the works
-       stay the same size */
-    cam.zoom = from?.zoom || r.width / (4 * (COL_W + GAP));
+    /* about four columns across whatever the cell's width, close enough to
+       see the works — or the zoom of the cell this one continues, so the
+       works stay the same size */
+    cam.zoom = from?.zoom || r.width / (4 * PITCH);
     const px = COL_W * cam.zoom * dpr;
     hiTier = px <= 192 ? 192 : px <= 256 ? 256 : 512; // 512 only when blown up behind the story card
     dirty = true;
