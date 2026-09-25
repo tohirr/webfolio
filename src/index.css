@@ -331,29 +331,33 @@ a:hover {
   padding-top: 76px;
 }
 
-/* bookmarx sits on a muted blue: a slate in the dark theme, a pale wash in
-   the light one. it is the cell's own --tile, so the caption's halo takes
-   the same colour */
-.block[aria-label="bookmarx"] {
-  --tile: #1a2230;
-}
+/* each cell sits on a muted tone of its own piece's colour: a slate in the
+   dark theme, a pale wash in the light one. it is the cell's own --tile,
+   so the sheen, the caption's halo and anything the piece paints with the
+   ground (gallaria's frost) all take it
+     bookmarx  the icon's blue
+     foil      the holo's violet
+     morph     the dots' teal
+     calendar  the event's magenta, as a plum
+     gallaria  terracotta, warm under the art
+     compass   the globe's moss green
+     keycaps   the caps' sand */
+.block[aria-label="bookmarx"] { --tile: #1a2230; }
+.block[aria-label="foil"] { --tile: #1f1b27; }
+.block[aria-label="morph"] { --tile: #15211f; }
+.block[aria-label="calendar"] { --tile: #221a21; }
+.block[aria-label="gallaria"] { --tile: #251b17; }
+.block[aria-label="compass"] { --tile: #1b2019; }
+.block[aria-label="keycaps"] { --tile: #23201a; }
 
 @media (prefers-color-scheme: light) {
-  .block[aria-label="bookmarx"] {
-    --tile: #e3eaf3;
-  }
-}
-
-/* the calendar takes its tone from the event's magenta: a deep plum in the
-   dark theme, a blush in the light one */
-.block[aria-label="calendar"] {
-  --tile: #221a21;
-}
-
-@media (prefers-color-scheme: light) {
-  .block[aria-label="calendar"] {
-    --tile: #f3e8ee;
-  }
+  .block[aria-label="bookmarx"] { --tile: #e3eaf3; }
+  .block[aria-label="foil"] { --tile: #ebe7f3; }
+  .block[aria-label="morph"] { --tile: #e3efec; }
+  .block[aria-label="calendar"] { --tile: #f3e8ee; }
+  .block[aria-label="gallaria"] { --tile: #f3e9e3; }
+  .block[aria-label="compass"] { --tile: #e7ede3; }
+  .block[aria-label="keycaps"] { --tile: #f1ece1; }
 }
 
 .tile {
