@@ -1049,7 +1049,7 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 
   .blocks {
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
     overflow-x: visible;
     /* preserve the desktop composition's negative space: on phones the
        first cell lands around the middle of the viewport */
@@ -1068,7 +1068,9 @@ input[type="range"]:focus-visible::-moz-range-thumb {
      shape than the desktop cell, and no viewport cap. a piece carrying its
      own --ratio keeps it: a landscape frame stays landscape here, it just
      runs the full width */
+  /* 52px is a lot of corner on a cell a phone's width across */
   .tile {
+    border-radius: 40px;
     --mo-scale: 0.42;
     width: 100%;
     height: auto;
