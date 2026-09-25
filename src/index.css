@@ -18,6 +18,9 @@
   --rim-hi: rgba(255, 255, 255, 0.32);
   --rim-lo: rgba(255, 255, 255, 0.12);
   --rim-line: rgba(255, 255, 255, 0.05);
+  /* the nav's frosted glass, and the cells' sheen */
+  --glass: rgba(64, 64, 70, 0.45);
+  --sheen: rgba(255, 255, 255, 0.05);
 }
 
 /* theme follows the system — the toggle is gone for now */
@@ -38,6 +41,8 @@
     --rim-hi: rgba(255, 255, 255, 1);
     --rim-lo: rgba(255, 255, 255, 0.7);
     --rim-line: rgba(0, 0, 0, 0.06);
+    --glass: rgba(220, 220, 226, 0.55);
+    --sheen: rgba(255, 255, 255, 0.75);
   }
 }
 
@@ -153,6 +158,28 @@ a:hover {
   }
 }
 
+/* ---- entrance ----------------------------------------------------------
+   on load each layer fades in a step after the one above it: quick enough
+   not to hold anything up, slow enough to be seen. main.js numbers the
+   layers with --i. opacity only, so it never fights a layer's transform */
+
+@keyframes enter {
+  from {
+    opacity: 0;
+  }
+}
+
+.enter {
+  animation: enter 480ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  animation-delay: calc(var(--i, 0) * 75ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter {
+    animation: none;
+  }
+}
+
 /* ---- intro ------------------------------------------------------------- */
 
 .intro {
@@ -180,6 +207,28 @@ a:hover {
 .avatar-wrap canvas {
   position: absolute;
   pointer-events: none;
+}
+
+/* on a phone the avatar docks in the nav's row once it scrolls up to it
+   (main.js): fixed on the icons' line, scaled to their 46px from its top
+   left corner, with the nav padded on the left to make its seat so the
+   four sit centred together */
+.avatar,
+.avatar-wrap {
+  transform-origin: 0 0;
+}
+
+.avatar.docked,
+.avatar-wrap.docked {
+  position: fixed;
+  top: 16px;
+  margin: 0;
+  z-index: 5;
+  transform: scale(calc(46 / 52));
+}
+
+.topnav.docked {
+  padding-left: 55px;
 }
 
 /* ---- blocks ------------------------------------------------------------ */
@@ -322,7 +371,9 @@ a:hover {
   aspect-ratio: var(--ratio, 9 / 10);
   border-radius: 52px;
   corner-shape: squircle;
-  background: var(--tile);
+  /* the sheen the old nav icons had: light falling from the top edge and
+     gone a little past halfway, under the piece like it sat under a glyph */
+  background: linear-gradient(to bottom, var(--sheen), transparent 55%) var(--tile);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,7 +390,8 @@ a:hover {
    edge holds on any ground. the ring is a gradient cut down to the border
    by a mask, which follows the squircle; it lies over the piece, so a
    canvas that fills the cell still gets its edge lit */
-.tile::after {
+.tile::after,
+.icon-btn::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -634,37 +686,30 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 }
 
 .icon-btn {
-  display: block;
-  width: 40px;
-  height: 40px;
-  color: var(--fg);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 20px;
+  corner-shape: squircle;
+  color: var(--ink);
+  /* frosted glass: whatever passes under is blurred and tinted, a light
+     grey in the light theme and a dark grey in the dark one, each a step
+     off the page so the buttons stand out from it */
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(6px) saturate(1.5);
+  backdrop-filter: blur(6px) saturate(1.5);
+  transition: transform 0.15s ease;
 }
 
 .icon-btn svg {
   display: block;
-  width: 100%;
-  height: 100%;
 }
 
 .icon-btn:hover {
   transform: translateY(-1px) scale(1.04);
-  filter: brightness(1.12);
-}
-
-/* an icon can carry a light and a dark drawing; the theme picks one */
-.icon-btn .dk {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .icon-btn .lt {
-    display: none;
-  }
-
-  .icon-btn .dk {
-    display: initial;
-  }
 }
 
 /* ---- story card: a tile's story ----------------------------------------

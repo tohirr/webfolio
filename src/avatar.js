@@ -5,7 +5,7 @@
 
 const SRC = "/favicon.svg";
 const GRID = 24; // the portrait is a 24×24 pixel grid
-const PAD = 56; // room around the portrait for the pixels to fly into
+const PAD = 72; // room around the portrait for the pixels to fly into
 const RADIUS = 130; // css px — cursor influence around the avatar center
 
 export function mount(img) {
@@ -76,15 +76,31 @@ export function mount(img) {
 
     let raf = 0;
     let strength = 0; // 0..1 — how deep the cursor is inside the radius
-    let pulse = 0; // tap fallback for touch screens
+    /* a tap is an impact: the pixels are kicked away from where it landed
+       and fly free under gravity for a beat (loose counts those frames
+       down), then the spring home fades back in (grip climbs to 1), loose
+       enough to overshoot and wobble into place. there are no walls: past
+       LEASH from home a pull that grows with the distance reins a pixel in,
+       so the spray thins out softly well inside the canvas's edge */
+    let loose = 0;
+    let grip = 1;
+    const G = 0.26 * dpr; // gravity, per frame
+    const KICK = 4.2 * dpr; // the push a pixel right under the finger gets
+    const FREE = 20; // frames of free flight, about a third of a second
+    const LEASH = 40 * dpr; // how far a pixel flies before it's reined in
     // cursor position in canvas coords; defaults to the center
     let cx = full / 2;
     let cy = full / 2;
 
     function tick() {
-      pulse *= 0.96;
-      const s = Math.max(strength, pulse);
-      let alive = s > 0.005;
+      if (loose > 0) loose--;
+      else if (grip < 1) grip = Math.min(1, grip + 0.045);
+      const s = strength;
+      let alive = s > 0.005 || grip < 1;
+      const fall = G * (1 - grip);
+      // barely any drag in flight; the resting spring's damping once it grips
+      const damp = 0.985 - 0.145 * grip;
+      const edge = full - cell;
 
       for (const d of dots) {
         let tx = d.hx;
@@ -97,10 +113,21 @@ export function mount(img) {
           tx = Math.min(full - cell, Math.max(0, tx));
           ty = Math.min(full - cell, Math.max(0, ty));
         }
-        d.vx = (d.vx + (tx - d.x) * 0.09) * 0.84;
-        d.vy = (d.vy + (ty - d.y) * 0.09) * 0.84;
-        d.x += d.vx;
-        d.y += d.vy;
+        d.vx = (d.vx + (tx - d.x) * 0.09 * grip) * damp;
+        d.vy = (d.vy + (ty - d.y) * 0.09 * grip + fall) * damp;
+        if (grip < 1) {
+          const ox = d.x - d.hx;
+          const oy = d.y - d.hy;
+          const o = Math.hypot(ox, oy);
+          if (o > LEASH) {
+            const pull = ((o - LEASH) * 0.1) / o;
+            d.vx = (d.vx - ox * pull) * 0.94;
+            d.vy = (d.vy - oy * pull) * 0.94;
+          }
+        }
+        // never past the canvas, whatever happens
+        d.x = Math.min(edge, Math.max(0, d.x + d.vx));
+        d.y = Math.min(edge, Math.max(0, d.y + d.vy));
         if (
           Math.abs(tx - d.x) + Math.abs(ty - d.y) > 0.05 ||
           Math.abs(d.vx) + Math.abs(d.vy) > 0.05
@@ -139,12 +166,26 @@ export function mount(img) {
       { passive: true },
     );
 
-    // touch screens have no cursor — a tap bursts, then it drifts home
+    // a tap, or a click, knocks the pixels away from where it landed.
+    // the wrap may be drawn scaled (docked in the nav on a phone), so the
+    // point is taken back to the canvas's own size first
     wrap.addEventListener("pointerdown", (e) => {
-      if (e.pointerType === "mouse") return;
-      pulse = 1;
-      cx = full / 2;
-      cy = full / 2;
+      const r = wrap.getBoundingClientRect();
+      const k = (SIZE / r.width) * dpr;
+      const hx = (e.clientX - r.left) * k + pad;
+      const hy = (e.clientY - r.top) * k + pad;
+      const reach = SIZE * dpr * 0.5;
+      for (const d of dots) {
+        const dx = d.x + cell / 2 - hx;
+        const dy = d.y + cell / 2 - hy;
+        const dist = Math.hypot(dx, dy) || 1;
+        const a = Math.atan2(dy, dx) + d.jitter * 0.6;
+        const power = (KICK * (0.6 + Math.random() * 0.4)) / (1 + dist / reach);
+        d.vx += Math.cos(a) * power;
+        d.vy += Math.sin(a) * power - Math.random() * 1.2 * dpr; // a little lift
+      }
+      loose = FREE;
+      grip = 0;
       wake();
     });
   };
