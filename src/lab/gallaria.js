@@ -432,9 +432,10 @@ export function mount(el, { scene = false, from = null } = {}) {
     gl.useProgram(frost.p);
     gl.uniform1f(frost.u.uDpr, dpr);
     gl.uniform2f(frost.u.uView, r.width, r.height);
-    /* about six works across whatever the cell's width — or the zoom of
-       the cell this one continues, so the works stay the same size */
-    cam.zoom = from?.zoom || r.width / (6 * (COL_W + GAP));
+    /* about four works across whatever the cell's width, close enough to
+       see them — or the zoom of the cell this one continues, so the works
+       stay the same size */
+    cam.zoom = from?.zoom || r.width / (4 * (COL_W + GAP));
     const px = COL_W * cam.zoom * dpr;
     hiTier = px <= 192 ? 192 : px <= 256 ? 256 : 512; // 512 only when blown up behind the story card
     dirty = true;
