@@ -42,15 +42,6 @@ const blocks = [
     load: () => import("./lab/foil.js"),
   },
   {
-    name: "gallaria",
-    type: "site",
-    blurb: "a canvas of african art",
-    sub: "an infinite canvas of art by african artists · webgl2",
-    detail: true,
-    kind: "more",
-    load: () => import("./lab/gallaria.js"),
-  },
-  {
     name: "morph",
     type: "component",
     blurb: "dots that morph with music",
@@ -60,23 +51,32 @@ const blocks = [
     load: () => import("./lab/morph.js"),
   },
   {
-    name: "tape",
+    name: "calendar",
+    type: "design",
+    blurb: "a live event, concept",
+    sub: "a calendar widget that shows a live event running \u00b7 concept",
+    ratio: "4 / 3",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/calendar.js"),
+  },
+  {
+    name: "gallaria",
+    type: "site",
+    blurb: "a canvas of african art",
+    sub: "an infinite canvas of art by african artists · webgl2",
+    detail: true,
+    kind: "more",
+    load: () => import("./lab/gallaria.js"),
+  },
+  {
+    name: "compass",
     type: "component",
     blurb: "heading tape over a dot globe",
     sub: "heading tape over a dot globe · detents, momentum, phone compass",
     detail: true,
     kind: "touch",
-    load: () => import("./lab/tape.js"),
-  },
-  {
-    name: "calendar",
-    type: "design",
-    blurb: "a live event, concept",
-    sub: "a calendar widget that shows a live event running \u00b7 concept",
-    ratio: "2000 / 1150",
-    detail: true,
-    kind: "more",
-    load: () => import("./lab/calendar.js"),
+    load: () => import("./lab/compass.js"),
   },
   {
     name: "keycaps",
@@ -351,8 +351,8 @@ const details = {
     stage: () => import("./lab/morph.js"),
   },
 
-  tape: {
-    title: "tape",
+  compass: {
+    title: "compass",
     sub: "a heading tape over a dot globe",
     body:
       `<p>The strip out of a glass cockpit's display: ticks sliding under a fixed ` +
@@ -377,31 +377,39 @@ const details = {
       `  const k = 1 - Math.exp(-dt * 14); // fps-free\n` +
       `  pos += (Math.round(pos) - pos) * k;\n` +
       `}`,
-    stage: () => import("./lab/tape.js"),
+    stage: () => import("./lab/compass.js"),
   },
 
   calendar: {
     title: "calendar",
-    sub: "a concept, drawn in figma",
+    sub: "a concept, built in the browser",
     body:
-      `<p>A mockup, not a build \u2014 no Xcode was opened for it. On the left, ` +
-      `the widget as it ships today. It is glanced at, not read, and the glance ` +
-      `mid-meeting asks one question \u2014 how much longer \u2014 which two ` +
-      `timestamps answer only once you have done the subtraction yourself. On ` +
-      `the right, the concept: a running event's block drains and says the ` +
-      `number, <em>30 min left</em>.</p>` +
-      `<p>An earlier pass, not pictured, ran the fill behind the text, which is ` +
-      `the mistake: over ninety minutes the edge sweeps straight across the ` +
-      `title, so the contrast under a word changes as time passes and you ` +
-      `cannot flip the text colour to fix it \u2014 the edge cuts through ` +
-      `mid-glyph. This one moves the fill into a solid carrying its own text, ` +
-      `with the pale remainder as the track behind it. The title still runs ` +
-      `past that block's edge, which is the next pass's problem.</p>` +
-      `<p>Nothing here is built, though it would not be costly to. A widget gets ` +
-      `a few dozen refreshes a day and animating a fill by hand would spend ` +
-      `all of them \u2014 except that WidgetKit will drive a progress view off ` +
-      `a date range on its own, which makes this one of the rare things a ` +
-      `widget can move for free. Roughly what would carry it:</p>`,
+      `<p>Before an event it is the widget as it ships today: a magenta rule, ` +
+      `the name, the times. It is glanced at, not read, and the ` +
+      `glance mid-meeting asks one question \u2014 how much longer \u2014 ` +
+      `which two timestamps answer only once you have done the subtraction ` +
+      `yourself. So when the event starts, the rule opens into a block that ` +
+      `fills as it runs, and the times give way to the number, ` +
+      `<em>30 min left</em>. One widget, doing both jobs. It sits at ` +
+      `the medium size, the next two events stacked beside the month; drag ` +
+      `its corner in and it folds down to the small one, the running event ` +
+      `filling the same way in both. Drag it down instead and it opens to ` +
+      `the large one, the day as a timeline, where the fill runs top to ` +
+      `bottom down the event's block instead.</p>` +
+      `<p>An earlier pass ran the fill behind the text, which is the mistake: ` +
+      `over ninety minutes the edge sweeps straight across the title, so the ` +
+      `contrast under a word changes as time passes, and flipping a word's ` +
+      `colour can't fix it when the edge cuts through the middle of a ` +
+      `letter. This one draws the text twice \u2014 once in the track's ` +
+      `colours, once in the fill's \u2014 and clips the fill's copy to the ` +
+      `fill's edge, so a letter changes colour exactly where the edge ` +
+      `crosses it.</p>` +
+      `<p>It runs here in the browser, not on a phone, though it would not be ` +
+      `costly to get it there. A widget gets a few dozen refreshes a day and ` +
+      `animating a fill by hand would spend all of them \u2014 except that ` +
+      `WidgetKit will drive a progress view off a date range on its own, ` +
+      `which makes this one of the rare things a widget can move for free. ` +
+      `Roughly what would carry it:</p>`,
     code:
       `// the system redraws this one \u2014 no timeline entry\n` +
       `// per minute, no refresh budget spent on it\n` +
@@ -410,8 +418,7 @@ const details = {
       `  Text(event.title)\n` +
       `}\n` +
       `.progressViewStyle(.linear)`,
-    /* the concept stands next to the shipping widget \u2014 the comparison is
-       the piece, so the stage shows the whole frame */
+    /* the widget itself, running the keynote through on a loop */
     stage: () => import("./lab/calendar.js"),
   },
 };
@@ -601,8 +608,9 @@ document.getElementById("app").innerHTML =
 
 /* ---- the drawer ---------------------------------------------------------- */
 
-// foil was facet-card once; links to the old name still open it
-if (location.hash === "#facet-card") history.replaceState(null, "", "#foil");
+// pieces that have been renamed: links to their old names still open them
+const RENAMED = { "#facet-card": "#foil", "#tape": "#compass" };
+if (RENAMED[location.hash]) history.replaceState(null, "", RENAMED[location.hash]);
 
 import("./drawer.js").then((mod) =>
   mod.mountDrawer(

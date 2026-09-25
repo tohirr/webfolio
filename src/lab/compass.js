@@ -1,4 +1,4 @@
-/* lab/tape — a heading tape, the strip from a glass cockpit's display: a
+/* lab/compass — a heading tape, the strip from a glass cockpit's display: a
    tape of tick marks slides under a fixed centre indicator, every tick a
    detent, one degree of heading, and the numbers loop round the circle
    with N, E, S and W where they fall. under the tape sits the earth seen
