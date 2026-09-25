@@ -25,6 +25,7 @@ const BOOKMARX_URL = "https://bookmarx.space";
 const blocks = [
   {
     name: "bookmarx",
+    href: BOOKMARX_URL,
     type: "site",
     blurb: "a library for saved posts",
     sub: "a library for saved posts that searches, and sorts itself",
@@ -62,6 +63,7 @@ const blocks = [
   },
   {
     name: "gallaria",
+    href: GALLARIA_URL,
     type: "site",
     blurb: "a canvas of african art",
     sub: "an infinite canvas of art by african artists · webgl2",
@@ -119,6 +121,12 @@ const blocks = [
   },
   { name: "coffee", coffee: true },
 ];
+
+/* the story cards are off while they're reworked: nothing opens one, a
+   site's cell goes to the site, and the rest are just the live piece. the
+   stories and the drawer stay as they are for when this comes back on */
+const STORIES = false;
+const story = (b) => STORIES && b.detail;
 
 /* pieces parked for now keep their entry and their story — they just
    take no cell, and answer no deep link, until the flag comes off */
@@ -501,7 +509,7 @@ const TYPE = {
    that missed the piece's own controls (anything marked [data-act]) and that
    the piece didn't claim by stopping the pointer event on its way up. a drag
    is never a tap, so the row still scrolls under the finger */
-const tapOpens = (b) => b.detail && b.kind === "touch";
+const tapOpens = (b) => story(b) && b.kind === "touch";
 
 const openOnTap = (el, name) => {
   let x0 = 0, y0 = 0, mine = false;
@@ -543,7 +551,7 @@ const tile = (b) =>
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
       `<span class="c-cta">sponsor me →</span></a>`
-    : b.detail && !tapOpens(b)
+    : story(b) && !tapOpens(b)
       ? `<a class="tile mark"${shape(b)} href="#${b.name}" aria-label="${b.name}" data-mount="${b.name}"></a>`
       : b.href
         ? `<a class="tile mark"${shape(b)} href="${b.href}" ${ext} aria-label="${b.name}" data-mount="${b.name}"></a>`
@@ -608,15 +616,17 @@ document.getElementById("app").innerHTML =
 
 /* ---- the drawer ---------------------------------------------------------- */
 
-// pieces that have been renamed: links to their old names still open them
-const RENAMED = { "#facet-card": "#foil", "#tape": "#compass" };
-if (RENAMED[location.hash]) history.replaceState(null, "", RENAMED[location.hash]);
+if (STORIES) {
+  // pieces that have been renamed: links to their old names still open them
+  const RENAMED = { "#facet-card": "#foil", "#tape": "#compass" };
+  if (RENAMED[location.hash]) history.replaceState(null, "", RENAMED[location.hash]);
 
-import("./drawer.js").then((mod) =>
-  mod.mountDrawer(
-    Object.fromEntries(Object.entries(details).filter(([name]) => !parked.has(name))),
-  ),
-);
+  import("./drawer.js").then((mod) =>
+    mod.mountDrawer(
+      Object.fromEntries(Object.entries(details).filter(([name]) => !parked.has(name))),
+    ),
+  );
+}
 
 /* ---- avatar: pixel-scatter hover ---------------------------------------- */
 
