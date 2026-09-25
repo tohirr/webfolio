@@ -1,4 +1,4 @@
-/* lab/facet-card — a trading card with a pixel holo foil. the shine recipe
+/* lab/foil — a trading card with a pixel holo foil. the shine recipe
    comes from real tcg card css (simeydotme's trainer-gallery-holo): rainbow
    gradient, contrast crush, hard-light + overlay glare — rebuilt per-facet
    in a webgl fragment shader so the foil reads as a grid of tiny pixels.

@@ -33,13 +33,13 @@ const blocks = [
     load: () => import("./lab/bookmarx-mark.js"),
   },
   {
-    name: "facet-card",
+    name: "foil",
     type: "component",
-    blurb: "pixel holo foil",
+    blurb: "a pixel holo surface",
     sub: "pixel holo foil · webgl",
     detail: true,
     kind: "touch",
-    load: () => import("./lab/facet-card.js"),
+    load: () => import("./lab/foil.js"),
   },
   {
     name: "gallaria",
@@ -70,7 +70,6 @@ const blocks = [
   },
   {
     name: "calendar",
-    light: true,
     type: "design",
     blurb: "a live event, concept",
     sub: "a calendar widget that shows a live event running \u00b7 concept",
@@ -245,8 +244,8 @@ const details = {
     stage: () => import("./lab/eyes.js"),
   },
 
-  "facet-card": {
-    title: "facet-card",
+  foil: {
+    title: "foil",
     sub: "a trading card with a pixel holo foil",
     body:
       `<p>Tilt it with the pointer — on a phone, with the phone — and the foil ` +
@@ -268,7 +267,7 @@ const details = {
       `vec3 N = rotY(rotX(normalize(vec3(n.xy, 1.)),\n` +
       `              uTilt.x), uTilt.y);`,
     /* the card itself stands beside the story */
-    stage: () => import("./lab/facet-card.js"),
+    stage: () => import("./lab/foil.js"),
   },
 
   keycaps: {
@@ -308,7 +307,7 @@ const details = {
       `button, holds while you hold, and cools when you let go. Here the wave ` +
       `is foil instead of a translucent disc. Hold it and the whole button ` +
       `charges; move the pointer and the light rolls across the facets.</p>` +
-      `<p>The foil is the facet-card recipe on a canvas under the label: the ` +
+      `<p>The foil is the recipe from <em>foil</em>, on a canvas under the label: the ` +
       `surface is quantised to a grid of cells, each cell hashed its own tilted ` +
       `normal, and the light hangs off the pointer. The ripple is a hard, ` +
       `cell-stepped disc with a jittered rainbow ring riding its edge, so the ` +
@@ -532,7 +531,7 @@ const ext = 'target="_blank" rel="noreferrer"';
 const shape = (b) => (b.ratio ? ` style="--ratio: ${b.ratio}"` : "");
 
 const tile = (b) =>
-  `<figure class="block${b.light ? " on-light" : ""}" aria-label="${b.name}">` +
+  `<figure class="block" aria-label="${b.name}">` +
   (b.coffee
     ? `<a class="tile coffee" href="${SPONSOR_URL}" ${ext}>` +
       `<span class="c-line">interfaces run on caffeine</span>` +
@@ -601,6 +600,9 @@ document.getElementById("app").innerHTML =
 });
 
 /* ---- the drawer ---------------------------------------------------------- */
+
+// foil was facet-card once; links to the old name still open it
+if (location.hash === "#facet-card") history.replaceState(null, "", "#foil");
 
 import("./drawer.js").then((mod) =>
   mod.mountDrawer(

@@ -3,34 +3,38 @@
    question you actually have mid-meeting. a concept, not a shipped thing.
 
    the piece is the comparison — the widget as it ships next to the concept —
-   so the cell is a landscape one and the picture is the whole of it. */
+   so the cell is a landscape one with the two side by side. each widget is
+   its own png from figma at 4x, light and dark, and follows the theme. */
 
-const FRAME = { w: 2000, h: 1150 };
-const LIGHT = "/media/calendar/full.webp";
-const DARK = null; // a dark render goes here and the picture starts switching
-const PAPER = "#e5e5e5"; // the figma frame's own ground, under it while it loads
+const WIDGETS = [
+  {
+    name: "event",
+    alt: "the calendar widget as it ships: the day, and the event's name, place and times",
+  },
+  {
+    name: "live",
+    alt: "the concept: the running event's block fills as it goes and says 30 min left",
+  },
+];
 
-const ALT =
-  "the calendar widget twice: as it ships, and a concept where a running " +
-  "event fills its block and counts down the minutes left";
+const src = (name, theme) => `/media/calendar/${name}-${theme}.png`;
+
+const widget = ({ name, alt }) =>
+  `<picture class="cw-w">` +
+  `<source media="(prefers-color-scheme: dark)" srcset="${src(name, "dark")}" />` +
+  `<img src="${src(name, "light")}" alt="${alt}" width="659" height="659" decoding="async" draggable="false" />` +
+  `</picture>`;
 
 export function mount(el) {
-  const quiet = !!el.closest(".tile"); // in the cell, nothing but the picture
-
   el.innerHTML =
     `<style>
-      .cw { width: 100%; background: ${PAPER}; overflow: hidden; }
-      .cw img { display: block; width: 100%; user-select: none; -webkit-user-drag: none; }
-      .cw-cell { height: 100%; }
-      .cw-cell img { height: 100%; object-fit: cover; }
-      .cw-whole { border-radius: 18px; }
-      .cw-whole img { height: auto; }
+      .cw { width: 100%; height: 100%; display: flex; align-items: center;
+            justify-content: center; gap: 5%; }
+      .cw-w { display: block; height: 58%; aspect-ratio: 1; }
+      .cw-w img { display: block; width: 100%; height: 100%;
+                  user-select: none; -webkit-user-drag: none; }
     </style>` +
-    `<picture class="cw ${quiet ? "cw-cell" : "cw-whole"}">` +
-    (DARK ? `<source media="(prefers-color-scheme: dark)" srcset="${DARK}" />` : "") +
-    `<img src="${LIGHT}" alt="${ALT}" width="${FRAME.w}" height="${FRAME.h}"` +
-    ` decoding="async" draggable="false" />` +
-    `</picture>`;
+    `<div class="cw">${WIDGETS.map(widget).join("")}</div>`;
 
   return () => {
     el.innerHTML = "";

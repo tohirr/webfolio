@@ -325,23 +325,6 @@ a:hover {
   display: none;
 }
 
-/* a cell on a light ground in either theme — the calendar frame brings its
-   own — takes its caption's contrast from that ground rather than from the
-   theme, and drops the halo, which in the dark theme's colour would smudge */
-.on-light .kind,
-.on-light .cap-blurb {
-  color: #a3a3a3;
-}
-
-.on-light:hover .kind,
-.on-light .cap-title {
-  color: #3d3d3d;
-}
-
-.on-light .cap {
-  text-shadow: none;
-}
-
 /* the globe fills whatever the stage leaves above the dial, so more room
    on top makes it smaller and clears the caption's line */
 .tile .tp-stage {
@@ -358,6 +341,18 @@ a:hover {
 @media (prefers-color-scheme: light) {
   .block[aria-label="bookmarx"] {
     --tile: #e3eaf3;
+  }
+}
+
+/* the calendar takes its tone from the event's magenta: a deep plum in the
+   dark theme, a blush in the light one */
+.block[aria-label="calendar"] {
+  --tile: #221a21;
+}
+
+@media (prefers-color-scheme: light) {
+  .block[aria-label="calendar"] {
+    --tile: #f3e8ee;
   }
 }
 
@@ -465,7 +460,7 @@ a:hover {
   cursor: pointer;
 }
 
-/* the facet-card piece, tamed into a preview: no sliders, no caption,
+/* the foil piece, tamed into a preview: no sliders, no caption,
    card sized to sit inside the tile — on the cell's own surface, like the
    rest of the row, with the card's shadow falling on it */
 .tile .fc-row,
@@ -481,6 +476,13 @@ a:hover {
 .tile .fc-card {
   /* scales with the tile, short enough to clear the caption */
   width: 56%;
+}
+
+/* the calendar's widgets centre in the room under the caption, so on a
+   phone's short landscape cell they don't come up to meet it */
+.tile .cw {
+  box-sizing: border-box;
+  padding-top: 40px;
 }
 
 /* the caption names gallaria, so its own tag goes */
@@ -943,18 +945,13 @@ input[type="range"]:focus-visible::-moz-range-thumb {
   }
 }
 
-/* the calendar frame is wide and flat, and the whole point is the two
-   widgets side by side — it takes the stage's width and the height
-   follows. the ratio is on the stage itself so the flight has a height to
-   measure before the picture has loaded */
+/* the calendar is wide and flat, and the whole point is the two widgets
+   side by side — it takes the stage's width and the height follows. the
+   ratio is on the stage itself so the flight has a height to measure
+   before the widgets have loaded */
 .drawer-stage[data-piece="calendar"] {
   min-height: 0;
   aspect-ratio: 2000 / 1150;
-}
-
-.drawer-stage[data-piece="calendar"] .cw-whole {
-  width: 100%;
-  box-shadow: var(--card-shadow);
 }
 
 /* it comes up ahead of the words, so the cell's copy has something live to
@@ -1124,12 +1121,6 @@ input[type="range"]:focus-visible::-moz-range-thumb {
 
   .tile .fc-card {
     width: 64%;
-  }
-
-  /* the calendar is short and landscape here, its widgets come up to
-     meet the caption — only the title fits above them */
-  .block[aria-label="calendar"] .cap-blurb {
-    display: none;
   }
 
   /* the page now scrolls vertically through the cells, so the pieces

@@ -532,7 +532,7 @@ function canvases() {
 /* canvas capture is the better recording — true frames, no cursor, no
    compositor — but only when the canvas *is* the whole piece. when it is
    smaller than the frame, everything around it is the piece too: the
-   background, the drop shadow, and in facet-card's case the entire tilt,
+   background, the drop shadow, and in foil's case the entire tilt,
    which is a css transform on the card element and never touches a canvas
    pixel. recording the canvas there gets you a flat, floating card. */
 function fillsFrame(c) {

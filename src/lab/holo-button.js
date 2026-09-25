@@ -3,7 +3,7 @@
    the button, holds while you hold, and fades when you let go. here the
    wave is a foil sticker instead of a translucent disc: quantised to a
    grid of facets, each facet lit by its own hashed normal, with a brighter
-   wavefront riding the edge — the facet-card recipe, cooked in a fragment
+   wavefront riding the edge — the foil recipe, cooked in a fragment
    shader on a canvas under the label, but in one colour: the foil is the
    button's own lavender, screened over the purple, so every shade it makes
    is a shade of the button. moving the pointer tilts the light, so the
