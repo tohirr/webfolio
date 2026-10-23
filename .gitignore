@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# rendered clips from scripts/x-banner.mjs
+out
