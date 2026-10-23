@@ -17,6 +17,7 @@ export default defineConfig({
         glass: page("glass/index.html"),
         cube: page("cube/index.html"),
         keycaps: page("keycaps/index.html"),
+        pinch: page("pinch/index.html"),
       },
     },
   },
