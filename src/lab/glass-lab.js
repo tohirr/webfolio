@@ -20,8 +20,10 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* built-in logos. ux pilot's mark is the glyph from its app icon, lifted
    off the lavender tile; its wordmark is the one in its site header */
 const BRANDS = {
-  note: { label: "Note", name: "Aria", thumb: "note" },
-  uxpilot: { label: "UX Pilot", name: "UX Pilot", logo: "/media/glass/uxpilot-mark.png", wordImg: "/media/glass/uxpilot-wordmark.svg", text: "UX Pilot" },
+  /* the pixel self-portrait from the site's favicon, in its own colours */
+  tohirr: { label: "Tohir", name: "tohirr", logo: "/favicon.svg", text: "tohirr", original: true },
+  note: { label: "Note", name: "Aria" },
+  uxpilot: { label: "UX Pilot", name: "UX Pilot", logo: "/media/glass/uxpilot-mark.svg", wordImg: "/media/glass/uxpilot-wordmark.svg", text: "UX Pilot" },
 };
 
 const PRESETS = [
@@ -39,8 +41,13 @@ const PRESET_KEYS = [...new Set(PRESETS.flatMap((p) => Object.keys(p.set)))];
 
 /* the panel's sections: [kind, key, label, min, max, step, unit] */
 const SECTIONS = [
+  ["Interaction", [
+    ["toggle", "interact", "Interaction"],
+    ["range", "strength", "Strength", 0, 1, 0.01, ""],
+    ["toggle", "dropOnClick", "Drop on click"],
+  ]],
   ["Reveal", [
-    ["select", "ending", "Ending", [["logo", "Logo"], ["wordmark", "Wordmark"]]],
+    ["select", "ending", "Ending", [["icon", "Icon (stays glass)"], ["logo", "Logo"], ["wordmark", "Wordmark"]]],
     ["text", "text", "Wordmark", "wordmark"],
     ["toggle", "tile", "Icon plate"],
   ]],
@@ -87,6 +94,7 @@ const fetchImage = (src) => new Promise((res, rej) => {
   im.onerror = rej;
   im.src = src;
 });
+const smoothstep = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 const decimals = (step) => (String(step).split(".")[1] || "").length;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -112,8 +120,11 @@ const NOTE_THUMB =
 export function mount(el) {
   if (el.closest(".tile")) return reel(el);
 
-  const params = { ...DEFAULTS };
-  const ui = { brand: "note", preset: "studio", layout: "result", paused: false };
+  /* the lab rests on the glass icon, so there is something to steer; the
+     interaction keys are the lab's own, the renderer ignores them */
+  const LAB = { ending: "icon", interact: true, strength: 0.7, dropOnClick: true };
+  const params = { ...DEFAULTS, ...LAB };
+  const ui = { brand: "tohirr", preset: "studio", layout: "result", paused: false };
   const exp = { type: "video", format: "mp4", aspect: "16:9", res: "1080p", fps: 60 };
   const q = new URLSearchParams(location.search);
   if (q.get("theme") === "light") Object.assign(params, THEMES.light, { theme: "light" });
@@ -292,22 +303,48 @@ export function mount(el) {
     const running = !ui.paused && !reduceMotion;
     if (running) {
       t += dt * params.speed;
-      if (t >= pass()) t = params.loop ? 0 : pass();
+      /* the icon ending holds on the formed icon rather than looping */
+      if (t >= pass()) t = params.loop && params.ending !== "icon" ? 0 : pass();
     }
     /* the canvas is laid out at the mock's design size and shown scaled, so
        its backing store follows what is actually on screen */
     const dpr = Math.min(devicePixelRatio || 1, 2) * Math.min(1, scale * 1.15);
     const w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    const springing = stepLook(dt);
     glass.render(t, canvas.clientWidth);
     const end = lengthOf(params.ending);
     scrub.max = end;
     scrub.value = Math.min(t, end);
     scrub.style.setProperty("--f", `${(Math.min(t, end) / end) * 100}%`);
     $("[data-time]").textContent = `${Math.min(t, end).toFixed(1)}s`;
-    const moving = running && (params.loop || t < pass());
+    const moving = (running && ((params.loop && params.ending !== "icon") || t < pass())) || springing;
     if (moving || needs || glass.dirty) raf = requestAnimationFrame(frame);
     needs = false;
+  };
+  /* ---- the viewer: the pointer, a finger or the phone's tilt steers the
+     glass. a critically damped spring carries it there and back — it
+     arrives without overshooting, so the glass never wobbles. while the
+     reveal runs the timeline is in charge; the steering blends in once the
+     icon has formed (or at once, when paused) */
+  const look = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, at: -1e9, acc: 0 };
+  const stepLook = (dt) => {
+    const formed = ui.paused ? 1 : smoothstep(0.45, 0.85, t);
+    glass.lookAmt = params.interact ? params.strength * formed : 0;
+    if (reduceMotion) { look.x = look.tx; look.y = look.ty; }
+    else {
+      const k = 140, d = 2 * Math.sqrt(k); // per second; d = 2√k is critical
+      look.acc = Math.min(look.acc + dt, 0.1);
+      while (look.acc >= 1 / 120) {
+        look.acc -= 1 / 120;
+        look.vx += ((look.tx - look.x) * k - look.vx * d) / 120;
+        look.vy += ((look.ty - look.y) * k - look.vy * d) / 120;
+        look.x += look.vx / 120;
+        look.y += look.vy / 120;
+      }
+    }
+    glass.look = [look.x, look.y];
+    return Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) + Math.abs(look.vx) + Math.abs(look.vy) > 1e-3;
   };
   const kick = () => {
     needs = true;
@@ -411,10 +448,10 @@ export function mount(el) {
 
     applyVars(fitBox);
     const url = new URLSearchParams();
-    if (ui.brand !== "note" && BRANDS[ui.brand]) url.set("brand", ui.brand);
+    if (ui.brand !== "tohirr" && BRANDS[ui.brand]) url.set("brand", ui.brand);
     if (ui.layout !== "result") url.set("layout", ui.layout);
     if (ui.preset !== "studio" && PRESETS.some((p) => p.id === ui.preset)) url.set("preset", ui.preset);
-    const base = { ...DEFAULTS, ...(PRESETS.find((p) => p.id === ui.preset)?.set || {}) };
+    const base = { ...DEFAULTS, ...LAB, ...(PRESETS.find((p) => p.id === ui.preset)?.set || {}) };
     for (const k in DEFAULTS) {
       const v = params[k];
       if (v !== base[k] && !(k === "text" && BRANDS[ui.brand]?.text === v)) url.set(k, typeof v === "boolean" ? +v : v);
@@ -476,10 +513,11 @@ export function mount(el) {
     $('[data-name="logo"]').textContent = "No file chosen";
     $('[data-clear="logo"]').hidden = true;
     if (B.logo) {
-      try { [art.logo, art.wordImg] = await Promise.all([fetchImage(B.logo), fetchImage(B.wordImg)]); }
+      try { [art.logo, art.wordImg] = await Promise.all([fetchImage(B.logo), B.wordImg ? fetchImage(B.wordImg) : null]); }
       catch { toast("that logo did not load"); }
       params.text = B.text;
-    } else if (params.text === BRANDS.uxpilot.text) params.text = DEFAULTS.text;
+    } else if (Object.values(BRANDS).some((b) => b.text === params.text)) params.text = DEFAULTS.text;
+    params.original = !!B.original;
     glass.setArt(art);
     t = 0;
     showLayout();
@@ -507,9 +545,64 @@ export function mount(el) {
   stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.dataset.over = "1"; });
   stage.addEventListener("dragleave", () => delete stage.dataset.over);
   stage.addEventListener("drop", (e) => { e.preventDefault(); delete stage.dataset.over; take("logo", e.dataTransfer.files[0]); });
+
+  /* steering: where the pointer sits over the canvas, -1..1, y up */
+  const aim = (e) => {
+    const r = canvas.getBoundingClientRect();
+    look.tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2)));
+    look.ty = Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height / 2)) / (r.height / 2)));
+    look.at = performance.now();
+    kick();
+  };
+  stage.addEventListener("pointermove", (e) => { if (params.interact) aim(e); });
+  stage.addEventListener("pointerleave", () => { look.tx = look.ty = 0; kick(); });
+  stage.addEventListener("pointercancel", () => { look.tx = look.ty = 0; kick(); });
+
+  /* a tap or click drops a new drop where it lands: the reveal replays from
+     there and the icon glides home as it forms */
+  let down = null;
+  stage.addEventListener("pointerdown", (e) => {
+    down = { x: e.clientX, y: e.clientY };
+    if (params.interact) { aim(e); askMotion(); }
+  });
+  stage.addEventListener("pointerup", (e) => {
+    const tap = down && Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) < 6;
+    down = null;
+    if (e.pointerType === "touch") { look.tx = look.ty = 0; kick(); }
+    if (!tap || !params.interact || !params.dropOnClick || reduceMotion) return;
+    const r = canvas.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    const k = canvas.clientWidth / r.width; // the mock is shown scaled
+    glass.origin = [(e.clientX - (r.left + r.width / 2)) * k, -(e.clientY - (r.top + r.height / 2)) * k];
+    t = 0;
+    ui.paused = false;
+    syncPause();
+    kick();
+  });
+
+  /* the phone's tilt, once allowed. ios asks on a tap, so the first tap on
+     the stage asks; elsewhere it just listens */
+  let motionOn = false;
+  const onTilt = (e) => {
+    if (!params.interact || e.beta == null || e.gamma == null) return;
+    if (performance.now() - look.at < 1500) return; // a finger or pointer leads
+    look.tx = Math.max(-1, Math.min(1, e.gamma / 30));
+    look.ty = Math.max(-1, Math.min(1, -(e.beta - 45) / 30));
+    kick();
+  };
+  const listenTilt = () => { if (!motionOn) { motionOn = true; addEventListener("deviceorientation", onTilt); } };
+  const askMotion = () => {
+    const D = typeof DeviceOrientationEvent !== "undefined" ? DeviceOrientationEvent : null;
+    if (motionOn || !D || navigator.maxTouchPoints === 0) return;
+    if (typeof D.requestPermission === "function")
+      D.requestPermission().then((r) => r === "granted" && listenTilt()).catch(() => {});
+    else listenTilt();
+  };
+  if (matchMedia("(pointer: coarse)").matches && typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission !== "function") listenTilt();
   for (const b of $$("[data-clear]"))
     b.addEventListener("click", () => {
-      if (b.dataset.clear === "logo") return useBrand("note");
+      if (b.dataset.clear === "logo") return useBrand("tohirr");
       art.ground = null;
       groundURL = "";
       b.hidden = true;
@@ -611,7 +704,7 @@ export function mount(el) {
     if (act === "export") return setPop(pop.hidden);
     if (act === "go") { setPop(false); return exportNow(); }
     if (act === "pause") { ui.paused = !ui.paused; if (!ui.paused && t >= pass()) t = 0; syncPause(); kick(); }
-    if (act === "restart") { t = 0; kick(); }
+    if (act === "restart") { t = 0; glass.origin = [0, 0]; kick(); }
     if (act === "random") randomize();
     if (act === "undo" && undo.length) { redo.push(JSON.stringify(params)); restore(undo.pop()); }
     if (act === "redo" && redo.length) { undo.push(JSON.stringify(params)); restore(redo.pop()); }
@@ -630,13 +723,14 @@ export function mount(el) {
       catch { toast(location.href); }
     }
     if (act === "reset") {
-      Object.assign(params, DEFAULTS);
+      Object.assign(params, DEFAULTS, LAB);
+      glass.origin = [0, 0];
       ui.preset = "studio";
       art.ground = null;
       groundURL = "";
       $('[data-clear="ground"]').hidden = true;
       commit();
-      useBrand("note");
+      useBrand("tohirr");
     }
   });
   const onKeys = (e) => {
@@ -651,12 +745,11 @@ export function mount(el) {
   };
   addEventListener("keydown", onKeys);
 
-  el.glassLab = { params, ui, glass, exp, seek: (s) => { t = s; ui.paused = true; syncPause(); kick(); }, exportNow, pickLayout, useBrand };
+  el.glassLab = { params, ui, glass, exp, look, seek: (s) => { t = s; ui.paused = true; syncPause(); kick(); }, exportNow, pickLayout, useBrand };
   syncPause();
   syncHistory();
   showLayout();
-  if (ui.brand !== "note") useBrand(ui.brand);
-  else sync(true);
+  useBrand(ui.brand);
 
   return () => {
     alive = false;
@@ -665,6 +758,7 @@ export function mount(el) {
     document.removeEventListener("click", onDoc);
     document.removeEventListener("keydown", onKey);
     removeEventListener("keydown", onKeys);
+    removeEventListener("deviceorientation", onTilt);
   };
 }
 
@@ -674,23 +768,42 @@ function videoType(format) {
   return list.find((m) => MediaRecorder.isTypeSupported(m)) || "";
 }
 
-/* ---- the capture reel ---------------------------------------------------- */
-/* the reveal, looping with its hold, on one canvas that fills the frame */
+/* ---- the tile and the capture reel ---------------------------------------- */
+/* the reveal on its own, looping with its hold, on one canvas that fills the
+   cell. in a portfolio tile it draws no ground, so the tile's own colour
+   shows, follows the page's light or dark, and rests while scrolled away;
+   in a capture frame it stays opaque so the recording has a ground */
 function reel(el) {
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "display:block;width:100%;height:100%";
   el.appendChild(canvas);
   const q = new URLSearchParams(location.search);
-  const params = { ...DEFAULTS, ending: q.get("ending") === "wordmark" ? "wordmark" : "logo" };
-  const glass = new GlassLogo(canvas, params);
-  const B = BRANDS[q.get("brand")];
-  if (B && B.logo) Promise.all([fetchImage(B.logo), fetchImage(B.wordImg)])
-    .then(([logo, wordImg]) => { params.text = B.text; glass.setArt({ logo, wordImg }); })
+  const capture = !!el.closest(".cap-stage");
+  const light = !capture && !matchMedia("(prefers-color-scheme: dark)").matches;
+  const params = { ...DEFAULTS, ...(light ? { theme: "light", ...THEMES.light } : {}),
+    ending: q.get("ending") === "wordmark" ? "wordmark" : "logo" };
+  const glass = new GlassLogo(canvas, params, { clear: !capture });
+  const B = BRANDS[(capture && q.get("brand")) || "tohirr"];
+  if (B && B.logo) Promise.all([fetchImage(B.logo), B.wordImg ? fetchImage(B.wordImg) : null])
+    .then(([logo, wordImg]) => { params.text = B.text; params.original = !!B.original; glass.setArt({ logo, wordImg }); })
     .catch(() => {});
   const pass = lengthOf(params.ending) + params.loopDelay;
   let t0 = null;
   let raf = 0;
   let elapsed = 0;
+  let paused = 0;
+  const io = capture ? null : new IntersectionObserver(([e]) => {
+    if (e.isIntersecting && !raf) {
+      if (paused) t0 += performance.now() - paused; // resume where it left off
+      paused = 0;
+      raf = requestAnimationFrame(frame);
+    } else if (!e.isIntersecting && raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      paused = performance.now();
+    }
+  });
+  io?.observe(el);
   const frame = (now) => {
     t0 ??= now;
     elapsed = (now - t0) / 1000;
@@ -704,5 +817,5 @@ function reel(el) {
   raf = requestAnimationFrame(frame);
   /* restart from the first frame — call it as the recorder starts */
   el.glassReel = { restart: () => { t0 = null; }, elapsed: () => elapsed, length: pass };
-  return () => { cancelAnimationFrame(raf); canvas.remove(); };
+  return () => { cancelAnimationFrame(raf); io?.disconnect(); canvas.remove(); };
 }

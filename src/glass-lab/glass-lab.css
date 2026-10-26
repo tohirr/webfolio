@@ -621,6 +621,7 @@
 .ul-stage {
   position: relative;
   overflow: hidden;
+  touch-action: none; /* a finger on the stage steers the glass */
   border: 1px solid var(--line);
   border-radius: 4px;
   background-color: var(--panel);

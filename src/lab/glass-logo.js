@@ -28,7 +28,7 @@ export const THEMES = {
 export const DEFAULTS = {
   theme: "dark",
   ...THEMES.dark,
-  ending: "logo",       // logo | wordmark
+  ending: "logo",       // logo | icon | wordmark
   text: "music",        // the wordmark, when there is no wordmark image
   original: false,      // keep an uploaded logo's own colours
   tile: true,           // lay the logo on the icon plate
@@ -52,8 +52,9 @@ export const DEFAULTS = {
 };
 
 const LOGO_END = 1.8;
+const ICON_END = 1.0; // the icon ending stops once the icon has formed, and stays glass
 const WORD_END = 3.3;
-export const lengthOf = (ending) => (ending === "wordmark" ? WORD_END : LOGO_END);
+export const lengthOf = (ending) => (ending === "wordmark" ? WORD_END : ending === "icon" ? ICON_END : LOGO_END);
 
 /* ---- timing ------------------------------------------------------------- */
 
@@ -121,6 +122,9 @@ uniform float uDecay;
 uniform vec4  uDropA;   // radius, core, rim stretch, centre factor
 uniform vec2  uDropB;   // core edge magnification, profile exponent
 uniform vec4  uDropC;   // ripple amplitude, wavelength, phase, dispersion
+uniform vec2  uLook;    // where the viewer is looking from, -1..1 over the frame, y up
+uniform float uLookAmt; // how much the glass answers it (0 while the reveal runs)
+uniform vec2  uOrigin;  // where the drop landed, css px from the centre; the icon glides home
 out vec4 outColor;
 
 const int BANDS = 24;
@@ -235,6 +239,8 @@ vec4 refracted(vec2 p, vec2 n, float lens, float sd, float young, float strength
 
 vec4 icon(vec2 p) {
   float t = uT;
+  /* a drop can land off centre; the icon forms as it glides back */
+  p -= uOrigin * (1.0 - ss(0.12, 0.62, t));
   float settle = ss(0.0, 1.0, uSettle);
   vec4 plain = logoAt(p, uArt, 0.0);
   if (t > 1.58) return plain * settle;
@@ -268,6 +274,9 @@ vec4 icon(vec2 p) {
   slope += (1.0 - ss(0.18, 0.42, t)) * r * 0.32 * uDrop;  // the young drop is domed all over
   vec2 dir = normalize(mix(outward, radial, 0.95));
   vec2 nrm = dir * slope * (0.8 + 0.4 * radial.x * radial.y) * (1.0 - settle);
+  /* looking at the glass from an angle tilts its whole face: the logo
+     under it slides, and the bevel on the near side bends harder */
+  nrm += uLook * 0.32 * uLookAmt * glass;
 
   vec4 ink = refracted(p, nrm, lens, sd, young, 1.0);
   vec3 inkCov = cov;
@@ -291,7 +300,9 @@ vec4 icon(vec2 p) {
   /* ---- the edge: nested thin reflections, never one stroke ---- */
   float arc = atan(p.y, p.x) * uU * 0.5;
   float grain = uU * 0.03;
-  float key = pow(0.5 + 0.5 * dot(outward, normalize(vec2(-0.5, 0.9))), 5.0);
+  /* the key light swings round to where the viewer is */
+  vec2 keyDir = normalize(mix(vec2(-0.5, 0.9), uLook + vec2(1e-4), clamp(uLookAmt * length(uLook) * 1.6, 0.0, 1.0)));
+  float key = pow(0.5 + 0.5 * dot(outward, keyDir), 5.0);
   float developed = ss(0.23, 0.48, t);
   float warpAmt = lens * developed;
   float warp = uU * ((vnoise(arc / (uU * 0.037)) - 0.5) * 0.0017 + (vnoise(arc / (uU * 0.008) + 29.0) - 0.5) * 0.0008) * warpAmt;
@@ -392,6 +403,9 @@ vec4 icon(vec2 p) {
   refl += mix(vec3(0.32, 0.0, 0.2), vec3(0.32, 0.08, 0.02), ss(0.75, 1.12, t)) * bell(sd + uU * 0.001, uU * 0.002) * ink.a * glass * uHi;
   col += refl;
   alpha = max(alpha, max(refl.r, max(refl.g, refl.b)));
+  /* a soft sheen on the face, opposite the viewer like a reflected window */
+  float sheen = bell(length(p / half_ + uLook * 0.55), 0.42) * uLookAmt * min(length(uLook) * 1.4, 1.0);
+  col += vec3(0.62, 0.72, 0.86) * sheen * 0.13 * glass * uHi;
   vec4 res = vec4(col * mask, alpha * mask);
 
   /* outside: a faint echo of the rim, and one wave leaving it */
@@ -593,6 +607,11 @@ export class GlassLogo {
   constructor(canvas, params = { ...DEFAULTS }, { clear = false } = {}) {
     this.canvas = canvas;
     this.clear = clear;
+    /* the viewer: look is -1..1 over the frame (y up), lookAmt how much the
+       glass answers it, origin where a drop landed (css px, y up) */
+    this.look = [0, 0];
+    this.lookAmt = 0;
+    this.origin = [0, 0];
     this.params = params;
     this.art = { logo: null, mark: null, wordImg: null, ground: null };
     this.dirty = true;
@@ -738,7 +757,7 @@ export class GlassLogo {
     if (this.dirty) return; // the note is still decoding
 
     const cw = W / dpr, ch = H / dpr;
-    const ending = p.ending === "wordmark" ? "wordmark" : "logo";
+    const ending = p.ending === "wordmark" || p.ending === "icon" ? p.ending : "logo";
     const end = lengthOf(ending);
     const seq = Math.min(t, end);
     /* fit the icon (and the wordmark, with room for its side reflections) */
@@ -775,7 +794,14 @@ export class GlassLogo {
        clears */
     const settle = ending === "logo" ? smooth(1.16, 1.4, t) : 0;
     const artSettle = smooth(1.13, 1.28, t);
-    const art = ending === "logo" && t > 1.13 ? curve(ART, 1.13) * (1 - artSettle) + p.finalLogoScale * artSettle : curve(ART, seq);
+    /* the icon ending eases the logo to a touch over its resting size, under
+       the glass, and holds there */
+    const art = ending === "logo" && t > 1.13 ? curve(ART, 1.13) * (1 - artSettle) + p.finalLogoScale * artSettle
+      : ending === "icon" ? curve(ART, seq) + (p.finalLogoScale * 1.08 - curve(ART, seq)) * smooth(0.7, 1.0, t)
+      : curve(ART, seq);
+    gl.uniform2f(u.uLook, this.look[0], this.look[1]);
+    gl.uniform1f(u.uLookAmt, this.lookAmt);
+    gl.uniform2f(u.uOrigin, this.origin[0], this.origin[1]);
     gl.uniform1f(u.uArt, art);
     gl.uniform1f(u.uSettle, settle);
     gl.uniform3fv(u.uTile, hex(p.tileColor));
@@ -829,7 +855,7 @@ export class GlassLogo {
     gl.uniform1f(f.uDpr, dpr);
     gl.uniform1f(f.uBloom, p.bloom);
     gl.uniform1f(f.uT, seq);
-    gl.uniform1f(f.uFinish, ending === "logo" ? smooth(1.05, LOGO_END, t) : smooth(2.8, WORD_END, t));
+    gl.uniform1f(f.uFinish, ending === "logo" ? smooth(1.05, LOGO_END, t) : ending === "icon" ? 0 : smooth(2.8, WORD_END, t));
     gl.uniform1f(f.uPageLight, pageL);
     gl.uniform3fv(f.uBg, bg);
     gl.uniform1f(f.uClear, this.clear ? 1 : 0);
