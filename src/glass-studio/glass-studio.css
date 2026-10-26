@@ -1,0 +1,428 @@
+/* glass-studio — the glass logo's component page: one centred column, a
+   preview card, then the controls as a grid of compact field cells (label
+   left, value right; a number field's fill bar is its value). scoped under
+   .gx so a tile or the capture route can load it without side effects. */
+
+.gx {
+  --bg: #ffffff;
+  --field: #f4f4f5;
+  --fill: #e4e4e7;
+  --line: #e4e4e7;
+  --ink: #18181b;
+  --dim: #71717a;
+  --stage: #e9e9ec;
+  --focus: #6e56f8;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px/1.45 system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  .gx {
+    --bg: #09090b;
+    --field: #18181b;
+    --fill: #27272a;
+    --line: #27272a;
+    --ink: #fafafa;
+    --dim: #a1a1aa;
+    --stage: #111113;
+    color-scheme: dark;
+  }
+}
+.gx *,
+.gx *::before,
+.gx *::after {
+  box-sizing: border-box;
+}
+.gx h1,
+.gx h2,
+.gx h3,
+.gx p {
+  margin: 0;
+}
+.gx button,
+.gx input,
+.gx select {
+  font: inherit;
+  color: inherit;
+}
+.gx :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.gx-top {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+.gx-crumb {
+  display: flex;
+  gap: 8px;
+  color: var(--dim);
+}
+.gx-crumb a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.gx-crumb b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.gx-main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 36px 16px 80px;
+}
+.gx-main h1 {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.gx-lede {
+  max-width: 580px;
+  margin-top: 8px !important;
+  color: var(--dim);
+  font-size: 14px;
+}
+
+/* ---- preview ------------------------------------------------------------- */
+.gx-preview {
+  position: relative;
+  margin-top: 24px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--stage);
+  touch-action: none; /* a finger on the preview steers the glass */
+  cursor: pointer;
+}
+.gx-stage {
+  width: 100%;
+  max-height: 72vh;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+}
+.gx-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.gx-stage:fullscreen {
+  max-height: none;
+  aspect-ratio: auto;
+  background: #000;
+}
+.gx-tools {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+.gx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 12px;
+}
+.gx-chip:hover {
+  border-color: var(--dim);
+}
+.gx-sq {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* ---- controls ------------------------------------------------------------ */
+.gx-controls {
+  margin-top: 40px;
+}
+.gx-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.gx-head h2 {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.gx-controls h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.gx-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.gx-grid.gx-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.gx-f {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: var(--field);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gx-f[hidden] {
+  display: none;
+}
+.gx-f > span {
+  position: relative;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* a number field: the fill is the value, drag across to set it */
+.gx-range {
+  cursor: ew-resize;
+  touch-action: none;
+}
+.gx-range::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--f);
+  background: var(--fill);
+}
+.gx-range input {
+  position: relative;
+  width: 6ch;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  cursor: ew-resize;
+}
+.gx-range input:focus {
+  cursor: text;
+  outline: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.gx-sel select {
+  position: relative;
+  max-width: 62%;
+  padding: 0 18px 0 0;
+  border: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: right;
+  text-align-last: right;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2371717a' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M4.5 6.5l3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 13px;
+}
+.gx-sel select:focus-visible {
+  outline: none;
+}
+.gx-sel:focus-within,
+.gx-txt:focus-within,
+.gx-drop:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.gx-tog {
+  cursor: pointer;
+}
+.gx-tog input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.gx-tog i {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background 0.15s;
+}
+.gx-tog i::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+.gx-tog input:checked + i {
+  background: var(--ink);
+}
+.gx-tog input:checked + i::after {
+  transform: translateX(12px);
+  background: var(--bg);
+}
+.gx-tog input:focus-visible + i {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.gx-col output {
+  position: relative;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.gx-col input {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+.gx-col input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.gx-col input::-webkit-color-swatch {
+  border: 0;
+  border-radius: 3px;
+}
+.gx-col input::-moz-color-swatch {
+  border: 0;
+  border-radius: 3px;
+}
+
+.gx-txt input {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: none;
+  text-align: right;
+}
+.gx-txt input:focus {
+  outline: none;
+}
+
+/* an image drop zone */
+.gx-drop {
+  justify-content: flex-start;
+  background: none;
+  border: 1px dashed color-mix(in srgb, var(--dim) 55%, transparent);
+  cursor: pointer;
+}
+.gx-drop[data-over] {
+  border-color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 8%, transparent);
+}
+.gx-drop svg {
+  flex: none;
+  color: var(--dim);
+}
+.gx-drop span {
+  color: var(--ink) !important;
+}
+.gx-drop em {
+  margin-left: auto;
+  color: var(--dim);
+  font-style: normal;
+  white-space: nowrap;
+}
+.gx-drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.gx-x {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--fill);
+  cursor: pointer;
+}
+
+.gx-export {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--field);
+  cursor: pointer;
+  font-weight: 500;
+}
+.gx-export:hover {
+  border-color: var(--dim);
+}
+
+.gx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 12px);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.gx-toast[data-on] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 640px) {
+  .gx-grid,
+  .gx-grid.gx-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .gx-main h1 {
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-toast,
+  .gx-tog i,
+  .gx-tog i::after {
+    transition: none;
+  }
+}

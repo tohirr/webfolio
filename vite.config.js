@@ -19,6 +19,7 @@ export default defineConfig({
         keycaps: page("keycaps/index.html"),
         pinch: page("pinch/index.html"),
         glassLab: page("glass-lab/index.html"),
+        glassLogo: page("glass-logo/index.html"),
       },
     },
   },
