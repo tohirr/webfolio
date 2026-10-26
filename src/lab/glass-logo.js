@@ -124,7 +124,7 @@ uniform vec2  uDropB;   // core edge magnification, profile exponent
 uniform vec4  uDropC;   // ripple amplitude, wavelength, phase, dispersion
 uniform vec2  uLook;    // where the viewer is looking from, -1..1 over the frame, y up
 uniform float uLookAmt; // how much the glass answers it (0 while the reveal runs)
-uniform vec2  uOrigin;  // where the drop landed, css px from the centre; the icon glides home
+uniform float uRest;    // 0 while the reveal runs, 1 once the icon ending has come to rest
 out vec4 outColor;
 
 const int BANDS = 24;
@@ -184,9 +184,12 @@ float glints(float u, float d, float size, float seed, float t) {
 /* one refracted image of the logo through a surface with normal (n, 1).
    returns premultiplied colour; cov is per-channel coverage */
 vec3 cov;
+float edgeAb; // how much the edge the viewer leans toward lets its colours split again (set per pixel)
 vec4 refracted(vec2 p, vec2 n, float lens, float sd, float young, float strength) {
   vec3 N = normalize(vec3(n, 1.0));
-  float spread = uDisp * strength * mix(0.85, mix(2.1, 1.5, ss(0.3, 0.9, uT)), ss(0.25, 0.33, uT));
+  /* the colours split hard while the glass is moving and barely at rest —
+     a split this wide on a still icon just reads as blur */
+  float spread = uDisp * strength * mix(0.85, mix(2.1, 1.5, ss(0.3, 0.9, uT)), ss(0.25, 0.33, uT)) * mix(1.0, 0.08 + 2.2 * edgeAb, uRest);
   vec3 mid = refract(vec3(0.0, 0.0, -1.0), N, 1.0 / ior(0.5, spread));
   vec2 midOff = mid.xy / max(-mid.z, 0.25) * uU * uDepth * 0.8 * lens;
   float rad = uU * lens * 0.5;
@@ -239,8 +242,6 @@ vec4 refracted(vec2 p, vec2 n, float lens, float sd, float young, float strength
 
 vec4 icon(vec2 p) {
   float t = uT;
-  /* a drop can land off centre; the icon forms as it glides back */
-  p -= uOrigin * (1.0 - ss(0.12, 0.62, t));
   float settle = ss(0.0, 1.0, uSettle);
   vec4 plain = logoAt(p, uArt, 0.0);
   if (t > 1.58) return plain * settle;
@@ -259,7 +260,7 @@ vec4 icon(vec2 p) {
   float mask = 1.0 - smoothstep(-aa, aa, sd);
   float glass = (1.0 - ss(1.05, 1.4, t)) * collapse * (1.0 - settle);
   float shown = ss(0.12, 0.165, t) * (1.0 - ss(1.39, 1.53, t));
-  if (sd > uU * 0.1) return vec4(0.0);
+  if (sd > uU * (0.1 + 0.25 * uPageLight * uRest)) return vec4(0.0); // room for the resting shadow on a pale page
 
   vec2 outward = superN(p / half_, n);
   vec2 radial = normalize(p + 0.001);
@@ -272,13 +273,20 @@ vec4 icon(vec2 p) {
   float sh = ss(start, 1.0, r);
   float slope = (0.04 * r + (0.85 + 0.2 * (1.0 - ss(0.28, 0.75, t))) * sh * sh) * glass * uDrop;
   slope += (1.0 - ss(0.18, 0.42, t)) * r * 0.32 * uDrop;  // the young drop is domed all over
+  /* the edge the viewer leans toward: it bends harder and splits again, the
+     way a glass edge flares as you tip it toward the light */
+  float lookLen = min(length(uLook), 1.0);
+  float facing = pow(max(dot(outward, uLook / max(length(uLook), 1e-4)), 0.0), 1.5) * lookLen * uLookAmt;
+  edgeAb = facing * sh;
+  slope *= mix(1.0, 0.38 + 0.5 * facing, uRest); // at rest the shoulder lenses gently, not into a smear
   vec2 dir = normalize(mix(outward, radial, 0.95));
   vec2 nrm = dir * slope * (0.8 + 0.4 * radial.x * radial.y) * (1.0 - settle);
   /* looking at the glass from an angle tilts its whole face: the logo
      under it slides, and the bevel on the near side bends harder */
-  nrm += uLook * 0.32 * uLookAmt * glass;
+  nrm += uLook * 0.55 * uLookAmt * glass;
 
-  vec4 ink = refracted(p, nrm, lens, sd, young, 1.0);
+  /* the logo sits under the glass, so it slides a little against the face */
+  vec4 ink = refracted(p + uLook * uU * 0.045 * uLookAmt * glass, nrm, lens, sd, young, 1.0);
   vec3 inkCov = cov;
 
   /* the plate: a dark one deepens toward its rim */
@@ -287,6 +295,15 @@ vec4 icon(vec2 p) {
   vec3 col = ink.rgb + body * (1.0 - inkCov) * glass * uTileOn;
   float plateFade = mix((1.0 - ss(1.08, 1.36, t)) * (1.0 - settle), glass, uPageLight);
   float alpha = max(ink.a, plateFade * uTileOn);
+
+  /* at rest the plate clears to glass, the way a liquid glass icon reads:
+     a faint lift on a dark page, frosted white on a pale one, a little
+     denser toward the rim where the glass is thickest */
+  float thickRim = ss(0.55, 1.0, r);
+  vec3 clearBody = vec3(mix(0.075, 0.62, uPageLight)) * (1.0 + 0.5 * thickRim);
+  float clearA = mix(0.16, 0.5, uPageLight) * (0.85 + 0.3 * thickRim) * uTileOn;
+  col = mix(col, ink.rgb + clearBody * clearA * (1.0 - inkCov), uRest);
+  alpha = mix(alpha, max(ink.a, clearA), uRest);
 
   /* a broad softbox on the young sphere's face, gone as it flattens */
   vec2 sp = p / half_;
@@ -373,7 +390,10 @@ vec4 icon(vec2 p) {
                   + vec3(0.75, 0.97, 1.0) * fil * 1.35) * drift * lowerRight * glass * uHi * uRelief * (1.0 - 0.85 * ss(0.6, 1.0, t)) * (1.0 - settle);
 
   col *= 1.0 - wallShade * wallGate * uRelief * 0.12 * (1.0 - ink.a);
-  col += backFace + lowerGlow + insetLight * wallGate * glass * uHi * uRelief * (1.0 - ink.a) * mix(rimVis, 0.9, key);
+  /* the back wall's cyan caustic belongs to the moving glass, not the still icon */
+  backFace *= 1.0 - uRest;
+  lowerGlow *= 1.0 - uRest;
+  col += backFace + lowerGlow + insetLight * wallGate * glass * uHi * uRelief * (1.0 - ink.a) * mix(rimVis, 0.9, key) * (1.0 - 0.7 * uRest);
   alpha = max(alpha, max(lowerGlow.r, max(lowerGlow.g, lowerGlow.b)));
 
   float rimLight = rim * (0.07 + key * 0.55) + inner * (0.025 + key * 0.16) + inner2 * 0.025;
@@ -381,7 +401,7 @@ vec4 icon(vec2 p) {
   float bubbles = glints(arc, rimSd + bob + uU * 0.002, speck, 0.0, t) * 0.9
                 + glints(arc, innerSd + uU * 0.012, speck * 0.8, 97.0, 0.0) * 0.6 * clear
                 + glints(arc, iSd, speck * 0.9, 191.0, 0.0) * 0.5 * clear;
-  rimLight += bubbles * (0.04 + key * 0.5 + lowerRight * 0.45);
+  rimLight += bubbles * (0.04 + key * 0.5 + lowerRight * 0.45) * (1.0 - 0.75 * uRest);
 
   /* the rim line itself split across the spectrum */
   vec3 spec = vec3(0.0), ws = vec3(0.0);
@@ -392,7 +412,7 @@ vec4 icon(vec2 p) {
     ws += w;
   }
   spec /= ws;
-  vec3 refl = (vec3(0.6, 0.76, 0.9) * rimLight * 1.15 + spec * (0.02 + ink.a * 0.32)) * uHi * glass * mix(rimVis, 1.2, key);
+  vec3 refl = (vec3(0.6, 0.76, 0.9) * rimLight * 1.15 * (1.0 - 0.6 * uRest) + spec * (0.02 + ink.a * 0.32) * (1.0 - 0.85 * uRest * (1.0 - facing))) * uHi * glass * mix(rimVis, 1.2, key);
   float sphereRim = (bell(sd + uU * lens * 0.008, uU * lens * 0.009) * 0.6 + bell(iSd, uU * lens * 0.008) * 0.4)
                   * (0.25 + 0.75 * abs(outward.y)) * (1.0 - ss(0.235, 0.34, t));
   refl += vec3(0.65, 0.8, 0.9) * sphereRim * 1.4 * uHi * glass;
@@ -400,7 +420,16 @@ vec4 icon(vec2 p) {
   refl += vec3(0.015, 0.68, 1.0) * (bell(sd + uU * lens * 0.02, uU * lens * 0.009) + bell(iSd, uU * lens * 0.005) * 0.35) * cyan * glass * uHi * 0.85;
   /* a fresh drop is milky with scattered light */
   refl += vec3(0.78, 0.84, 0.9) * (1.0 - ss(0.25, 0.37, t)) * 0.07 * (0.5 + 0.5 * r) * (1.0 - ink.a) * glass;
-  refl += mix(vec3(0.32, 0.0, 0.2), vec3(0.32, 0.08, 0.02), ss(0.75, 1.12, t)) * bell(sd + uU * 0.001, uU * 0.002) * ink.a * glass * uHi;
+  refl += mix(vec3(0.32, 0.0, 0.2), vec3(0.32, 0.08, 0.02), ss(0.75, 1.12, t)) * bell(sd + uU * 0.001, uU * 0.002) * ink.a * glass * uHi * (1.0 - uRest);
+  /* liquid glass at rest: a hairline lip, bright where the light falls and
+     again, softer, on the opposite corner, with a faint band of light bent
+     along the inside of the rim */
+  float lip = bell(sd + uU * 0.0035, uU * 0.003 + aa * 0.35);
+  float near = pow(max(dot(outward, keyDir), 0.0), 2.0);
+  float far = pow(max(dot(outward, -keyDir), 0.0), 3.0);
+  float band2 = bell(sd + uU * 0.022, uU * 0.016);
+  refl += vec3(1.0) * lip * (0.16 + 0.85 * near + 0.42 * far) * uRest * uHi;
+  refl += vec3(1.0) * band2 * (0.025 + 0.07 * near) * uRest * mix(1.0, 0.35, uPageLight) * uHi;
   col += refl;
   alpha = max(alpha, max(refl.r, max(refl.g, refl.b)));
   /* a soft sheen on the face, opposite the viewer like a reflected window */
@@ -416,12 +445,16 @@ vec4 icon(vec2 p) {
   vec3 echoCol = mix(vec3(0.43, 0.62, 0.79), uTile + (1.0 - uTile) * 0.4, 0.5 * uEcho);
   float echoLvl = mix(1.0, mix(0.6, 1.0, uPageLight), uEcho);
   float sides = mix(1.0, 0.1, ss(0.25, 0.8, abs(outward.x)));
-  vec3 ghost = (echoCol + ink.rgb * 0.6) * (outer + wave * sides) * glass * uHi * rimVis * echoLvl;
+  vec3 ghost = (echoCol + ink.rgb * 0.6) * (outer + wave * sides) * glass * uHi * rimVis * echoLvl * (1.0 - 0.8 * uRest);
   float ext = max(ghost.r, max(ghost.g, ghost.b)) * 1.8;
   /* on a pale page the same ripples read as cool shadows */
   vec3 shade = mix(vec3(0.4, 0.46, 0.56), uTile * 0.86, uEcho);
   res.rgb += mix(ghost * 1.8, shade * ext, uPageLight);
   res.a = max(res.a, ext);
+  /* on a pale page the resting icon sits on a soft shadow */
+  float sdShadow = (superR((p + vec2(0.0, uU * 0.025)) / half_, n) - 1.0) * half_; // the same shape, a little lower
+  float shadow = (1.0 - mask) * exp(-max(sdShadow, 0.0) / (uU * 0.05)) * 0.2 * uPageLight * uRest;
+  res.a = max(res.a, shadow);
   return mix(res * shown, plain, settle);
 }
 
@@ -608,10 +641,9 @@ export class GlassLogo {
     this.canvas = canvas;
     this.clear = clear;
     /* the viewer: look is -1..1 over the frame (y up), lookAmt how much the
-       glass answers it, origin where a drop landed (css px, y up) */
+       glass answers it */
     this.look = [0, 0];
     this.lookAmt = 0;
-    this.origin = [0, 0];
     this.params = params;
     this.art = { logo: null, mark: null, wordImg: null, ground: null };
     this.dirty = true;
@@ -763,6 +795,7 @@ export class GlassLogo {
     /* fit the icon (and the wordmark, with room for its side reflections) */
     const fit = Math.min(1, cw / Math.max(p.logoSize * 1.9, ending === "wordmark" ? this.wordW * 1.22 : 0), ch / (p.logoSize * 1.5));
     const U = p.logoSize * fit;
+    this.iconPx = U; // the icon's edge in css px, for whoever maps a pointer onto it
 
     /* the scene texture follows the canvas */
     if (this.sceneSize[0] !== W || this.sceneSize[1] !== H) {
@@ -801,7 +834,7 @@ export class GlassLogo {
       : curve(ART, seq);
     gl.uniform2f(u.uLook, this.look[0], this.look[1]);
     gl.uniform1f(u.uLookAmt, this.lookAmt);
-    gl.uniform2f(u.uOrigin, this.origin[0], this.origin[1]);
+    gl.uniform1f(u.uRest, ending === "icon" ? smooth(0.72, 1.0, t) : 0);
     gl.uniform1f(u.uArt, art);
     gl.uniform1f(u.uSettle, settle);
     gl.uniform3fv(u.uTile, hex(p.tileColor));

@@ -1,15 +1,20 @@
 /* lab/glass-lab — the liquid glass logo as a labs tool, laid out the way
-   ux pilot's labs are: controls down the left (the logo, presets, then
-   collapsible sections), the live preview in the middle under a toolbar
-   (preview mode, play, scrub, randomize, undo), and down the right a rail
-   of layouts — the same reveal in the places a logo lives: a landing hero,
-   a phone's launch screen, a site header, a home screen, a video intro, a
-   loading screen, a sign-up card, a social post. the reveal is
-   glass-logo.js; the mock screens are glass-layouts.js.
+   ux pilot's labs are: controls down the left, the live preview in the
+   middle under a small toolbar, and down the right a rail of layouts — the
+   same reveal in the places a logo lives (a landing hero, a phone's launch
+   screen, a site header, a home screen, a video intro, a loading screen, a
+   sign-up card, a social post).
 
-   in a capture frame (a .tile) it drops the chrome and loops the reveal on
-   one canvas, so /capture/?p=glass-lab records true frames
-   (&brand=uxpilot&ending=wordmark pick the logo and the ending). */
+   the controls are kept to what changes the result: the logo, how the
+   reveal ends, light or dark, two colours, and whether the glass answers
+   the viewer. the pointer, a finger or the phone's tilt steers the resting
+   icon; a click replays the reveal. the reveal is glass-logo.js; the mock
+   screens are glass-layouts.js.
+
+   in a tile (the portfolio's work row, or a capture frame) it drops the
+   chrome and loops the reveal on one canvas, so /capture/?p=glass-lab
+   records true frames (&brand=uxpilot&ending=wordmark pick the logo and the
+   ending). */
 
 import "../glass-lab/glass-lab.css";
 import { DEFAULTS, THEMES, GlassLogo, lengthOf } from "./glass-logo.js";
@@ -17,70 +22,28 @@ import { LAYOUTS } from "./glass-layouts.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* built-in logos. ux pilot's mark is the glyph from its app icon, lifted
-   off the lavender tile; its wordmark is the one in its site header */
+/* built-in logos. tohirr is the pixel self-portrait from the site's favicon,
+   in its own colours; ux pilot's mark is the vector mascot from its site */
 const BRANDS = {
-  /* the pixel self-portrait from the site's favicon, in its own colours */
   tohirr: { label: "Tohir", name: "tohirr", logo: "/favicon.svg", text: "tohirr", original: true },
   note: { label: "Note", name: "Aria" },
   uxpilot: { label: "UX Pilot", name: "UX Pilot", logo: "/media/glass/uxpilot-mark.svg", wordImg: "/media/glass/uxpilot-wordmark.svg", text: "UX Pilot" },
 };
 
-const PRESETS = [
-  { id: "studio", label: "Studio", set: { theme: "dark", ...THEMES.dark } },
-  { id: "frost", label: "Frost", set: { theme: "light", ...THEMES.light, depth: 2.9, innerWallFocus: 1, bloom: 0.3 } },
-  { id: "deep", label: "Deep", set: { theme: "dark", logoColor: "#eef3ff", textColor: "#e2e6ee", tileColor: "#0a1d44", background: "#01040c", depth: 2.2, highlights: 1.3 } },
-  { id: "prism", label: "Prism", set: { theme: "dark", ...THEMES.dark, dispersion: 2.6, highlights: 1.4, caustics: 1.6 } },
-  { id: "pilot", label: "Pilot", set: { theme: "dark", logoColor: "#c7ff01", textColor: "#e9ffc2", tileColor: "#130537", background: "#07021a", dispersion: 1.3 } },
-  { id: "ember", label: "Ember", set: { theme: "dark", logoColor: "#ffe2c4", textColor: "#ffe2c4", tileColor: "#1d0c04", background: "#000000", highlights: 1.2 } },
-  { id: "lagoon", label: "Lagoon", set: { theme: "dark", logoColor: "#d4fff6", textColor: "#d4fff6", tileColor: "#042827", background: "#010807", depth: 1.8 } },
-  { id: "ink", label: "Ink", set: { theme: "dark", logoColor: "#f2f2f2", textColor: "#f2f2f2", tileColor: "#141416", background: "#060607", dispersion: 0.35, highlights: 0.8 } },
-  { id: "paper", label: "Paper", set: { theme: "light", logoColor: "#1a1a1a", textColor: "#1a1a1a", tileColor: "#f3f1ea", background: "#e9e6dd", depth: 1.6, innerWallFocus: 1, bloom: 0.2 } },
-];
-const PRESET_KEYS = [...new Set(PRESETS.flatMap((p) => Object.keys(p.set)))];
-
-/* the panel's sections: [kind, key, label, min, max, step, unit] */
+/* the panel's sections: [kind, key, label, ...] */
 const SECTIONS = [
-  ["Interaction", [
-    ["toggle", "interact", "Interaction"],
-    ["range", "strength", "Strength", 0, 1, 0.01, ""],
-    ["toggle", "dropOnClick", "Drop on click"],
-  ]],
   ["Reveal", [
     ["select", "ending", "Ending", [["icon", "Icon (stays glass)"], ["logo", "Logo"], ["wordmark", "Wordmark"]]],
     ["text", "text", "Wordmark", "wordmark"],
-    ["toggle", "tile", "Icon plate"],
   ]],
-  ["Logo", [
-    ["range", "logoSize", "Tile size", 96, 480, 1, "px"],
-    ["range", "logoScale", "Logo scale", 0.2, 1, 0.01, "×"],
-    ["range", "finalLogoScale", "Final scale", 0.2, 1, 0.01, "×"],
-    ["range", "logoRelief", "Relief", 0, 1, 0.01, ""],
-    ["toggle", "original", "Original colors"],
-  ]],
-  ["Glass", [
-    ["range", "depth", "Optical depth", 0, 6, 0.1, ""],
-    ["range", "dispersion", "Dispersion", 0, 4, 0.05, ""],
-    ["range", "relief", "Double bevel", 0, 3, 0.05, ""],
-    ["range", "caustics", "Caustics", 0, 4, 0.05, ""],
-    ["range", "highlights", "Highlights", 0, 4, 0.05, ""],
-    ["range", "bloom", "Light diffusion", 0, 2, 0.01, ""],
-    ["range", "echoTint", "Echo tint", 0, 1, 0.01, ""],
-    ["range", "innerWallFocus", "Inner wall focus", 0, 1, 0.01, ""],
-  ]],
-  ["Color", [
+  ["Look", [
     ["select", "theme", "Theme", [["dark", "Dark"], ["light", "Light"]]],
     ["color", "logoColor", "Logo"],
-    ["color", "tileColor", "Plate"],
     ["color", "background", "Background"],
-    ["ground", "ground", "Background image"],
   ]],
-  ["Motion", [
-    ["range", "dropStrength", "Drop strength", 0, 4, 0.05, ""],
-    ["range", "speed", "Speed", 0.1, 4, 0.05, "×"],
-    ["range", "decay", "Ring decay", 0.1, 10, 0.1, "s"],
-    ["range", "loopDelay", "Loop delay", 0, 10, 0.1, "s"],
-    ["toggle", "loop", "Loop"],
+  ["Interaction", [
+    ["toggle", "interact", "Interaction"],
+    ["range", "strength", "Strength", 0, 1, 0.01, ""],
   ]],
 ];
 
@@ -95,6 +58,7 @@ const fetchImage = (src) => new Promise((res, rej) => {
   im.src = src;
 });
 const smoothstep = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 const decimals = (step) => (String(step).split(".")[1] || "").length;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -104,16 +68,13 @@ const ICON = {
   pause: SVG('<path d="M5.5 3.5v9M10.5 3.5v9"/>'),
   play: SVG('<path d="M5 3.2v9.6L12.5 8z"/>'),
   restart: SVG('<path d="M3.5 3.5v9M12.5 3.8 6 8l6.5 4.2z"/>'),
-  random: SVG('<path d="M2.5 4.5h2.2c3.8 0 3.8 7 7.6 7h1.2M11.8 9.8l1.7 1.7-1.7 1.7M2.5 11.5h2.2c1.3 0 2.1-.8 2.7-1.9M9.4 6.4c.6-1.1 1.4-1.9 2.9-1.9h1.2M11.8 2.8l1.7 1.7-1.7 1.7"/>'),
-  undo: SVG('<path d="M5.5 3.5 2.5 6.5l3 3M2.5 6.5h7a4 4 0 0 1 0 8h-2"/>'),
-  redo: SVG('<path d="M10.5 3.5l3 3-3 3M13.5 6.5h-7a4 4 0 0 0 0 8h2"/>'),
   full: SVG('<path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/>'),
   link: SVG('<path d="M6.8 9.2a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.9.9M9.2 6.8a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.9-.9"/>'),
   down: SVG('<path d="M8 2.5v8M5 7.5l3 3 3-3M2.5 13.5h11"/>'),
   chev: SVG('<path d="M4.5 6.5 8 10l3.5-3.5"/>', 12),
 };
 
-/* a small square of the logo on a dark tile, for the sample row */
+/* the sample row's note, as a little white glyph */
 const NOTE_THUMB =
   'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#fff" d="M36 22.5c0-2.3 1.5-4.3 3.7-4.9l42-11.3c3-.8 5.8 1.4 5.8 4.5V66c0 9-7.3 16.5-16.6 18.3-8.6 1.6-14.9-2.7-14.9-9.8 0-7.6 6.8-13.6 15.4-14.6 2.5-.3 4.7-.1 6.6.5V27.6L46.5 37.4v36.7c0 9-7.3 16.5-16.6 18.3C21.3 94 15 89.7 15 82.6c0-7.6 6.8-13.6 15.4-14.6 2.4-.3 4.6-.1 5.6.3z"/></svg>');
 
@@ -122,18 +83,17 @@ export function mount(el) {
 
   /* the lab rests on the glass icon, so there is something to steer; the
      interaction keys are the lab's own, the renderer ignores them */
-  const LAB = { ending: "icon", interact: true, strength: 0.7, dropOnClick: true };
+  const LAB = { ending: "icon", interact: true, strength: 0.8 };
   const params = { ...DEFAULTS, ...LAB };
-  const ui = { brand: "tohirr", preset: "studio", layout: "result", paused: false };
+  const ui = { brand: "tohirr", layout: "result", paused: false };
   const exp = { type: "video", format: "mp4", aspect: "16:9", res: "1080p", fps: 60 };
   const q = new URLSearchParams(location.search);
   if (q.get("theme") === "light") Object.assign(params, THEMES.light, { theme: "light" });
   for (const [k, v] of q) {
     if (k === "brand" && BRANDS[v]) ui.brand = v;
     else if (k === "layout" && LAYOUTS.some((l) => l.id === v)) ui.layout = v;
-    else if (k === "preset" && PRESETS.some((p) => p.id === v)) { ui.preset = v; Object.assign(params, PRESETS.find((p) => p.id === v).set); }
-    else if (k in DEFAULTS && k !== "theme") {
-      const d = DEFAULTS[k];
+    else if ((k in DEFAULTS || k in LAB) && k !== "theme") {
+      const d = k in LAB ? LAB[k] : DEFAULTS[k];
       params[k] = typeof d === "number" ? +v : typeof d === "boolean" ? v === "1" : v;
     }
   }
@@ -151,9 +111,6 @@ export function mount(el) {
     if (kind === "color")
       return `<div class="ul-row"><label for="ul-${key}">${label}</label><span class="ul-color"><input type="color" data-p="${key}" aria-label="${label} colour">` +
         `<input id="ul-${key}" type="text" data-hex="${key}" maxlength="7" spellcheck="false"></span></div>`;
-    if (kind === "ground")
-      return `<div class="ul-row"><label>${label}</label><span class="ul-file"><label class="ul-btn ul-sm">Choose<input type="file" accept="image/*" data-file="ground"></label>` +
-        `<button type="button" class="ul-link" data-clear="ground" hidden>Remove</button></span></div>`;
     return `<div class="ul-row" data-only="${a}"><label for="ul-${key}">${label}</label><input id="ul-${key}" class="ul-text" type="text" data-p="${key}" maxlength="28" spellcheck="false"></div>`;
   };
 
@@ -182,7 +139,7 @@ export function mount(el) {
       <div class="ul-intro">
         <small>LABS</small>
         <h1>GLASS LAB</h1>
-        <p>Reveal a logo through liquid glass: a drop lands, swells into a glass app icon, and clears to leave your logo. Spectral refraction, a real bevel, light that behaves.</p>
+        <p>A drop of liquid glass lands and settles into a clear glass icon around your logo. Move over it, drag, or tilt your phone and the glass answers; click to drop it again.</p>
       </div>
 
       <div class="ul-box">
@@ -192,19 +149,16 @@ export function mount(el) {
         <small>SAMPLE LOGOS</small>
         <div class="ul-samples">${Object.entries(BRANDS).map(([k, b]) =>
           `<button type="button" data-brand="${k}" aria-label="${b.label}"><img alt="" src="${b.logo || NOTE_THUMB}"></button>`).join("")}</div>
+        <label class="ul-row ul-tog"><span>Original colors</span><input type="checkbox" role="switch" data-p="original"><i aria-hidden="true"></i></label>
       </div>
 
-      <div class="ul-sec-head"><small>PRESETS</small><button type="button" class="ul-link" data-act="more">Show more (${PRESETS.length - 6})</button></div>
-      <div class="ul-presets">${PRESETS.map((p, i) =>
-        `<button type="button" data-preset="${p.id}" style="--pbg:${p.set.background}"${i >= 6 ? " data-extra hidden" : ""}><img alt=""><span>${p.label}</span></button>`).join("")}</div>
-
-      ${SECTIONS.map(([name, rows], i) => `
-      <details class="ul-sec"${i < 3 ? " open" : ""}>
+      ${SECTIONS.map(([name, rows]) => `
+      <details class="ul-sec" open>
         <summary>${ICON.chev}<small>${name.toUpperCase()}</small><em>${rows.length}</em></summary>
         <div class="ul-rows">${rows.map(row).join("")}</div>
       </details>`).join("")}
     </div>
-    <footer class="ul-foot"><p>Runs in your browser. WebGL2, two passes; the video records in real time.</p><button type="button" class="ul-btn" data-act="reset">Reset tool</button></footer>
+    <footer class="ul-foot"><p>Runs in your browser. WebGL2; the video records in real time.</p><button type="button" class="ul-btn" data-act="reset">Reset tool</button></footer>
   </aside>
 
   <main class="ul-center">
@@ -212,13 +166,10 @@ export function mount(el) {
       <label class="ul-mode"><span>Preview mode</span><span class="ul-select"><select data-mode>${LAYOUTS.map((l) => `<option value="${l.id}">${l.label}</option>`).join("")}</select>${ICON.chev}</span></label>
       <span class="ul-gap"></span>
       <button type="button" class="ul-btn" data-act="pause"><span data-pause-icon></span><span data-pause-label>Pause</span></button>
-      <button type="button" class="ul-icon" data-act="restart" aria-label="Restart">${ICON.restart}</button>
+      <button type="button" class="ul-icon" data-act="restart" aria-label="Replay">${ICON.restart}</button>
       <input type="range" class="ul-scrub" min="0" step="0.001" data-scrub aria-label="Timeline">
       <output class="ul-time" data-time>0.0s</output>
-      <button type="button" class="ul-btn" data-act="random">${ICON.random}Randomize</button>
       <span class="ul-div"></span>
-      <button type="button" class="ul-icon" data-act="undo" aria-label="Undo">${ICON.undo}</button>
-      <button type="button" class="ul-icon" data-act="redo" aria-label="Redo">${ICON.redo}</button>
       <button type="button" class="ul-icon" data-act="full" aria-label="Fullscreen">${ICON.full}</button>
     </div>
     <div class="ul-stage" data-stage><div class="ul-fit" data-fit></div></div>
@@ -240,8 +191,7 @@ export function mount(el) {
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-label", "liquid glass logo");
   const glass = new GlassLogo(canvas, params, { clear: true });
-  const art = { logo: null, mark: null, wordImg: null, ground: null };
-  let groundURL = "";
+  const art = { logo: null, mark: null, wordImg: null };
 
   const toast = (msg, keep) => {
     const t = $(".ul-toast");
@@ -253,15 +203,10 @@ export function mount(el) {
 
   /* ---- the stage: a layout mock scaled to fit, the live canvas in its slot */
   let scale = 1;
-  const mockVars = () => {
-    const v = { "--g-bg": params.background, "--g-ink": params.logoColor, "--g-plate": params.tileColor };
-    if (groundURL) v["--g-img"] = `url("${groundURL}")`;
-    return v;
-  };
   const applyVars = (node) => {
-    const v = mockVars();
-    for (const k in v) node.style.setProperty(k, v[k]);
-    if (!groundURL) node.style.removeProperty("--g-img");
+    node.style.setProperty("--g-bg", params.background);
+    node.style.setProperty("--g-ink", params.logoColor);
+    node.style.setProperty("--g-plate", params.tileColor);
     node.classList.toggle("lx-light", params.theme === "light");
   };
   const brandName = () => (ui.brand === "custom" ? "Brand" : BRANDS[ui.brand].name);
@@ -284,7 +229,7 @@ export function mount(el) {
     fitBox.style.transform = `translate(-50%, -50%) scale(${scale})`;
     kick();
   };
-  const ro = new ResizeObserver(fitStage);
+  const ro = new ResizeObserver(() => fitStage());
   ro.observe(stage);
 
   /* ---- playback ---------------------------------------------------------- */
@@ -307,7 +252,7 @@ export function mount(el) {
       if (t >= pass()) t = params.loop && params.ending !== "icon" ? 0 : pass();
     }
     /* the canvas is laid out at the mock's design size and shown scaled, so
-       its backing store follows what is actually on screen */
+       its backing store follows the pixels it actually covers on screen */
     const dpr = Math.min(devicePixelRatio || 1, 2) * Math.min(1, scale * 1.15);
     const w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -322,6 +267,17 @@ export function mount(el) {
     if (moving || needs || glass.dirty) raf = requestAnimationFrame(frame);
     needs = false;
   };
+  const kick = () => {
+    needs = true;
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  };
+  const syncPause = () => {
+    $("[data-pause-icon]").innerHTML = ui.paused ? ICON.play : ICON.pause;
+    $("[data-pause-label]").textContent = ui.paused ? "Play" : "Pause";
+  };
+  const replay = () => { t = reduceMotion ? lengthOf(params.ending) : 0; ui.paused = false; syncPause(); kick(); };
+  scrub.addEventListener("input", () => { t = +scrub.value; ui.paused = true; syncPause(); kick(); });
+
   /* ---- the viewer: the pointer, a finger or the phone's tilt steers the
      glass. a critically damped spring carries it there and back — it
      arrives without overshooting, so the glass never wobbles. while the
@@ -346,37 +302,74 @@ export function mount(el) {
     glass.look = [look.x, look.y];
     return Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) + Math.abs(look.vx) + Math.abs(look.vy) > 1e-3;
   };
-  const kick = () => {
-    needs = true;
-    if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  /* the pointer's offset from the icon, measured in icon sizes: crossing the
+     icon sweeps the whole tilt, and its edge is full tilt — the glass
+     answers where the pointer actually is, not across the whole stage */
+  const aim = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const k = canvas.clientWidth / r.width; // the mock is shown scaled
+    const reach = Math.max(16, (glass.iconPx || 256) * 0.62);
+    look.tx = clamp1(((e.clientX - (r.left + r.width / 2)) * k) / reach);
+    look.ty = clamp1((-(e.clientY - (r.top + r.height / 2)) * k) / reach);
+    look.at = performance.now();
+    kick();
   };
-  const syncPause = () => {
-    $("[data-pause-icon]").innerHTML = ui.paused ? ICON.play : ICON.pause;
-    $("[data-pause-label]").textContent = ui.paused ? "Play" : "Pause";
-  };
-  scrub.addEventListener("input", () => { t = +scrub.value; ui.paused = true; syncPause(); kick(); });
+  const home = () => { look.tx = look.ty = 0; kick(); };
+  stage.addEventListener("pointermove", (e) => { if (params.interact) aim(e); });
+  stage.addEventListener("pointerleave", home);
+  stage.addEventListener("pointercancel", home);
+  /* a tap or click replays the reveal; a drag only steers */
+  let down = null;
+  stage.addEventListener("pointerdown", (e) => {
+    down = { x: e.clientX, y: e.clientY };
+    if (params.interact) { aim(e); askMotion(); }
+  });
+  stage.addEventListener("pointerup", (e) => {
+    const tap = down && Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) < 6;
+    down = null;
+    if (e.pointerType === "touch") home();
+    if (tap) replay();
+  });
 
-  /* ---- stills: one spare renderer draws the preset and layout thumbnails */
+  /* the phone's tilt, once allowed. ios asks on a tap, so the first tap on
+     the stage asks; elsewhere a touch device just listens */
+  let motionOn = false;
+  const onTilt = (e) => {
+    if (!params.interact || e.beta == null || e.gamma == null) return;
+    if (performance.now() - look.at < 1500) return; // a finger or pointer leads
+    look.tx = clamp1(e.gamma / 30);
+    look.ty = clamp1(-(e.beta - 45) / 30);
+    kick();
+  };
+  const listenTilt = () => { if (!motionOn) { motionOn = true; addEventListener("deviceorientation", onTilt); } };
+  const askMotion = () => {
+    const D = typeof DeviceOrientationEvent !== "undefined" ? DeviceOrientationEvent : null;
+    if (motionOn || !D || navigator.maxTouchPoints === 0) return;
+    if (typeof D.requestPermission === "function")
+      D.requestPermission().then((r) => r === "granted" && listenTilt()).catch(() => {});
+    else listenTilt();
+  };
+  if (matchMedia("(pointer: coarse)").matches && typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission !== "function") listenTilt();
+
+  /* ---- the rail: each layout as a still frame of the formed glass -------- */
   const spare = new GlassLogo(document.createElement("canvas"), { ...params }, { clear: true });
-  const still = async (over, w, h, at = 0.8) => {
-    Object.assign(spare.params, params, over);
-    spare.canvas.width = w;
-    spare.canvas.height = h;
+  let stillsToken = 0;
+  const refreshStills = async () => {
+    const token = ++stillsToken;
+    await wait(250); // let a drag settle first
+    if (token !== stillsToken) return;
+    Object.assign(spare.params, params, { ending: "icon" });
+    spare.canvas.width = 480;
+    spare.canvas.height = 270;
     spare.setArt(art);
     for (let i = 0; i < 30; i++) {
-      spare.render(at, w);
+      spare.render(1.0, 480);
       if (!spare.dirty) break;
       await wait(30);
     }
-    return spare.canvas.toDataURL("image/webp", 0.9);
-  };
-  let stillsToken = 0;
-  const refreshStills = async (presets) => {
-    const token = ++stillsToken;
-    await wait(250); // let a slider drag settle first
     if (token !== stillsToken) return;
-    const frameURL = await still({}, 480, 270);
-    if (token !== stillsToken) return;
+    const frameURL = spare.canvas.toDataURL("image/webp", 0.9);
     for (const L of LAYOUTS) {
       const box = el.querySelector(`[data-mini="${L.id}"]`);
       box.innerHTML = `<span class="ul-mini-in" style="width:${L.w}px;height:${L.h}px">${L.html(brandName())}</span>`;
@@ -385,43 +378,10 @@ export function mount(el) {
       inner.style.transform = `scale(${box.clientWidth / L.w})`;
       inner.querySelector(".lx-slot").innerHTML = `<img alt="" src="${frameURL}">`;
     }
-    if (!presets) return;
-    for (const P of PRESETS) {
-      const url = await still(P.set, 240, 160);
-      if (token !== stillsToken) return;
-      el.querySelector(`[data-preset="${P.id}"] img`).src = url;
-    }
-  };
-
-  /* ---- history: every settled change is a step ---------------------------- */
-  const undo = [], redo = [];
-  let committed = JSON.stringify(params);
-  let commitT = 0;
-  const commit = () => {
-    clearTimeout(commitT);
-    commitT = setTimeout(() => {
-      const now = JSON.stringify(params);
-      if (now === committed) return;
-      undo.push(committed);
-      if (undo.length > 80) undo.shift();
-      redo.length = 0;
-      committed = now;
-      syncHistory();
-    }, 350);
-  };
-  const syncHistory = () => {
-    $('[data-act="undo"]').disabled = !undo.length;
-    $('[data-act="redo"]').disabled = !redo.length;
-  };
-  const restore = (json) => {
-    Object.assign(params, JSON.parse(json));
-    committed = json;
-    sync(true);
-    syncHistory();
   };
 
   /* ---- fields ------------------------------------------------------------ */
-  const sync = (repaintStills = false) => {
+  const sync = () => {
     for (const i of $$("[data-p]")) {
       const k = i.dataset.p;
       if (i.type === "checkbox") i.checked = !!params[k];
@@ -434,7 +394,6 @@ export function mount(el) {
     }
     for (const h of $$("[data-hex]")) if (document.activeElement !== h) h.value = params[h.dataset.hex];
     for (const r of $$("[data-only]")) r.hidden = params.ending !== r.dataset.only;
-    for (const b of $$("[data-preset]")) b.setAttribute("aria-pressed", b.dataset.preset === ui.preset);
     for (const b of $$("[data-brand]")) b.setAttribute("aria-pressed", b.dataset.brand === ui.brand);
     $("[data-brandname]").textContent = ui.brand === "custom" ? "Your logo" : BRANDS[ui.brand].label;
 
@@ -446,37 +405,32 @@ export function mount(el) {
     $("[data-vid]").hidden = exp.type !== "video";
     $('[data-act="go"] span').textContent = exp.type === "video" ? "Export video" : "Export image";
 
+    /* the url carries what differs from the defaults, so a tuned logo is a link */
     applyVars(fitBox);
     const url = new URLSearchParams();
     if (ui.brand !== "tohirr" && BRANDS[ui.brand]) url.set("brand", ui.brand);
     if (ui.layout !== "result") url.set("layout", ui.layout);
-    if (ui.preset !== "studio" && PRESETS.some((p) => p.id === ui.preset)) url.set("preset", ui.preset);
-    const base = { ...DEFAULTS, ...LAB, ...(PRESETS.find((p) => p.id === ui.preset)?.set || {}) };
-    for (const k in DEFAULTS) {
+    if (params.theme !== "dark") url.set("theme", params.theme);
+    const base = { ...DEFAULTS, ...LAB, ...THEMES[params.theme], original: !!BRANDS[ui.brand]?.original };
+    for (const k of [...Object.keys(DEFAULTS), ...Object.keys(LAB)]) {
       const v = params[k];
-      if (v !== base[k] && !(k === "text" && BRANDS[ui.brand]?.text === v)) url.set(k, typeof v === "boolean" ? +v : v);
+      if (k !== "theme" && v !== base[k] && !(k === "text" && BRANDS[ui.brand]?.text === v)) url.set(k, typeof v === "boolean" ? +v : v);
     }
     history.replaceState(null, "", [...url].length ? `?${url}` : location.pathname);
     glass.touch();
     kick();
-    refreshStills(repaintStills);
+    refreshStills();
   };
 
-  /* a preset owns its keys; touching one of them leaves the preset behind */
-  const changed = (k) => {
-    if (PRESET_KEYS.includes(k)) ui.preset = "custom";
-    commit();
-  };
   for (const i of $$("[data-p]")) {
     const ev = i.tagName === "SELECT" || i.type === "checkbox" ? "change" : "input";
     i.addEventListener(ev, () => {
       const k = i.dataset.p;
       params[k] = i.type === "checkbox" ? i.checked : i.type === "range" ? +i.value : i.value;
       if (k === "theme") Object.assign(params, THEMES[i.value]);
-      if (k === "ending") t = 0;
-      if (k === "loop" && i.checked && t >= pass()) t = 0;
-      changed(k);
-      sync(k === "theme");
+      if (k === "ending") replay();
+      if (k === "interact" && !i.checked) home();
+      sync();
     });
   }
   for (const n of $$("[data-num]")) {
@@ -484,28 +438,17 @@ export function mount(el) {
     n.addEventListener("change", () => {
       const v = parseFloat(n.value);
       if (Number.isFinite(v)) params[n.dataset.num] = Math.max(+r.min, Math.min(+r.max, v));
-      changed(n.dataset.num);
       sync();
     });
     n.addEventListener("keydown", (e) => { if (e.key === "Enter") n.blur(); });
   }
   for (const h of $$("[data-hex]"))
     h.addEventListener("change", () => {
-      if (/^#[0-9a-f]{6}$/i.test(h.value)) { params[h.dataset.hex] = h.value.toLowerCase(); changed(h.dataset.hex); }
-      sync();
-    });
-  for (const b of $$("[data-preset]"))
-    b.addEventListener("click", () => {
-      Object.assign(params, DEFAULTS, { ending: params.ending, text: params.text, logoSize: params.logoSize, logoScale: params.logoScale,
-        finalLogoScale: params.finalLogoScale, speed: params.speed, loop: params.loop, loopDelay: params.loopDelay, original: params.original },
-      PRESETS.find((p) => p.id === b.dataset.preset).set);
-      ui.preset = b.dataset.preset;
-      commit();
-      t = 0;
+      if (/^#[0-9a-f]{6}$/i.test(h.value)) params[h.dataset.hex] = h.value.toLowerCase();
       sync();
     });
 
-  /* ---- logos and the background image ------------------------------------ */
+  /* ---- logos ------------------------------------------------------------- */
   const useBrand = async (name) => {
     ui.brand = name;
     const B = BRANDS[name];
@@ -519,96 +462,31 @@ export function mount(el) {
     } else if (Object.values(BRANDS).some((b) => b.text === params.text)) params.text = DEFAULTS.text;
     params.original = !!B.original;
     glass.setArt(art);
-    t = 0;
     showLayout();
-    sync(true);
+    replay();
+    sync();
   };
   for (const b of $$("[data-brand]")) b.addEventListener("click", () => useBrand(b.dataset.brand));
-  const take = async (slot, file) => {
+  const take = async (file) => {
     if (!file || !file.type.startsWith("image/")) return toast("that is not an image");
     try {
-      const url = URL.createObjectURL(file);
-      art[slot] = await fetchImage(url);
-      if (slot === "logo") {
-        art.wordImg = null;
-        ui.brand = "custom";
-        $('[data-name="logo"]').textContent = file.name;
-        t = 0;
-      } else groundURL = url;
-      el.querySelector(`[data-clear="${slot}"]`).hidden = false;
+      art.logo = await fetchImage(URL.createObjectURL(file));
+      art.wordImg = null;
+      ui.brand = "custom";
+      params.original = false;
+      $('[data-name="logo"]').textContent = file.name;
+      $('[data-clear="logo"]').hidden = false;
       glass.setArt(art);
       showLayout();
-      sync(true);
+      replay();
+      sync();
     } catch { toast("that file would not load as an image"); }
   };
-  for (const f of $$("[data-file]")) f.addEventListener("change", () => { take(f.dataset.file, f.files[0]); f.value = ""; });
+  $("[data-file]").addEventListener("change", (e) => { take(e.target.files[0]); e.target.value = ""; });
   stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.dataset.over = "1"; });
   stage.addEventListener("dragleave", () => delete stage.dataset.over);
-  stage.addEventListener("drop", (e) => { e.preventDefault(); delete stage.dataset.over; take("logo", e.dataTransfer.files[0]); });
-
-  /* steering: where the pointer sits over the canvas, -1..1, y up */
-  const aim = (e) => {
-    const r = canvas.getBoundingClientRect();
-    look.tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2)));
-    look.ty = Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height / 2)) / (r.height / 2)));
-    look.at = performance.now();
-    kick();
-  };
-  stage.addEventListener("pointermove", (e) => { if (params.interact) aim(e); });
-  stage.addEventListener("pointerleave", () => { look.tx = look.ty = 0; kick(); });
-  stage.addEventListener("pointercancel", () => { look.tx = look.ty = 0; kick(); });
-
-  /* a tap or click drops a new drop where it lands: the reveal replays from
-     there and the icon glides home as it forms */
-  let down = null;
-  stage.addEventListener("pointerdown", (e) => {
-    down = { x: e.clientX, y: e.clientY };
-    if (params.interact) { aim(e); askMotion(); }
-  });
-  stage.addEventListener("pointerup", (e) => {
-    const tap = down && Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) < 6;
-    down = null;
-    if (e.pointerType === "touch") { look.tx = look.ty = 0; kick(); }
-    if (!tap || !params.interact || !params.dropOnClick || reduceMotion) return;
-    const r = canvas.getBoundingClientRect();
-    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
-    const k = canvas.clientWidth / r.width; // the mock is shown scaled
-    glass.origin = [(e.clientX - (r.left + r.width / 2)) * k, -(e.clientY - (r.top + r.height / 2)) * k];
-    t = 0;
-    ui.paused = false;
-    syncPause();
-    kick();
-  });
-
-  /* the phone's tilt, once allowed. ios asks on a tap, so the first tap on
-     the stage asks; elsewhere it just listens */
-  let motionOn = false;
-  const onTilt = (e) => {
-    if (!params.interact || e.beta == null || e.gamma == null) return;
-    if (performance.now() - look.at < 1500) return; // a finger or pointer leads
-    look.tx = Math.max(-1, Math.min(1, e.gamma / 30));
-    look.ty = Math.max(-1, Math.min(1, -(e.beta - 45) / 30));
-    kick();
-  };
-  const listenTilt = () => { if (!motionOn) { motionOn = true; addEventListener("deviceorientation", onTilt); } };
-  const askMotion = () => {
-    const D = typeof DeviceOrientationEvent !== "undefined" ? DeviceOrientationEvent : null;
-    if (motionOn || !D || navigator.maxTouchPoints === 0) return;
-    if (typeof D.requestPermission === "function")
-      D.requestPermission().then((r) => r === "granted" && listenTilt()).catch(() => {});
-    else listenTilt();
-  };
-  if (matchMedia("(pointer: coarse)").matches && typeof DeviceOrientationEvent !== "undefined" &&
-    typeof DeviceOrientationEvent.requestPermission !== "function") listenTilt();
-  for (const b of $$("[data-clear]"))
-    b.addEventListener("click", () => {
-      if (b.dataset.clear === "logo") return useBrand("tohirr");
-      art.ground = null;
-      groundURL = "";
-      b.hidden = true;
-      glass.setArt(art);
-      sync(true);
-    });
+  stage.addEventListener("drop", (e) => { e.preventDefault(); delete stage.dataset.over; take(e.dataTransfer.files[0]); });
+  $('[data-clear="logo"]').addEventListener("click", () => useBrand("tohirr"));
 
   /* ---- layouts ----------------------------------------------------------- */
   const pickLayout = (id) => { ui.layout = id; showLayout(); sync(); };
@@ -687,36 +565,22 @@ export function mount(el) {
   };
 
   /* ---- buttons ----------------------------------------------------------- */
-  const randomize = () => {
-    const P = PRESETS[(Math.random() * PRESETS.length) | 0];
-    const r = (lo, hi, d = 2) => +(lo + Math.random() * (hi - lo)).toFixed(d);
-    Object.assign(params, P.set, { depth: r(0.8, 3.2, 1), dispersion: r(0.5, 2.4), relief: r(0.6, 1.6), caustics: r(0.6, 1.8),
-      highlights: r(0.8, 1.6), bloom: r(0.3, 0.9), dropStrength: r(0.7, 1.5) });
-    ui.preset = "custom";
-    t = 0;
-    commit();
-    sync(true);
-  };
   el.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-act]");
     if (!b) return;
     const act = b.dataset.act;
     if (act === "export") return setPop(pop.hidden);
     if (act === "go") { setPop(false); return exportNow(); }
-    if (act === "pause") { ui.paused = !ui.paused; if (!ui.paused && t >= pass()) t = 0; syncPause(); kick(); }
-    if (act === "restart") { t = 0; glass.origin = [0, 0]; kick(); }
-    if (act === "random") randomize();
-    if (act === "undo" && undo.length) { redo.push(JSON.stringify(params)); restore(undo.pop()); }
-    if (act === "redo" && redo.length) { undo.push(JSON.stringify(params)); restore(redo.pop()); }
+    if (act === "pause") {
+      ui.paused = !ui.paused;
+      if (!ui.paused && t >= pass()) t = 0;
+      syncPause();
+      kick();
+    }
+    if (act === "restart") replay();
     if (act === "full") {
       const p = document.fullscreenElement ? document.exitFullscreen() : stage.requestFullscreen?.();
       p?.catch?.(() => {});
-    }
-    if (act === "more") {
-      const extra = $$("[data-extra]");
-      const open = extra[0].hidden;
-      for (const x of extra) x.hidden = !open;
-      b.textContent = open ? "Show less" : `Show more (${extra.length})`;
     }
     if (act === "link") {
       try { await navigator.clipboard.writeText(location.href); toast("link copied — it carries every setting"); }
@@ -724,21 +588,12 @@ export function mount(el) {
     }
     if (act === "reset") {
       Object.assign(params, DEFAULTS, LAB);
-      glass.origin = [0, 0];
-      ui.preset = "studio";
-      art.ground = null;
-      groundURL = "";
-      $('[data-clear="ground"]').hidden = true;
-      commit();
       useBrand("tohirr");
     }
   });
   const onKeys = (e) => {
-    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-      e.preventDefault();
-      el.querySelector(`[data-act="${e.shiftKey ? "redo" : "undo"}"]`).click();
-    } else if (e.key === " " && !e.target.closest("button")) {
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.closest("button")) return;
+    if (e.key === " ") {
       e.preventDefault();
       el.querySelector('[data-act="pause"]').click();
     }
@@ -747,7 +602,6 @@ export function mount(el) {
 
   el.glassLab = { params, ui, glass, exp, look, seek: (s) => { t = s; ui.paused = true; syncPause(); kick(); }, exportNow, pickLayout, useBrand };
   syncPause();
-  syncHistory();
   showLayout();
   useBrand(ui.brand);
 
@@ -794,7 +648,7 @@ function reel(el) {
   let paused = 0;
   const io = capture ? null : new IntersectionObserver(([e]) => {
     if (e.isIntersecting && !raf) {
-      if (paused) t0 += performance.now() - paused; // resume where it left off
+      if (paused && t0 !== null) t0 += performance.now() - paused; // resume where it left off
       paused = 0;
       raf = requestAnimationFrame(frame);
     } else if (!e.isIntersecting && raf) {
