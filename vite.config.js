@@ -18,6 +18,7 @@ export default defineConfig({
         cube: page("cube/index.html"),
         keycaps: page("keycaps/index.html"),
         pinch: page("pinch/index.html"),
+        glassLab: page("glass-lab/index.html"),
       },
     },
   },
