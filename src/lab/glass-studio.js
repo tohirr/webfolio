@@ -9,7 +9,7 @@
 
 import "../glass-studio/glass-studio.css";
 import { DEFAULTS, THEMES, GlassLogo, lengthOf } from "./glass-logo.js";
-import { BRANDS, brandArt, steer, record, reel } from "./glass-common.js";
+import { BRANDS, DEFAULT_BRAND, brandArt, steer, record, reel } from "./glass-common.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -81,7 +81,7 @@ export function mount(el) {
 
   /* the page rests on the glass icon, so there is something to steer; the
      page's own keys ride along in params, the renderer ignores them */
-  const PAGE = { ending: "icon", interact: true, strength: 0.8, brand: "tohirr", paused: false };
+  const PAGE = { ending: "icon", interact: true, strength: 0.8, brand: DEFAULT_BRAND, paused: false };
   const params = { ...DEFAULTS, ...PAGE };
   const exp = { type: "video", format: "mp4", aspect: "16:9", res: "1080p", fps: 60 };
   const q = new URLSearchParams(location.search);
@@ -236,7 +236,7 @@ export function mount(el) {
 
     /* the url carries what differs from the defaults, so a tuned logo is a link */
     const url = new URLSearchParams();
-    if (params.brand !== "tohirr" && BRANDS[params.brand]) url.set("brand", params.brand);
+    if (params.brand !== DEFAULT_BRAND && BRANDS[params.brand]) url.set("brand", params.brand);
     if (params.theme !== "dark") url.set("theme", params.theme);
     const base = { ...DEFAULTS, ...PAGE, ...THEMES[params.theme], original: !!BRANDS[params.brand]?.original };
     for (const k of [...Object.keys(DEFAULTS), "ending", "interact", "strength"]) {
@@ -341,7 +341,7 @@ export function mount(el) {
     b.addEventListener("click", (e) => {
       e.preventDefault();
       const k = b.dataset.clear;
-      if (k === "logo") return useBrand("tohirr");
+      if (k === "logo") return useBrand(DEFAULT_BRAND);
       art.ground = null;
       $('[data-name="ground"]').textContent = "Background";
       b.hidden = true;
@@ -407,7 +407,7 @@ export function mount(el) {
       art.ground = null;
       $('[data-name="ground"]').textContent = "Background";
       $('[data-clear="ground"]').hidden = true;
-      useBrand("tohirr");
+      useBrand(DEFAULT_BRAND);
     }
   });
 

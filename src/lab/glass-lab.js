@@ -19,7 +19,7 @@
 import "../glass-lab/glass-lab.css";
 import { DEFAULTS, THEMES, GlassLogo, lengthOf } from "./glass-logo.js";
 import { LAYOUTS } from "./glass-layouts.js";
-import { BRANDS, brandArt, steer, record, reel } from "./glass-common.js";
+import { BRANDS, DEFAULT_BRAND, brandArt, steer, record, reel } from "./glass-common.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -75,7 +75,7 @@ export function mount(el) {
      interaction keys are the lab's own, the renderer ignores them */
   const LAB = { ending: "icon", interact: true, strength: 0.8 };
   const params = { ...DEFAULTS, ...LAB };
-  const ui = { brand: "tohirr", layout: "result", paused: false };
+  const ui = { brand: DEFAULT_BRAND, layout: "result", paused: false };
   const exp = { type: "video", format: "mp4", aspect: "16:9", res: "1080p", fps: 60 };
   const q = new URLSearchParams(location.search);
   if (q.get("theme") === "light") Object.assign(params, THEMES.light, { theme: "light" });
@@ -330,7 +330,7 @@ export function mount(el) {
     /* the url carries what differs from the defaults, so a tuned logo is a link */
     applyVars(fitBox);
     const url = new URLSearchParams();
-    if (ui.brand !== "tohirr" && BRANDS[ui.brand]) url.set("brand", ui.brand);
+    if (ui.brand !== DEFAULT_BRAND && BRANDS[ui.brand]) url.set("brand", ui.brand);
     if (ui.layout !== "result") url.set("layout", ui.layout);
     if (params.theme !== "dark") url.set("theme", params.theme);
     const base = { ...DEFAULTS, ...LAB, ...THEMES[params.theme], original: !!BRANDS[ui.brand]?.original };
@@ -408,7 +408,7 @@ export function mount(el) {
   stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.dataset.over = "1"; });
   stage.addEventListener("dragleave", () => delete stage.dataset.over);
   stage.addEventListener("drop", (e) => { e.preventDefault(); delete stage.dataset.over; take(e.dataTransfer.files[0]); });
-  $('[data-clear="logo"]').addEventListener("click", () => useBrand("tohirr"));
+  $('[data-clear="logo"]').addEventListener("click", () => useBrand(DEFAULT_BRAND));
 
   /* ---- layouts ----------------------------------------------------------- */
   const pickLayout = (id) => { ui.layout = id; showLayout(); sync(); };
@@ -491,7 +491,7 @@ export function mount(el) {
     }
     if (act === "reset") {
       Object.assign(params, DEFAULTS, LAB);
-      useBrand("tohirr");
+      useBrand(DEFAULT_BRAND);
     }
   });
   const onKeys = (e) => {

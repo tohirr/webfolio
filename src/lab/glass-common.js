@@ -8,13 +8,16 @@ import { DEFAULTS, THEMES, GlassLogo, lengthOf } from "./glass-logo.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* built-in logos. tohirr is the pixel self-portrait from the site's favicon,
-   in its own colours; ux pilot's mark is the vector mascot from its site */
+/* built-in logos. hands is the default: a glossy 3d pair of hands, in its
+   own colours; tohirr is the pixel self-portrait from the site's favicon;
+   ux pilot's mark is the vector mascot from its site */
 export const BRANDS = {
+  hands: { label: "Hands", name: "tohirr", logo: "/media/glass/hands.webp", text: "tohirr", original: true },
   tohirr: { label: "Tohir", name: "tohirr", logo: "/favicon.svg", text: "tohirr", original: true },
   note: { label: "Note", name: "Aria" },
   uxpilot: { label: "UX Pilot", name: "UX Pilot", logo: "/media/glass/uxpilot-mark.svg", wordImg: "/media/glass/uxpilot-wordmark.svg", text: "UX Pilot" },
 };
+export const DEFAULT_BRAND = "hands";
 
 export const fetchImage = (src) => new Promise((res, rej) => {
   const im = new Image();
@@ -171,7 +174,7 @@ export function reel(el) {
   const params = { ...DEFAULTS, ...(light ? { theme: "light", ...THEMES.light } : {}),
     ending: q.get("ending") === "wordmark" ? "wordmark" : "logo" };
   const glass = new GlassLogo(canvas, params, { clear: !capture });
-  const B = BRANDS[(capture && q.get("brand")) || "tohirr"];
+  const B = BRANDS[(capture && q.get("brand")) || DEFAULT_BRAND];
   if (B && B.logo) brandArt(B)
     .then(([logo, wordImg]) => { params.text = B.text; params.original = !!B.original; glass.setArt({ logo, wordImg }); })
     .catch(() => {});

@@ -90,6 +90,16 @@ const blocks = [
     load: () => import("./lab/keycaps.js"),
   },
   {
+    name: "glass-logo",
+    title: "glass logo",
+    href: "/glass-logo/",
+    type: "site",
+    blurb: "a logo poured in glass",
+    sub: "a liquid glass logo reveal that answers the pointer · webgl2",
+    kind: "more",
+    load: () => import("./lab/glass-studio.js"),
+  },
+  {
     name: "feldy",
     type: "app",
     blurb: "the field app",
