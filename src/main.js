@@ -807,3 +807,7 @@ checkDock();
 addEventListener("scroll", redock, { passive: true });
 addEventListener("resize", redock);
 phone.addEventListener("change", redock);
+
+/* ---- behind the page: gliders (spiral, life, arcade, adire swap in) ----- */
+
+import("./gliders.js").then(({ mount }) => mount());
