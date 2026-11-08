@@ -9,9 +9,10 @@
    bayer threshold in the fragment shader, block by block, the way the real
    thing loads. the works are rigid cards on a shallow dome pinned to the
    cell, so the centre is magnified a touch and the edges lean away, and
-   the picture is sharp at the centre and softens toward the rim — a
-   radial blur in the fragment shader, a ring of taps whose radius grows
-   with distance from the middle, like a lens. flick it and it coasts;
+   the picture is sharp at the centre and frosts toward the rim, and near
+   the rim it is pulled too: the last few pixels before the edge are
+   stretched out to it, so the works streak off in parallel lines under
+   the frost. flick it and it coasts;
    left alone it drifts slowly on its own and pauses the moment you touch
    it. the snapshot of works is baked in (gallaria-works.json, ~2 kb), the
    rungs come from cloudinary: ~30 kb for the small ones, ~90 kb for the
@@ -46,7 +47,10 @@ const CENTER_SCALE = 1 / (1 - BULGE);
 const FRICTION = 0.92; // velocity kept per 16 ms after a flick
 const TAP_SLOP = 5;
 const DISSOLVE_MS = 520;
-const BLUR_PX = 9; // css px of blur at the rim: frosted glass at the edge, clear in the middle
+const BLUR_PX = 9; // css px of frost at the rim, clear in the middle
+const MILK = 0.6; // how far the very rim sinks toward the cell's colour
+const STRETCH_AT = 0.8; // where the pull starts, as a fraction of the way from the middle to the rim
+const STRETCH_KEEP = 0.04; // how much of the picture past that point survives: the rest is smeared to the rim
 const LENS = 0.2; // the fisheye: how much bigger the middle is drawn than the corners
 const FRINGE_PX = 3.5; // css px red and blue split apart at the rim
 const STREAM_MS = 320; // how often the sharp rung is offered to the works in view
@@ -202,14 +206,13 @@ void main() {
 }`;
 
 /* the frost: the cards are drawn into a texture of the cell, and this pass
-   puts it on screen through a blur whose radius grows from nothing at the
-   centre to BLUR_PX at the edge midpoints — the whole picture, silhouettes
-   included, the way glass does it. a ring of taps over a mip-biased sample
-   keeps a wide radius smooth. it is seen through a fisheye too, so the
-   cell bulges: the middle is drawn biggest and the picture squeezes as it
-   runs out to the edge, the corners staying where they are, so the columns
-   bow round the middle — and at the rim red and blue part a little, the
-   fringe a real lens leaves */
+   puts it on screen through a blur that grows from nothing at the centre to
+   BLUR_PX at the edge, milking toward the cell's colour so the rim is
+   almost gone. under the frost the picture is pulled — past STRETCH_AT
+   each axis stalls, so the strip just inside it is stretched absurdly out
+   to the edge: parallel streaks down the sides, a smear in the corners,
+   flowing as the field drifts through. it is seen through a fisheye too,
+   so the middle swells, and where the pull takes hold red and blue part */
 const FROST_VS = `#version 300 es
 out vec2 vUv;
 void main() {
@@ -227,37 +230,54 @@ uniform vec3 uBg;     // the cell's colour, for the rim to sink into
 in vec2 vUv;
 out vec4 o;
 float bias;
-vec3 tap(vec2 uv) { return texture(uScene, uv, bias).rgb; }
+// the pull, one axis at a time: true to life up to STRETCH_AT, then the
+// sample point slows and stalls just past it, so the rest of the way to the
+// rim is painted from a sliver a few pixels wide and the works streak off in
+// parallel lines. the curve leaves the identity with slope 1, so there is no
+// seam where the pulling starts
+float pull(float x) {
+  float a = abs(x);
+  if (a < ${STRETCH_AT.toFixed(3)}) return x;
+  float k = (a - ${STRETCH_AT.toFixed(3)}) / ${STRETCH_KEEP.toFixed(3)};
+  return sign(x) * (${STRETCH_AT.toFixed(3)} + ${STRETCH_KEEP.toFixed(3)} * (1.0 - exp(-k)));
+}
+// a screen point, pulled, then through the fisheye: every point samples
+// from nearer the middle, most at the middle and not at all in the corners
+vec2 warp(vec2 n) {
+  vec2 m = vec2(pull(n.x), pull(n.y));
+  float q = dot(m, m) * 0.5;
+  return 0.5 + m * 0.5 * (1.0 - ${LENS.toFixed(3)} * (1.0 - q));
+}
+vec3 tap(vec2 n) { return texture(uScene, warp(n), bias).rgb; }
 void main() {
   vec2 n = vUv * 2.0 - 1.0;
-  // r² is 1 at the edge midpoints and 2 in the corners: full frost from the
+  // r² is 1 at the edge midpoints and 2 in the corners: frost from the
   // edge outward, tapering in toward a clear centre
-  float amt = smoothstep(0.45, 1.15, dot(n, n));
-  // the fisheye: every point samples from nearer the middle, most at the
-  // middle itself and not at all in the corners, so the middle swells and
-  // the rest is squeezed out toward the edge
-  float q = dot(n, n) * 0.5; // 0 in the middle, 1 in the corners
-  vec2 uv = 0.5 + n * 0.5 * (1.0 - ${LENS.toFixed(3)} * (1.0 - q));
-  float bend = smoothstep(0.25, 1.6, dot(n, n)); // for the fringe
+  float amt = smoothstep(0.7, 1.25, dot(n, n));
   float radPx = amt * ${BLUR_PX.toFixed(1)};
   bias = log2(max(1.0, radPx * uDpr * 0.6));
-  vec2 r = radPx / uView;
-  vec3 col = tap(uv) * 2.0;
+  // the blur's taps are spread on screen and each is pulled on its own, so
+  // in the pull zone they fall along the streaks: the frost softens the
+  // streaks across but leaves them running straight to the rim
+  vec2 r = 2.0 * radPx / uView;
+  vec3 col = tap(n) * 2.0;
   float wsum = 2.0;
   for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.7853982;
     vec2 d = vec2(cos(a), sin(a));
-    col += tap(uv + d * r) * 0.85;
-    col += tap(uv + d * r * 0.5 + vec2(-d.y, d.x) * r * 0.2) * 1.0;
+    col += tap(n + d * r) * 0.85;
+    col += tap(n + d * r * 0.5 + vec2(-d.y, d.x) * r * 0.2) * 1.0;
     wsum += 1.85;
   }
   col /= wsum;
-  // the fringe: red a touch further in, blue a touch further out
-  vec2 split = n * bend * ${FRINGE_PX.toFixed(1)} / uView;
-  col.r = mix(col.r, tap(uv - split).r, bend);
-  col.b = mix(col.b, tap(uv + split).b, bend);
-  // the frosted rim goes milky: sinks a little toward the cell's own colour
-  o = vec4(mix(col, uBg, 0.22 * amt), 1.0);
+  // the fringe rides the streaks: red and blue part as the pull takes hold
+  vec2 bend = smoothstep(vec2(${STRETCH_AT.toFixed(3)}), vec2(1.0), abs(n));
+  vec2 split = sign(n) * bend * 2.0 * ${FRINGE_PX.toFixed(1)} / uView;
+  col.r = mix(col.r, tap(n - split).r, max(bend.x, bend.y));
+  col.b = mix(col.b, tap(n + split).b, max(bend.x, bend.y));
+  // the rim goes milky, almost gone at the very edge, the streaks showing
+  // through it
+  o = vec4(mix(col, uBg, ${MILK.toFixed(2)} * amt * amt), 1.0);
 }`;
 
 function program(gl, vs, fs, names) {
