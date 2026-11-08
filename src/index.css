@@ -341,6 +341,7 @@ a:hover {
      bookmarx  the icon's blue
      foil      the holo's violet
      morph     the dots' teal
+     board     graphite, the board's own housing
      calendar  the event's magenta, as a plum
      gallaria  terracotta, warm under the art
      compass   the globe's moss green
@@ -349,6 +350,7 @@ a:hover {
 .block[aria-label="bookmarx"] { --tile: #1a2230; }
 .block[aria-label="foil"] { --tile: #1f1b27; }
 .block[aria-label="morph"] { --tile: #15211f; }
+.block[aria-label="board"] { --tile: #1a1a1a; }
 .block[aria-label="calendar"] { --tile: #221a21; }
 .block[aria-label="gallaria"] { --tile: #251b17; }
 .block[aria-label="compass"] { --tile: #1b2019; }
@@ -359,6 +361,7 @@ a:hover {
   .block[aria-label="bookmarx"] { --tile: #e3eaf3; }
   .block[aria-label="foil"] { --tile: #ebe7f3; }
   .block[aria-label="morph"] { --tile: #e3efec; }
+  .block[aria-label="board"] { --tile: #ececea; }
   .block[aria-label="calendar"] { --tile: #f3e8ee; }
   .block[aria-label="gallaria"] { --tile: #f3e9e3; }
   .block[aria-label="compass"] { --tile: #e7ede3; }
@@ -844,7 +847,7 @@ button.icon-btn {
 }
 
 /* a scenic card: the piece itself carries on behind the card, sharp in the
-   middle, frosted and pulled at the rim as in the cell, still drifting, and the
+   middle and frosted at the rim as in the cell, still drifting, and the
    card's surface is translucent so it shows through. the scene lives inside
    the panel, so the clip that grows out of the tile reveals it as it goes.
    on the way back it blurs and fades while the box folds into the cell */

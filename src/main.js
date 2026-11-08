@@ -52,6 +52,16 @@ const blocks = [
     load: () => import("./lab/morph.js"),
   },
   {
+    name: "board",
+    title: "dot board",
+    type: "component",
+    blurb: "a dot-matrix world clock",
+    sub: "a dot-matrix world clock · each change scrambles in, left to right",
+    ratio: "4 / 3",
+    kind: "touch",
+    load: () => import("./lab/city-board.js"),
+  },
+  {
     name: "calendar",
     type: "design",
     blurb: "a live event, concept",
