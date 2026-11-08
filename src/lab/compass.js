@@ -2,10 +2,15 @@
    tape of tick marks slides under a fixed centre indicator, every tick a
    detent, one degree of heading, and the numbers loop round the circle
    with N, E, S and W where they fall. under the tape sits the earth seen
-   from straight above lagos, drawn as a dot display: a fixed coarse grid
-   of dots samples an orthographic hemisphere, land is a lit dot shaded
-   toward the limb, sea is a faint one, and the tape turns the whole
-   globe so your heading is up, the way a moving map does. drag the tape,
+   from straight above lagos as a dot globe: dots spread evenly over the
+   sphere itself, so they crowd and shrink toward the limb and the disc
+   reads as round; land is a lit dot dimming toward the edge, sea a faint
+   one, and a thin glow sits on the rim. the camera leans back off the
+   vertical and sits ahead of you, so lagos is low in the frame and your
+   heading runs up the screen, over the horizon; the tape turns the
+   planet about lagos's own up axis, which leans toward you, so the
+   continents swing round, slide in over the limb and sink behind it.
+   the rose lies flat on the ground round you, in perspective. drag the tape,
    flick it and it coasts on momentum and settles onto a tick; roll the
    wheel over it; arrow keys step it. every tick crossed is a click (a
    filtered noise burst, pitched by direction) and a short buzz where the
@@ -40,12 +45,13 @@ const coarse = matchMedia("(pointer: coarse)").matches;
 const GAP = 12; // css px between ticks
 const FRICTION = 3.4; // per second, on a flick
 const DEG = 1; // degrees of heading per tick
-const CELLS = 34; // dots across the picture
+const SPACING = 3.3; // css px between globe dots at the centre of the disc
 const HOME = [6.45, 3.4]; // lagos: lat, lon — the globe is seen from above here
 const SEA = "rgb(37,99,235)"; // the heat ramp's blue
 const AMBERV = [[245, 158, 11], [217, 119, 6]]; // the ramp's amber; a shade deeper on white
 const WINDS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]; // the eight points, for the readout
-const ROSE = 21; // css px of ring round the globe for the rose
+const TILT = (38 * Math.PI) / 180; // how far the camera leans off straight down
+const RING = (24 * Math.PI) / 180; // the rose's radius on the ground, as an angle round the earth
 const rgb = (hex, fb) => {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   return m ? [1, 3, 5].map((i) => parseInt(m[1].slice(i - 1, i + 1), 16)) : fb;
@@ -73,20 +79,31 @@ const land = (lat, lon) => {
   return (LAND[i >> 3] >> (7 - (i & 7))) & 1;
 };
 
-/* ---- the globe: brightness at a point on the disc ------------------------
-   x right, y up, in units of the globe's radius; the disc is the
-   hemisphere around HOME in an orthographic projection. returns -1 off
-   the disc, 0 for sea, else a land brightness shaded toward the limb */
+/* ---- the globe: dots on the sphere --------------------------------------
+   a fibonacci lattice spreads n dots evenly over the sphere, carried into
+   a frame centred on HOME: x east, y north, z up out of the ground at HOME. each
+   dot is tagged land or sea; the camera does the rest every frame */
 const LAT0 = (HOME[0] * Math.PI) / 180, LON0 = (HOME[1] * Math.PI) / 180;
 const SIN0 = Math.sin(LAT0), COS0 = Math.cos(LAT0);
-const globe = (x, y) => {
-  const rho2 = x * x + y * y;
-  if (rho2 > 1) return -1;
-  const cosc = Math.sqrt(1 - rho2); // cos of the angular distance from home
-  const lat = Math.asin(cosc * SIN0 + y * COS0);
-  const lon = LON0 + Math.atan2(x, cosc * COS0 - y * SIN0);
-  if (!land((lat * 180) / Math.PI, (lon * 180) / Math.PI)) return 0;
-  return 0.4 + 0.6 * cosc;
+const GOLD = Math.PI * (3 - Math.sqrt(5));
+const lattice = (n) => {
+  // built on the earth's own axis, so the lattice's swirl sits on the
+  // poles, not on lagos; then each dot is carried into HOME's frame
+  const cl = Math.cos(LON0), sl = Math.sin(LON0);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const sz = 1 - (2 * (i + 0.5)) / n; // sin of latitude
+    const cz = Math.sqrt(1 - sz * sz);
+    const lon = i * GOLD;
+    const px = cz * Math.cos(lon), py = cz * Math.sin(lon);
+    const x = -px * sl + py * cl; // east
+    const y = -px * SIN0 * cl - py * SIN0 * sl + sz * COS0; // north
+    const z = px * COS0 * cl + py * COS0 * sl + sz * SIN0; // up
+    const latD = (Math.asin(sz) * 180) / Math.PI;
+    const lonD = ((((lon * 180) / Math.PI) + 180) % 360) - 180;
+    pts.push(x, y, z, land(latD, lonD));
+  }
+  return new Float32Array(pts);
 };
 
 export function mount(el) {
@@ -124,7 +141,7 @@ export function mount(el) {
   const pctx = pic.getContext("2d");
 
   /* ---- colours follow the theme ---------------------------------------- */
-  let ink = "#fff", fg = "#8f8f8f", dim = "#6e6e6e", green = "#4ade80", greenV = [74, 222, 128], amberV = AMBERV[0], amber = mix(amberV, amberV, 0), font = "monospace";
+  let ink = "#fff", fg = "#8f8f8f", dim = "#6e6e6e", inkV = [255, 255, 255], dimV = [110, 110, 110], green = "#4ade80", greenV = [74, 222, 128], amberV = AMBERV[0], amber = mix(amberV, amberV, 0), font = "monospace";
   const mq = matchMedia("(prefers-color-scheme: light)");
   const readTheme = () => {
     const cs = getComputedStyle(el);
@@ -137,6 +154,8 @@ export function mount(el) {
     ink = cs.getPropertyValue("--ink").trim() || ink;
     fg = cs.getPropertyValue("--fg").trim() || fg;
     dim = cs.getPropertyValue("--dim").trim() || dim;
+    inkV = rgb(ink, inkV);
+    dimV = rgb(dim, dimV);
   };
   readTheme();
   mq.addEventListener("change", readTheme);
@@ -388,104 +407,192 @@ export function mount(el) {
   let ambNext = performance.now() + 5000;
 
   /* ---- the picture ------------------------------------------------------- */
-  const drawPic = () => {
-    const cell = S / CELLS;
-    const cx = S / 2, cy = S / 2;
-    const R = S / 2 - ROSE * dpr; // the globe's radius; the rose sits in the ring outside
-    if (R <= 0) return; // not laid out yet: the frame had no size when resize() ran
-    // heading-up: the map turns the other way from the heading
-    const th = (-pos * DEG * Math.PI) / 180;
-    const cs = Math.cos(th), sn = Math.sin(th);
-    const base = new Path2D();
-    const lit = new Path2D();
-    const baseR = cell * 0.11;
-    for (let y = 0; y < CELLS; y++)
-      for (let x = 0; x < CELLS; x++) {
-        const px = (x + 0.5) * cell;
-        const py = (y + 0.5) * cell;
-        // this dot, on the map before it was turned, in globe radii
-        const sx = (px - cx) / R, sy = (py - cy) / R;
-        const u = sx * cs + sy * sn, v = -sx * sn + sy * cs;
-        const l = globe(u, -v);
-        if (l < 0) continue;
-        if (l > 0) {
-          const r = cell * (0.12 + 0.32 * Math.pow(l, 0.8));
-          lit.moveTo(px + r, py);
-          lit.arc(px, py, r, 0, Math.PI * 2);
-        } else {
-          base.moveTo(px + baseR, py);
-          base.arc(px, py, baseR, 0, Math.PI * 2);
-        }
+  /* the camera: orthographic, from far off, leaning TILT back from
+     straight down over a point ahead of HOME. in HOME's frame (east,
+     north, up) with heading h:
+       forward  F = (sin h, cos h, 0)   right  Rt = (cos h, -sin h, 0)
+       screen y = F·cos τ − up·sin τ    depth = F·sin τ + up·cos τ
+     so ahead is up the screen and HOME sits below centre. each dot is
+     projected every frame the heading moves and written straight into a
+     pixel buffer, antialiased by hand — thousands of canvas draw calls a
+     frame were too slow */
+  let dots = null, dotsR = 0, picKey = "";
+  const dotCv = document.createElement("canvas");
+  const dctx = dotCv.getContext("2d");
+  let img = null, buf = null;
+  const SEAV = [37, 99, 235];
+  // one antialiased dot into the buffer; where dots touch, the stronger wins
+  const stamp = (px, py, r, a, cr, cg, cb) => {
+    const x0 = Math.max(0, Math.floor(px - r - 0.5)), x1 = Math.min(S - 1, Math.ceil(px + r + 0.5));
+    const y0 = Math.max(0, Math.floor(py - r - 0.5)), y1 = Math.min(S - 1, Math.ceil(py + r + 0.5));
+    for (let y = y0; y <= y1; y++) {
+      const dy = y + 0.5 - py;
+      for (let x = x0; x <= x1; x++) {
+        const dx = x + 0.5 - px;
+        const cov = r + 0.5 - Math.sqrt(dx * dx + dy * dy);
+        if (cov <= 0) continue;
+        const v = (cov >= 1 ? a : a * cov) * 255;
+        const i = (y * S + x) * 4;
+        if (v <= buf[i + 3]) continue;
+        buf[i] = cr; buf[i + 1] = cg; buf[i + 2] = cb; buf[i + 3] = v;
       }
-    pctx.clearRect(0, 0, S, S);
-    pctx.globalAlpha = 0.6;
-    pctx.fillStyle = SEA;
-    pctx.fill(base);
-    pctx.globalAlpha = 1;
-    pctx.fillStyle = ink;
-    pctx.fill(lit);
+    }
+  };
+  const CT = Math.cos(TILT), ST = Math.sin(TILT);
+  // a point in HOME's frame → [screen x, screen y (up), depth], unit sphere
+  const proj = (x, y, z, ch, sh) => {
+    const a = x * sh + y * ch; // along the heading
+    return [x * ch - y * sh, a * CT - z * ST, a * ST + z * CT];
+  };
+  // a point on the ground at bearing b (radians from north), angle d from HOME
+  const ground = (b, d) => [Math.sin(b) * Math.sin(d), Math.cos(b) * Math.sin(d), Math.cos(d)];
+  // the light: from the upper left, a little in front
+  const LX = -0.4, LY = 0.5, LZ = 0.77;
 
-    /* the rim, and the rose turning on it: a grey tick every ten
-       degrees, longer every thirty, and the four cardinal points in
-       amber with their letters set tangent to the ring, north biggest */
-    pctx.globalAlpha = 0.35;
+  const drawPic = () => {
+    const cx = S / 2, cy = S / 2;
+    const R = S / 2 - 3 * dpr; // the globe all but fills the square now — the rose is on it
+    if (R <= 0) return; // not laid out yet: the frame had no size when resize() ran
+    if (dotsR !== R) {
+      // enough dots that neighbours sit SPACING apart where the disc faces you
+      const Rc = R / dpr;
+      dots = lattice(Math.min(20000, Math.round((4 * Math.PI * Rc * Rc) / (SPACING * SPACING))));
+      dotsR = R;
+      picKey = "";
+    }
+    if (!img || img.width !== S) {
+      dotCv.width = dotCv.height = S;
+      img = dctx.createImageData(S, S);
+      buf = img.data;
+    }
+    // nothing moved, nothing to draw
+    const pk = `${pos}|${lockA > 0.001 ? lockA.toFixed(3) : 0}|${notch}|${amber}|${fg}|${ink}|${S}`;
+    if (pk === picKey) return;
+    picKey = pk;
+
+    const h = (pos * DEG * Math.PI) / 180;
+    const ch = Math.cos(h), sh = Math.sin(h);
+    const X = (sx) => cx + sx * R, Y = (sy) => cy - sy * R;
+    pctx.clearRect(0, 0, S, S);
+
+    // the body: a touch of sea toward the limb, the air on the rim
+    const body = pctx.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R);
+    body.addColorStop(0, "rgba(37,99,235,0.05)");
+    body.addColorStop(0.8, "rgba(37,99,235,0.03)");
+    body.addColorStop(1, "rgba(37,99,235,0.2)");
+    pctx.globalAlpha = 1;
+    pctx.fillStyle = body;
+    pctx.beginPath();
+    pctx.arc(cx, cy, R, 0, Math.PI * 2);
+    pctx.fill();
+
+    // the dots
+    const sp = SPACING * dpr;
+    const [ir, ig, ib] = inkV;
+    buf.fill(0);
+    for (let j = 0; j < dots.length; j += 4) {
+      const x = dots[j], y = dots[j + 1], z = dots[j + 2];
+      const a = x * sh + y * ch;
+      const dep = a * ST + z * CT;
+      if (dep <= 0.02) continue; // round the back
+      const sx = x * ch - y * sh, sy = a * CT - z * ST;
+      const px = cx + sx * R, py = cy - sy * R;
+      if (dots[j + 3]) {
+        const lit = Math.max(0, LX * sx + LY * sy + LZ * dep);
+        const b = Math.pow(dep, 0.5) * (0.35 + 0.65 * lit);
+        const r = sp * 0.36 * (0.35 + 0.65 * Math.sqrt(dep)); // shrinks as it turns away
+        stamp(px, py, r, 0.18 + 0.82 * Math.min(1, b), ir, ig, ib);
+      } else {
+        stamp(px, py, sp * 0.14 * (0.4 + 0.6 * dep), 0.5 * (0.25 + 0.75 * dep), SEAV[0], SEAV[1], SEAV[2]);
+      }
+    }
+    dctx.putImageData(img, 0, 0);
+    pctx.drawImage(dotCv, 0, 0);
+
+    // the rim
+    pctx.globalAlpha = 0.3;
     pctx.strokeStyle = fg;
     pctx.lineWidth = 1 * dpr;
     pctx.beginPath();
     pctx.arc(cx, cy, R, 0, Math.PI * 2);
     pctx.stroke();
+
+    /* the rose, lying on the ground round you: a ring at RING from lagos,
+       a grey tick every ten degrees, longer every thirty, and the four
+       cardinal points in amber, their letters flattened onto the ground */
     pctx.lineCap = "round";
+    pctx.globalAlpha = 0.45;
+    pctx.strokeStyle = fg;
+    pctx.lineWidth = 1 * dpr;
+    pctx.beginPath();
+    for (let k = 0; k <= 72; k++) {
+      const [sx, sy] = proj(...ground((k * Math.PI) / 36, RING), ch, sh);
+      if (k) pctx.lineTo(X(sx), Y(sy));
+      else pctx.moveTo(X(sx), Y(sy));
+    }
+    pctx.stroke();
     for (let k = 0; k < 36; k++) {
       if (k % 9 === 0) continue; // the cardinals, below
-      const a = th + (k * Math.PI) / 18; // 0 north, clockwise
-      const dx = Math.sin(a), dy = -Math.cos(a);
-      const len = (k % 3 === 0 ? 5 : 3) * dpr;
-      pctx.globalAlpha = k % 3 === 0 ? 0.6 : 0.35;
-      pctx.strokeStyle = fg;
+      const b = (k * Math.PI) / 18;
+      const long = k % 3 === 0;
+      const [x0, y0] = proj(...ground(b, RING), ch, sh);
+      const [x1, y1] = proj(...ground(b, RING + (long ? 0.07 : 0.04)), ch, sh);
+      pctx.globalAlpha = long ? 0.7 : 0.4;
       pctx.lineWidth = 1.2 * dpr;
       pctx.beginPath();
-      pctx.moveTo(cx + dx * (R + 2 * dpr), cy + dy * (R + 2 * dpr));
-      pctx.lineTo(cx + dx * (R + 2 * dpr + len), cy + dy * (R + 2 * dpr + len));
+      pctx.moveTo(X(x0), Y(y0));
+      pctx.lineTo(X(x1), Y(y1));
       pctx.stroke();
     }
     pctx.textAlign = "center";
     pctx.textBaseline = "middle";
     for (let k = 0; k < 4; k++) {
-      const a = th + (k * Math.PI) / 2;
-      const dx = Math.sin(a), dy = -Math.cos(a);
-      const len = (k === 0 ? 7 : 5) * dpr;
+      const b = (k * Math.PI) / 2;
       // the one under the indicator lights green when the dial rests on it
       const hit = lockA > 0.01 && wrap(notch) === k * 90;
       const col = hit ? mix(amberV, greenV, lockA) : amber;
+      const [x0, y0] = proj(...ground(b, RING), ch, sh);
+      const [x1, y1] = proj(...ground(b, RING + 0.1), ch, sh);
+      const [lx, ly, ld] = proj(...ground(b, RING + 0.2), ch, sh);
       pctx.globalAlpha = 1;
       pctx.strokeStyle = col;
       pctx.lineWidth = 2.2 * dpr;
       pctx.beginPath();
-      pctx.moveTo(cx + dx * (R + 1 * dpr), cy + dy * (R + 1 * dpr));
-      pctx.lineTo(cx + dx * (R + 1 * dpr + len), cy + dy * (R + 1 * dpr + len));
+      pctx.moveTo(X(x0), Y(y0));
+      pctx.lineTo(X(x1), Y(y1));
       pctx.stroke();
+      // the letter stands upright to stay legible, squashed by how far the
+      // ground there faces away, so it still reads as lying on it
       pctx.fillStyle = col;
       pctx.font = `700 ${(k === 0 ? 15 : 13) * dpr}px ${font}`;
       pctx.save();
-      pctx.translate(cx + dx * (R + 15 * dpr), cy + dy * (R + 15 * dpr));
-      pctx.rotate(a);
+      pctx.translate(X(lx), Y(ly));
+      pctx.scale(1, 0.55 + 0.45 * ld);
       pctx.fillText(CARDINAL[k * 90], 0, 0);
       pctx.restore();
     }
 
-    /* you, fixed at the centre, always facing up */
+    /* you, at lagos, facing up the screen — the way you're heading */
+    const [hx, hy] = proj(0, 0, 1, ch, sh);
+    const [fx, fy] = proj(sh * 0.12, ch * 0.12, Math.cos(0.12), ch, sh);
     pctx.globalAlpha = 1;
     pctx.fillStyle = green;
     pctx.strokeStyle = green;
     pctx.lineWidth = 1.6 * dpr;
     pctx.beginPath();
-    pctx.arc(cx, cy, 4 * dpr, 0, Math.PI * 2);
+    pctx.arc(X(hx), Y(hy), 4 * dpr, 0, Math.PI * 2);
     pctx.fill();
     pctx.beginPath();
-    pctx.moveTo(cx, cy - 7 * dpr);
-    pctx.lineTo(cx, cy - 13 * dpr);
+    pctx.moveTo(X(hx), Y(hy) - 7 * dpr);
+    pctx.lineTo(X(fx), Y(fy));
     pctx.stroke();
   };
+
+  /* ---- the wake: ticks near the indicator rise and whiten as they pass
+     under it, and fall back slower than they rose, so a moving tape drags
+     a short bright swell along with it ------------------------------------ */
+  const glow = new Map(); // tick index → 0..1
+  const REACH = 4.5; // ticks either side the swell reaches
 
   /* ---- frame ------------------------------------------------------------- */
   let raf = 0, last = 0, alive = true;
@@ -548,6 +655,24 @@ export function mount(el) {
     ctx.lineCap = "round";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
+    // the swell: each tick eases toward its closeness to the indicator,
+    // quick to rise, slow to fall, so it trails behind a moving tape
+    const rise = reduceMotion ? 1 : 1 - Math.exp(-dt * 26);
+    const fall = reduceMotion ? 1 : 1 - Math.exp(-dt * 5);
+    for (const [i, g] of glow) {
+      if (Math.abs(i - pos) < REACH + 1) continue; // updated below
+      const g2 = g - g * fall;
+      if (g2 < 0.004) glow.delete(i);
+      else glow.set(i, g2);
+    }
+    for (let i = Math.ceil(pos - REACH - 1); i <= Math.floor(pos + REACH + 1); i++) {
+      const d = Math.min(1, Math.abs(i - pos) / REACH);
+      const t = Math.pow(1 - d, 1.6); // closeness, sharp at the middle
+      const g = glow.get(i) || 0;
+      const g2 = g + (t - g) * (t > g ? rise : fall);
+      if (g2 < 0.004) glow.delete(i);
+      else glow.set(i, g2);
+    }
     for (let i = first; i <= lastI; i++) {
       const a = ((i - pos) * gap) / DR; // angle round the drum
       const k = Math.cos(a); // 1 at the centre → 0 at the rim
@@ -555,10 +680,11 @@ export function mount(el) {
       const x = cx + DR * Math.sin(a);
       const w = wrap(i);
       const c = CARDINAL[w];
-      const h = (c ? 32 : i % 5 === 0 ? 24 : 14) * dpr * (0.4 + 0.75 * k); // 1.15× proud at the centre
-      ctx.strokeStyle = c ? amber : fg;
-      ctx.globalAlpha = 0.04 + 0.96 * Math.pow(k, 2.2); // all but gone at the rim
-      ctx.lineWidth = (c ? 2.4 : i % 5 === 0 ? 2 : 1.6) * dpr * (0.6 + 0.4 * k);
+      const g = glow.get(i) || 0;
+      const h = Math.min(30, (c ? 19 : i % 5 === 0 ? 14 : 10.5) * (0.4 + 0.75 * k) * (1 + 0.75 * g)) * dpr; // the swell lifts it, never past the indicator (34)
+      ctx.strokeStyle = c ? amber : mix(dimV, inkV, g); // dull grey, whitening as it nears
+      ctx.globalAlpha = Math.min(1, 0.04 + 0.96 * Math.pow(k, 2.2) + 0.3 * g); // all but gone at the rim
+      ctx.lineWidth = (c ? 3 : i % 5 === 0 ? 2.5 : 2) * dpr * (0.6 + 0.4 * k) * (1 + 0.5 * g);
       ctx.beginPath();
       ctx.moveTo(x, cy - h / 2);
       ctx.lineTo(x, cy + h / 2);
@@ -567,7 +693,7 @@ export function mount(el) {
         ctx.fillStyle = c ? amber : fg;
         ctx.font = c ? `700 ${15 * dpr}px ${font}` : `${10.5 * dpr}px ${font}`;
         ctx.save();
-        ctx.translate(x, cy + 28 * dpr); // clear of the indicator
+        ctx.translate(x, cy + 23 * dpr); // clear of the indicator
         ctx.scale(k * (0.85 + 0.3 * k), 0.7 + 0.45 * k); // foreshortened round the drum, 1.15× in the middle
         ctx.fillText(c || String(w), 0, 0);
         ctx.restore();
@@ -575,10 +701,10 @@ export function mount(el) {
     }
     ctx.globalAlpha = 1;
     ctx.strokeStyle = mix(REDV, greenV, lockA);
-    ctx.lineWidth = 3 * dpr;
+    ctx.lineWidth = 4 * dpr;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 24 * dpr);
-    ctx.lineTo(cx, cy + 21 * dpr);
+    ctx.moveTo(cx, cy - 18 * dpr);
+    ctx.lineTo(cx, cy + 16 * dpr);
     ctx.stroke();
 
     raf = requestAnimationFrame(frame);
